@@ -1,4 +1,4 @@
-package main
+package withings
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 
 // curl --header "Authorization: Bearer YOUR_ACCESS_TOKEN" --data "action=getsummary&startdateymd=2020-07-01&enddateymd=2020-07-02" 'https://wbsapi.withings.net/v2/sleep '
 
-func SleepGetSummary() {
+func (c *Client) SleepGetSummary(accessToken string) {
 	form := url.Values{}
 	form.Add("action", "getsummary")
 	form.Add("startdateymd", "2021-09-01")
@@ -19,13 +19,13 @@ func SleepGetSummary() {
 
 	req, err := http.NewRequest(
 		"POST",
-		"https://wbsapi.withings.net/v2/sleep",
+		APIBase+"/v2/sleep",
 		nil)
 	if err != nil {
 		log.Println(err)
 	}
 	req.URL.RawQuery = form.Encode()
-	req.Header.Add("Authorization", "Bearer " + token.AccessToken)
+	req.Header.Add("Authorization", "Bearer "+accessToken)
 	fmt.Println(req)
 
 	resp, err := http.DefaultClient.Do(req)
@@ -36,4 +36,3 @@ func SleepGetSummary() {
 	fmt.Println(string(respBody))
 	fmt.Println(resp.Header)
 }
-
