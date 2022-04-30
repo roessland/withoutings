@@ -1,7 +1,8 @@
 package app
 
 import (
-	"github.com/gorilla/sessions"
+	"github.com/roessland/withoutings/server/sessions"
+	"github.com/roessland/withoutings/server/templates"
 	"github.com/roessland/withoutings/withings"
 	"github.com/sirupsen/logrus"
 	"os"
@@ -10,8 +11,8 @@ import (
 type App struct {
 	Log            logrus.FieldLogger
 	WithingsClient *withings.Client
-	SessionKey     []byte
-	CookieStore    *sessions.CookieStore
+	Sessions       *sessions.Manager
+	Templates      templates.Templates
 }
 
 func NewApp() *App {
@@ -20,11 +21,11 @@ func NewApp() *App {
 	logger := logrus.New()
 	app.Log = logger
 
-	app.SessionKey = []byte(os.Getenv("SESSION_KEY"))
-	if len(app.SessionKey) == 0 {
+	sessionKey := []byte(os.Getenv("SESSION_KEY"))
+	if len(sessionKey) == 0 {
 		app.Log.Fatal("SESSION_KEY missing")
 	}
-	app.CookieStore = sessions.NewCookieStore(app.SessionKey)
+	app.Sessions = sessions.NewManager(sessionKey)
 
 	withingsClientID := os.Getenv("WITHINGS_CLIENT_ID")
 	if withingsClientID == "" {
@@ -33,7 +34,7 @@ func NewApp() *App {
 
 	withingsClientSecret := os.Getenv("WITHINGS_CLIENT_SECRET")
 	if withingsClientSecret == "" {
-		app.Log.Fatal("WITHINGS_CLIENT_SECRE missing")
+		app.Log.Fatal("WITHINGS_CLIENT_SECRET missing")
 	}
 
 	withingsRedirectURL := os.Getenv("WITHINGS_REDIRECT_URL")
@@ -42,6 +43,8 @@ func NewApp() *App {
 	}
 
 	app.WithingsClient = withings.NewClient(withingsClientID, withingsClientSecret, withingsRedirectURL)
+
+	app.Templates = templates.LoadTemplates()
 
 	return &app
 }

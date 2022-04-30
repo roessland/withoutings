@@ -1,13 +1,17 @@
 package withings
 
-import "math/rand"
-
-const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+import (
+	"crypto/rand"
+	"encoding/base64"
+	"strings"
+)
 
 func RandomNonce() string {
-	b := make([]byte, 10)
-	for i := range b {
-		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	b := make([]byte, 9)
+	_, err := rand.Read(b)
+	if err != nil {
+		panic(err)
 	}
-	return string(b)
+
+	return strings.TrimRight(base64.StdEncoding.EncodeToString(b), "=")
 }

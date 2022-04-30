@@ -26,13 +26,7 @@ func NewClient(clientID, clientSecret, redirectURL string) *Client {
 		Timeout: time.Second * 10,
 	}
 
-	c.OAuth2Config = NewConfig(clientID, clientSecret, redirectURL)
-
-	return &c
-}
-
-func NewConfig(clientID, clientSecret, redirectURL string) oauth2.Config {
-	return oauth2.Config{
+	c.OAuth2Config = oauth2.Config{
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		Scopes:       OAuth2Scopes,
@@ -42,4 +36,6 @@ func NewConfig(clientID, clientSecret, redirectURL string) oauth2.Config {
 			TokenURL: OAuth2TokenURL,
 		},
 	}
+
+	return &c
 }

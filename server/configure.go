@@ -12,8 +12,10 @@ import (
 func Configure(app *app.App) *http.Server {
 	r := mux.NewRouter()
 	r.HandleFunc("/health", handlers.Health(app))
-	r.HandleFunc("/auth/callback", handlers.Callback(app))
 	r.HandleFunc("/", handlers.HomePage(app))
+	r.HandleFunc("/auth/login", handlers.Login(app))
+	r.HandleFunc("/auth/callback", handlers.Callback(app))
+
 	r.Use(
 		middleware.Logging(app),
 	)
