@@ -3,7 +3,7 @@ package handlers
 import (
 	"github.com/roessland/withoutings/middleware"
 	"github.com/roessland/withoutings/server/app"
-	"github.com/roessland/withoutings/withings"
+	"github.com/roessland/withoutings/withingsOld"
 	"net/http"
 )
 
@@ -22,7 +22,7 @@ func Login(app *app.App) http.HandlerFunc {
 		}
 
 		// Save state to cookie. It will be verified in the callback handler.
-		nonce := withings.RandomNonce()
+		nonce := withingsOld.RandomNonce()
 		sess.SetState(nonce)
 		err = sess.Save(r, w)
 		if err != nil {
