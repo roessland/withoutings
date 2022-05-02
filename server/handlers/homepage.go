@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"github.com/roessland/withoutings/middleware"
 	"github.com/roessland/withoutings/server/app"
 	"net/http"
@@ -19,6 +20,17 @@ func HomePage(app *app.App) http.HandlerFunc {
 		}
 
 		token := sess.Token()
+
+		apiReq := app.WithingsClient.API.SleepApi.Sleepv2Getsummary(ctx).
+			Startdateymd("2021-09-01").
+			Enddateymd("2021-10-01").
+			DataFields("total_sleep_time").
+			Lastupdate(0).
+			Authorization("Bearer " + token.AccessToken)
+		apiResp, httpResp, apiErr := apiReq.Execute()
+		fmt.Println(apiResp)
+		fmt.Println(httpResp)
+		fmt.Println(apiErr)
 
 		w.Header().Set("Content-Type", "text/html")
 		err = app.Templates.RenderHomePage(w, token)
