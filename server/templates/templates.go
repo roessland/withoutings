@@ -25,11 +25,13 @@ func LoadTemplates() Templates {
 }
 
 type HomePageVars struct {
-	Token *withings.Token
+	Token     *withings.Token
+	SleepData interface{}
 }
 
-func (t Templates) RenderHomePage(w io.Writer, token *withings.Token) error {
+func (t Templates) RenderHomePage(w io.Writer, token *withings.Token, sleepData interface{}) error {
 	return t.template.ExecuteTemplate(w, "homepage.tmpl", HomePageVars{
-		Token: token,
+		Token:     token,
+		SleepData: sleepData,
 	})
 }

@@ -1,8 +1,9 @@
 package withings
 
 import (
-	"github.com/roessland/withoutings/withingsapi/openapi"
+	"github.com/roessland/withoutings/withingsapi2/openapi2"
 	"golang.org/x/oauth2"
+	"log"
 	"net/http"
 	"time"
 )
@@ -12,7 +13,7 @@ const APIBase = "https://wbsapi.withings.net"
 type Client struct {
 	HTTPClient   *http.Client
 	OAuth2Config oauth2.Config
-	API          *openapi.APIClient
+	API2         *openapi2.Client
 }
 
 func NewClient(clientID, clientSecret, redirectURL string) *Client {
@@ -29,12 +30,11 @@ func NewClient(clientID, clientSecret, redirectURL string) *Client {
 		Timeout: time.Second * 10,
 	}
 
-	apiCfg := openapi.NewConfiguration()
-	apiCfg.UserAgent = "aros@hey.com-openapi-golang"
-	apiCfg.Debug = true
-	apiCfg.HTTPClient = c.HTTPClient
-
-	c.API = openapi.NewAPIClient(apiCfg)
+	var err error
+	c.API2, err = openapi2.NewClient(APIBase, openapi2.WithHTTPClient(c.HTTPClient))
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	c.OAuth2Config = oauth2.Config{
 		ClientID:     clientID,

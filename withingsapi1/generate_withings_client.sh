@@ -4,4 +4,4 @@ docker run --rm \
     openapitools/openapi-generator-cli generate \
     -i /local/withings-swagger-v3.0.3-fixed.json \
     -g go \
-    -o /local/internal
+    -o /local/openapi1
