@@ -5,21 +5,12 @@ import (
 	"context"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/roessland/withoutings/logging"
 	"github.com/roessland/withoutings/server/app"
-	"github.com/sirupsen/logrus"
 	"net/http"
 )
 
 var ContextKeyRequestID = "requestID"
-var ContextKeyLogger = "logger"
-
-func MustGetLoggerFromContext(ctx context.Context) logrus.FieldLogger {
-	log, ok := ctx.Value(ContextKeyLogger).(logrus.FieldLogger)
-	if !ok {
-		panic("no logger on context")
-	}
-	return log
-}
 
 func Logging(app *app.App) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
@@ -33,7 +24,7 @@ func Logging(app *app.App) mux.MiddlewareFunc {
 			log = log.WithField("requestID", requestID)
 			log = log.WithField("url", r.URL.String())
 
-			ctx = context.WithValue(ctx, ContextKeyLogger, log)
+			ctx = logging.AddLoggerToContext(ctx, log)
 
 			log.WithField("event", "request.start").
 				WithField("headers", r.Header).
@@ -43,6 +34,7 @@ func Logging(app *app.App) mux.MiddlewareFunc {
 			next.ServeHTTP(responseRecorder, r.WithContext(ctx))
 
 			log.WithField("headers", responseRecorder.Header()).
+				WithField("response_status", responseRecorder.StatusCode()).
 				WithField("event", "request.finish").
 				Info()
 		})

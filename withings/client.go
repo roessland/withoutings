@@ -21,13 +21,13 @@ func NewClient(clientID, clientSecret, redirectURL string) *Client {
 
 	c.HTTPClient = &http.Client{
 		Transport: &http.Transport{
-			TLSHandshakeTimeout:   5 * time.Second,
+			TLSHandshakeTimeout:   10 * time.Second,
 			MaxIdleConns:          5,
 			MaxConnsPerHost:       10,
-			IdleConnTimeout:       5 * time.Second,
-			ResponseHeaderTimeout: 5 * time.Second,
+			IdleConnTimeout:       10 * time.Second,
+			ResponseHeaderTimeout: 10 * time.Second,
 		},
-		Timeout: time.Second * 10,
+		Timeout: time.Second * 20,
 	}
 
 	var err error

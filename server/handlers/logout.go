@@ -3,36 +3,31 @@ package handlers
 import (
 	"github.com/roessland/withoutings/logging"
 	"github.com/roessland/withoutings/server/app"
-	"github.com/roessland/withoutings/withingsOld"
 	"net/http"
 )
 
-// Login logs users in via Withings OAuth2.
-func Login(app *app.App) http.HandlerFunc {
+// Logout logs users out via Withings OAuth2.
+func Logout(app *app.App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		log := logging.MustGetLoggerFromContext(ctx)
 
 		sess, err := app.Sessions.Get(r)
+		sess.Options.MaxAge = -1
 		if err != nil {
-			log.WithField("event", "error.login.getsession").
+			log.WithField("event", "error.logout.getsession").
 				WithError(err).Error()
 			http.Error(w, "Invalid cookie", http.StatusBadRequest)
 			return
 		}
 
-		// Save state to cookie. It will be verified in the callback handler.
-		nonce := withingsOld.RandomNonce()
-		sess.SetState(nonce)
 		err = sess.Save(r, w)
 		if err != nil {
-			log.WithField("event", "error.login.setcookie").
+			log.WithField("event", "error.logout.savesession").
 				WithError(err).Error()
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
-
-		authCodeURL := app.Withings.AuthCodeURL(nonce)
-		http.Redirect(w, r, authCodeURL, http.StatusFound)
+		http.Redirect(w, r, "/", http.StatusFound)
 	}
 }

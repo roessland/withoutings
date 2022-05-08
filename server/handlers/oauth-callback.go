@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"github.com/roessland/withoutings/middleware"
+	"github.com/roessland/withoutings/logging"
 	"github.com/roessland/withoutings/server/app"
 	"net/http"
 )
@@ -11,7 +11,7 @@ import (
 func Callback(app *app.App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		log := middleware.MustGetLoggerFromContext(ctx)
+		log := logging.MustGetLoggerFromContext(ctx)
 
 		err := r.ParseForm()
 		if err != nil {
@@ -43,7 +43,7 @@ func Callback(app *app.App) http.HandlerFunc {
 			http.Error(w, "Code not found", http.StatusBadRequest)
 			return
 		}
-		token, err := app.WithingsClient.GetAccessToken(ctx, code)
+		token, err := app.Withings.GetAccessToken(ctx, code)
 		if err != nil {
 			log.WithError(err).
 				WithField("event", "error.callback.getaccesstoken").

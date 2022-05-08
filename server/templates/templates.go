@@ -25,13 +25,38 @@ func LoadTemplates() Templates {
 }
 
 type HomePageVars struct {
+	Error     string
 	Token     *withings.Token
 	SleepData interface{}
 }
 
-func (t Templates) RenderHomePage(w io.Writer, token *withings.Token, sleepData interface{}) error {
-	return t.template.ExecuteTemplate(w, "homepage.tmpl", HomePageVars{
-		Token:     token,
+func (t Templates) RenderHomePage(w io.Writer, token *withings.Token) error {
+	return t.template.ExecuteTemplate(w, "homepage.gohtml", HomePageVars{
+		Token: token,
+	})
+}
+
+type SleepSummariesVars struct {
+	Error     string
+	Token     *withings.Token
+	SleepData interface{}
+}
+
+func (t Templates) RenderSleepSummaries(w io.Writer, sleepData interface{}, err string) error {
+	return t.template.ExecuteTemplate(w, "sleepsummaries.gohtml", SleepSummariesVars{
 		SleepData: sleepData,
+		Error:     err,
+	})
+}
+
+type RefreshAccessTokenVars struct {
+	Error            string
+	Token, PrevToken *withings.Token
+}
+
+func (t Templates) RenderRefreshAccessToken(w io.Writer, token, prevToken *withings.Token) error {
+	return t.template.ExecuteTemplate(w, "refreshaccesstoken.gohtml", RefreshAccessTokenVars{
+		Token:     token,
+		PrevToken: prevToken,
 	})
 }

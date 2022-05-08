@@ -1,0 +1,13 @@
+{{define "header"}}
+    <div>
+        <ul>
+            <li><a href="/auth/login">Login</a></li>
+            <li><a href="/auth/logout">Logout</a></li>
+            <li><a href="/auth/refresh">Refresh access token</a></li>
+
+            <li><a href="/sleepsummaries">Sleep summaries</a></li>
+        </ul>
+    </div>
+    <hr>
+    <b>{{.Error}}</b>
+{{end}}

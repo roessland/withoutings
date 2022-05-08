@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/roessland/withoutings/server/domain/services"
 	"github.com/roessland/withoutings/server/sessions"
 	"github.com/roessland/withoutings/server/templates"
 	"github.com/roessland/withoutings/withings"
@@ -9,10 +10,11 @@ import (
 )
 
 type App struct {
-	Log            logrus.FieldLogger
-	WithingsClient *withings.Client
-	Sessions       *sessions.Manager
-	Templates      templates.Templates
+	Log       logrus.FieldLogger
+	Withings  *withings.Client
+	Sessions  *sessions.Manager
+	Templates templates.Templates
+	Sleep     *services.Sleep
 }
 
 func NewApp() *App {
@@ -42,9 +44,11 @@ func NewApp() *App {
 		app.Log.Fatal("WITHINGS_REDIRECT_URL missing")
 	}
 
-	app.WithingsClient = withings.NewClient(withingsClientID, withingsClientSecret, withingsRedirectURL)
+	app.Withings = withings.NewClient(withingsClientID, withingsClientSecret, withingsRedirectURL)
 
 	app.Templates = templates.LoadTemplates()
+
+	app.Sleep = services.NewSleep(app.Withings)
 
 	return &app
 }
