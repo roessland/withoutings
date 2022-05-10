@@ -1,5 +1,5 @@
 oapi-codegen \
   -generate types,client \
-  -package openapi2 \
+  -package openapi \
   withings-swagger-v3.0.3-fixed.json \
-   > openapi2/generated.go
+   > ../generated.go

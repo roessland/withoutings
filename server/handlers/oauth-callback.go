@@ -2,13 +2,13 @@ package handlers
 
 import (
 	"github.com/roessland/withoutings/logging"
-	"github.com/roessland/withoutings/server/app"
+	"github.com/roessland/withoutings/server/serverapp"
 	"net/http"
 )
 
 // Callback is used for OAuth2 callbacks,
 // but also for event notifications.
-func Callback(app *app.App) http.HandlerFunc {
+func Callback(app *serverapp.App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		log := logging.MustGetLoggerFromContext(ctx)

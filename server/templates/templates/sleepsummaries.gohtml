@@ -2,4 +2,23 @@
 
 
 <br>Sleep data:
-<pre>{{.SleepData}}</pre>
+
+{{ range $_, $value := .SleepData.Summaries }}
+    <li>
+        <strong>{{ $value.Date }}</strong>: {{ $value.SleepScore }}
+        <div class="sleepscore-hbar"
+             style="width: {{ $value.SleepScore }}px;">
+        </div>
+        {{ $value.TotalSleepTime }}
+    </li>
+{{ end }}
+
+
+<pre>
+    <code>
+    {{.SleepData.Raw}}
+    </code>
+</pre>
+
+
+{{template "footer" .}}

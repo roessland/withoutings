@@ -2,6 +2,7 @@ package templates
 
 import (
 	"embed"
+	"github.com/roessland/withoutings/domain/services/sleep"
 	"github.com/roessland/withoutings/withings"
 	"html/template"
 	"io"
@@ -42,7 +43,7 @@ type SleepSummariesVars struct {
 	SleepData interface{}
 }
 
-func (t Templates) RenderSleepSummaries(w io.Writer, sleepData interface{}, err string) error {
+func (t Templates) RenderSleepSummaries(w io.Writer, sleepData *sleep.GetSleepSummaryOutput, err string) error {
 	return t.template.ExecuteTemplate(w, "sleepsummaries.gohtml", SleepSummariesVars{
 		SleepData: sleepData,
 		Error:     err,

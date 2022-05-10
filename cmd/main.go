@@ -2,15 +2,19 @@ package main
 
 import (
 	"github.com/roessland/withoutings/server"
-	"github.com/roessland/withoutings/server/app"
+	"github.com/roessland/withoutings/server/serverapp"
+	"github.com/roessland/withoutings/worker/workerapp"
 	"log"
 )
 
 func main() {
-	app := app.NewApp()
-	srv := server.Configure(app)
+	serverApp := serverapp.NewApp()
+	srv := server.Configure(serverApp)
+
+	workerApp := workerapp.NewApp()
+	go workerApp.Work()
 
 	// 3 - We start up our Client on port 9094
-	app.Log.Print("Serving at ", srv.Addr)
+	serverApp.Log.Print("Serving at ", srv.Addr)
 	log.Fatal(srv.ListenAndServe())
 }

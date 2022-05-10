@@ -1,33 +1,27 @@
-package app
+package workerapp
 
 import (
-	"github.com/roessland/withoutings/server/domain/services"
-	"github.com/roessland/withoutings/server/sessions"
-	"github.com/roessland/withoutings/server/templates"
+	"github.com/hibiken/asynq"
+	"github.com/roessland/withoutings/tasks"
 	"github.com/roessland/withoutings/withings"
 	"github.com/sirupsen/logrus"
+	"log"
 	"os"
 )
 
 type App struct {
-	Log       logrus.FieldLogger
-	Withings  *withings.Client
-	Sessions  *sessions.Manager
-	Templates templates.Templates
-	Sleep     *services.Sleep
+	Log      logrus.FieldLogger
+	Withings *withings.Client
+	Async    *asynq.Client
 }
+
+const redisAddr = "127.0.0.1:6379"
 
 func NewApp() *App {
 	app := App{}
 
 	logger := logrus.New()
 	app.Log = logger
-
-	sessionKey := []byte(os.Getenv("SESSION_KEY"))
-	if len(sessionKey) == 0 {
-		app.Log.Fatal("SESSION_KEY missing")
-	}
-	app.Sessions = sessions.NewManager(sessionKey)
 
 	withingsClientID := os.Getenv("WITHINGS_CLIENT_ID")
 	if withingsClientID == "" {
@@ -46,9 +40,34 @@ func NewApp() *App {
 
 	app.Withings = withings.NewClient(withingsClientID, withingsClientSecret, withingsRedirectURL)
 
-	app.Templates = templates.LoadTemplates()
-
-	app.Sleep = services.NewSleep(app.Withings)
+	app.Async = asynq.NewClient(asynq.RedisClientOpt{
+		Addr: redisAddr,
+	})
 
 	return &app
+}
+
+func (app *App) Close() {
+	err := app.Async.Close()
+	if err != nil {
+		app.Log.Print(err)
+	}
+}
+
+func (app *App) Work() {
+	asyncSrv := asynq.NewServer(
+		asynq.RedisClientOpt{
+			Addr: redisAddr,
+		},
+		asynq.Config{
+			Concurrency: 10,
+		},
+	)
+
+	mux := asynq.NewServeMux()
+	mux.Handle(tasks.TypeWithingsAPICall, tasks.NewWithingsAPICallProcessor())
+
+	if err := asyncSrv.Run(mux); err != nil {
+		log.Fatalf("could not run server: %v", err)
+	}
 }

@@ -3,16 +3,18 @@ package server
 import (
 	"github.com/gorilla/mux"
 	"github.com/roessland/withoutings/middleware"
-	"github.com/roessland/withoutings/server/app"
 	"github.com/roessland/withoutings/server/handlers"
+	"github.com/roessland/withoutings/server/serverapp"
+	"github.com/roessland/withoutings/server/static"
 	"net/http"
 	"time"
 )
 
-func Configure(app *app.App) *http.Server {
+func Configure(app *serverapp.App) *http.Server {
 	r := mux.NewRouter()
 	r.HandleFunc("/health", handlers.Health(app))
 	r.HandleFunc("/", handlers.HomePage(app))
+	r.PathPrefix("/static/").Handler(http.FileServer(http.FS(static.FS)))
 
 	r.HandleFunc("/auth/login", handlers.Login(app))
 	r.HandleFunc("/auth/logout", handlers.Logout(app))

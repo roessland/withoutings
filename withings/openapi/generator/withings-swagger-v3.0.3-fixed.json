@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "servers": [
     {
-      "url": "https://wbsapi.withings.net/"
+      "url": "https://wbsapi.withings.net"
     }
   ],
   "info": {
@@ -74,15 +74,15 @@
       "name": "signature",
       "x-displayName": "Signature",
       "description": "The following services are part of the Logistics APIs. Refer to [this section](/developer-guide/v3/integration-guide/dropship-only/logistics-api/overview-create-order) for more information."
-    },
-    {
-      "name": "measure",
-      "x-displayName": "Measure",
-      "description": "The following services gives access to several types of Health Data collected by a user. The data are only available once a synchronization occured between the device and Withings servers (which might include synchronizing with Withings mobile application or via Withings Mobile SDK)."
     }
   ],
   "paths": {
-    "https://account.withings.com/oauth2_user/authorize2": {
+    "/oauth2_user/authorize2": {
+      "servers": [
+        {
+          "url": "https://account.withings.com"
+        }
+      ],
       "get": {
         "tags": [
           "oauth2"
@@ -154,7 +154,7 @@
         "x-codeSamples": {}
       }
     },
-    " https://wbsapi.withings.net/v2/oauth2": {
+    "/v2/oauth2?action=requesttoken": {
       "post": {
         "tags": [
           "oauth2"
@@ -163,15 +163,6 @@
         "summary": "OAuth 2.0 - Get your access_token",
         "operationId": "oauth2-getaccesstoken",
         "parameters": [
-          {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Must take the string value ```requesttoken```."
-          },
           {
             "name": "client_id",
             "in": "query",
@@ -297,7 +288,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/v2/oauth2\");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'requesttoken',\n\t'grant_type' => 'authorization_code',\n\t'client_id' => '7573fd4a4c421ddd102dac406dc6e0e0e22f683c4a5e81ff0a5caf8b65abed67',\n\t'client_secret' => 'd9286311451fc6ed71b372a075c58c5058be158f56a77865e43ab3783255424f',\n\t'code' => 'mtwsikawoqleuroqcluggflrqilrnqbgqvqeuhhh',\n\t'redirect_uri' => 'https://www.withings.com'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/v2/oauth2\");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'requesttoken',\n\t'grant_type' => 'authorization_code',\n\t'client_id' => '7573fd4a4c421ddd102dac406dc6e0e0e22f683c4a5e81ff0a5caf8b65abed67',\n\t'client_secret' => 'd9286311451fc6ed71b372a075c58c5058be158f56a77865e43ab3783255424f',\n\t'code' => 'mtwsikawoqleuroqcluggflrqilrnqbgqvqeuhhh',\n\t'redirect_uri' => 'https://www.withings.com'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -306,7 +297,7 @@
         ]
       }
     },
-    "https://wbsapi.withings.net/v2/oauth2": {
+    "/v2/oauth2?action=refreshaccesstoken": {
       "post": {
         "tags": [
           "oauth2"
@@ -315,15 +306,6 @@
         "summary": "OAuth 2.0 - Refresh your access_token",
         "operationId": "oauth2-refreshaccesstoken",
         "parameters": [
-          {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Must take the string value ```requesttoken```."
-          },
           {
             "name": "client_id",
             "in": "query",
@@ -440,7 +422,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/v2/oauth2\");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'requesttoken',\n\t'grant_type' => 'refresh_token',\n\t'client_id' => '7573fd4a4c421ddd102dac406dc6e0e0e22f683c4a5e81ff0a5caf8b65abed67',\n\t'client_secret' => 'd9286311451fc6ed71b372a075c58c5058be158f56a77865e43ab3783255424f',\n\t'refresh_token' => '9697c3d06ccfd1ca302f5a527d345a9f99ea88a2'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/v2/oauth2\");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'requesttoken',\n\t'grant_type' => 'refresh_token',\n\t'client_id' => '7573fd4a4c421ddd102dac406dc6e0e0e22f683c4a5e81ff0a5caf8b65abed67',\n\t'client_secret' => 'd9286311451fc6ed71b372a075c58c5058be158f56a77865e43ab3783255424f',\n\t'refresh_token' => '9697c3d06ccfd1ca302f5a527d345a9f99ea88a2'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -449,7 +431,7 @@
         ]
       }
     },
-    "  https://wbsapi.withings.net/v2/oauth2": {
+    "/v2/oauth2?action=recoverauthorizationcode": {
       "post": {
         "tags": [
           "oauth2"
@@ -458,15 +440,6 @@
         "summary": "OAuth 2.0 - Retrieve a new authorization code",
         "operationId": "oauth2-recoverauthorizationcode",
         "parameters": [
-          {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Must take the string value ```recoverauthorizationcode```."
-          },
           {
             "name": "client_id",
             "in": "query",
@@ -541,7 +514,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/v2/oauth2\");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'recoverauthorizationcode',\n\t'client_id' => '7573fd4a4c421ddd102dac406dc6e0e0e22f683c4a5e81ff0a5caf8b65abed67',\n\t'signature' => '58c0c4ad271fb20df9b96c63dc68d6c550c0b7896f743262fc4c5b9261f32ab2',\n\t'nonce' => 'c455541b8f9111689adb647d32fac07a6ffe462d',\n\t'email' => 'recoverauthorizationcode@withings.com'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/v2/oauth2\");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'recoverauthorizationcode',\n\t'client_id' => '7573fd4a4c421ddd102dac406dc6e0e0e22f683c4a5e81ff0a5caf8b65abed67',\n\t'signature' => '58c0c4ad271fb20df9b96c63dc68d6c550c0b7896f743262fc4c5b9261f32ab2',\n\t'nonce' => 'c455541b8f9111689adb647d32fac07a6ffe462d',\n\t'email' => 'recoverauthorizationcode@withings.com'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -550,7 +523,7 @@
         ]
       }
     },
-    "   https://wbsapi.withings.net/v2/oauth2": {
+    "/v2/oauth2?action=getdemoaccess": {
       "post": {
         "tags": [
           "oauth2"
@@ -559,15 +532,6 @@
         "summary": "OAuth 2.0 - Get access to demo account",
         "operationId": "oauth2-getdemoaccess",
         "parameters": [
-          {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Must take the string value ```getdemoaccess```."
-          },
           {
             "name": "client_id",
             "in": "query",
@@ -638,7 +602,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/v2/oauth2\");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'getdemoaccess',\n\t'client_id' => '7573fd4a4c421ddd102dac406dc6e0e0e22f683c4a5e81ff0a5caf8b65abed67',\n\t'signature' => '58c0c4ad271fb20df9b96c63dc68d6c550c0b7896f743262fc4c5b9261f32ab2',\n\t'nonce' => 'c455541b8f9111689adb647d32fac07a6ffe462d',\n\t'scope_oauth2' => 'user.activity,user.metrics'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/v2/oauth2\");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'getdemoaccess',\n\t'client_id' => '7573fd4a4c421ddd102dac406dc6e0e0e22f683c4a5e81ff0a5caf8b65abed67',\n\t'signature' => '58c0c4ad271fb20df9b96c63dc68d6c550c0b7896f743262fc4c5b9261f32ab2',\n\t'nonce' => 'c455541b8f9111689adb647d32fac07a6ffe462d',\n\t'scope_oauth2' => 'user.activity,user.metrics'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -647,7 +611,7 @@
         ]
       }
     },
-    "https://wbsapi.withings.net/measure": {
+    "/measure?action=getmeas": {
       "post": {
         "tags": [
           "measure"
@@ -656,15 +620,6 @@
         "summary": "Measure  - Getmeas",
         "operationId": "measure-getmeas",
         "parameters": [
-          {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Service action name. Must take the string value ```getmeas```."
-          },
           {
             "name": "meastype",
             "in": "query",
@@ -679,7 +634,10 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "list of integers"
+              "type": "array",
+              "items": {
+                "type": "integer"
+              }
             },
             "description": "List of requested measure types (separated by a comma).<br>Ex: meastypes=1,4,12"
           },
@@ -699,8 +657,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "Measures' start date.",
-            "format": "timestamp"
+            "description": "Measures' start date."
           },
           {
             "name": "enddate",
@@ -709,8 +666,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "Measures' end date.",
-            "format": "timestamp"
+            "description": "Measures' end date."
           },
           {
             "name": "offset",
@@ -790,7 +746,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/measure\");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'getmeas',\n\t'meastype' => 'meastype',\n\t'meastypes' => 'meastypes',\n\t'category' => 'category',\n\t'startdate' => 'startdate',\n\t'enddate' => 'enddate',\n\t'offset' => 'offset',\n\t'lastupdate' => 'int'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/measure\");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'getmeas',\n\t'meastype' => 'meastype',\n\t'meastypes' => 'meastypes',\n\t'category' => 'category',\n\t'startdate' => 'startdate',\n\t'enddate' => 'enddate',\n\t'offset' => 'offset',\n\t'lastupdate' => 'int'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -799,7 +755,7 @@
         ]
       }
     },
-    "https://wbsapi.withings.net/notify ": {
+    "/notify?action=get": {
       "post": {
         "tags": [
           "notify"
@@ -808,15 +764,6 @@
         "summary": "Notify  - Get",
         "operationId": "notify-get",
         "parameters": [
-          {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Service action name. Must take the string value ```get```."
-          },
           {
             "name": "callbackurl",
             "in": "query",
@@ -887,7 +834,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/notify \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'get',\n\t'callbackurl' => 'callbackurl',\n\t'appli' => 'appli'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/notify \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'get',\n\t'callbackurl' => 'callbackurl',\n\t'appli' => 'appli'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -896,7 +843,7 @@
         ]
       }
     },
-    "https://wbsapi.withings.net/notify  ": {
+    "/notify?action=list": {
       "post": {
         "tags": [
           "notify"
@@ -905,15 +852,6 @@
         "summary": "Notify  - List",
         "operationId": "notify-list",
         "parameters": [
-          {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Service action name. Must take the string value ```list```."
-          },
           {
             "name": "appli",
             "in": "query",
@@ -967,7 +905,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/notify  \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'list',\n\t'appli' => 'appli'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/notify  \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'list',\n\t'appli' => 'appli'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -976,7 +914,7 @@
         ]
       }
     },
-    "https://wbsapi.withings.net/notify    ": {
+    "/notify?action=revoke": {
       "post": {
         "tags": [
           "notify"
@@ -985,15 +923,6 @@
         "summary": "Notify  - Revoke",
         "operationId": "notify-revoke",
         "parameters": [
-          {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Service action name. Must take the string value ```revoke```."
-          },
           {
             "name": "callbackurl",
             "in": "query",
@@ -1048,7 +977,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/notify    \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'revoke',\n\t'callbackurl' => 'callbackurl',\n\t'appli' => 'appli'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/notify    \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'revoke',\n\t'callbackurl' => 'callbackurl',\n\t'appli' => 'appli'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -1057,7 +986,7 @@
         ]
       }
     },
-    "https://wbsapi.withings.net/notify": {
+    "/notify?action=subscribe": {
       "post": {
         "tags": [
           "notify"
@@ -1066,15 +995,6 @@
         "summary": "Notify  - Subscribe",
         "operationId": "notify-subscribe",
         "parameters": [
-          {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Service action name. Must take the string value ```subscribe```."
-          },
           {
             "name": "callbackurl",
             "in": "query",
@@ -1165,7 +1085,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/notify\");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'subscribe',\n\t'callbackurl' => 'callbackurl',\n\t'appli' => 'appli',\n\t'signature' => 'signature',\n\t'nonce' => 'string',\n\t'client_id' => 'client_id',\n\t'comment' => 'comment'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/notify\");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'subscribe',\n\t'callbackurl' => 'callbackurl',\n\t'appli' => 'appli',\n\t'signature' => 'signature',\n\t'nonce' => 'string',\n\t'client_id' => 'client_id',\n\t'comment' => 'comment'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -1174,7 +1094,7 @@
         ]
       }
     },
-    "https://wbsapi.withings.net/notify   ": {
+    "/notify?action=update": {
       "post": {
         "tags": [
           "notify"
@@ -1183,15 +1103,6 @@
         "summary": "Notify  - Update",
         "operationId": "notify-update",
         "parameters": [
-          {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Service action name. Must take the string value ```update```."
-          },
           {
             "name": "callbackurl",
             "in": "query",
@@ -1273,7 +1184,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/notify   \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'update',\n\t'callbackurl' => 'callbackurl',\n\t'appli' => 'appli',\n\t'new_callbackurl' => 'new_callbackurl',\n\t'new_appli' => 'new_appli',\n\t'comment' => 'comment'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/notify   \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'update',\n\t'callbackurl' => 'callbackurl',\n\t'appli' => 'appli',\n\t'new_callbackurl' => 'new_callbackurl',\n\t'new_appli' => 'new_appli',\n\t'comment' => 'comment'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -1282,7 +1193,7 @@
         ]
       }
     },
-    "https://wbsapi.withings.net/v2/dropshipment": {
+    "/v2/dropshipment?action=createorder": {
       "post": {
         "tags": [
           "dropshipment"
@@ -1291,15 +1202,6 @@
         "summary": "Dropshipment v2  - Createorder",
         "operationId": "dropshipmentv2-createorder",
         "parameters": [
-          {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Service action name. Must take the string value ```createorder```."
-          },
           {
             "name": "client_id",
             "in": "query",
@@ -1332,7 +1234,7 @@
             "in": "query",
             "required": true,
             "schema": {
-              "type": "json"
+              "type": "object"
             },
             "description": "Refer to [Order model](#section/Models/Order). The maximum number of orders is 10 per API request."
           },
@@ -1428,7 +1330,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/v2/dropshipment\");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'createorder',\n\t'client_id' => 'client_id',\n\t'nonce' => 'string',\n\t'signature' => 'signature',\n\t'order' => 'order',\n\t'customerid' => 'customerid',\n\t'testmode' => 0\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/v2/dropshipment\");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'createorder',\n\t'client_id' => 'client_id',\n\t'nonce' => 'string',\n\t'signature' => 'signature',\n\t'order' => 'order',\n\t'customerid' => 'customerid',\n\t'testmode' => 0\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -1437,7 +1339,7 @@
         ]
       }
     },
-    "https://wbsapi.withings.net/v2/dropshipment ": {
+    "/v2/dropshipment?action=createuserorder": {
       "post": {
         "tags": [
           "dropshipment"
@@ -1446,15 +1348,6 @@
         "summary": "Dropshipment v2  - Createuserorder",
         "operationId": "dropshipmentv2-createuserorder",
         "parameters": [
-          {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Service action name. Must take the string value ```createuserorder```."
-          },
           {
             "name": "client_id",
             "in": "query",
@@ -1505,7 +1398,7 @@
             "in": "query",
             "required": true,
             "schema": {
-              "type": "json_string"
+              "type": "string"
             },
             "description": "User measures (Cf. [Measures](#section/Models/Measures) model)."
           },
@@ -1532,7 +1425,7 @@
             "in": "query",
             "required": true,
             "schema": {
-              "type": "json"
+              "type": "object"
             },
             "description": "Unit pref (cf. [Unit preferences](#section/Models/Unit-preferences) model)."
           },
@@ -1541,7 +1434,7 @@
             "in": "query",
             "required": true,
             "schema": {
-              "type": "email"
+              "type": "string"
             },
             "description": "User's email address"
           },
@@ -1550,7 +1443,7 @@
             "in": "query",
             "required": true,
             "schema": {
-              "type": "timezone"
+              "type": "string"
             },
             "description": "User's timezone. Examples: \"Europe/Paris\" / \"America/New_York\". A complete list of all possible timezones can be found on the \"TZ database name\" column of this page : https://en.wikipedia.org/wiki/List_of_tz_database_time_zones"
           },
@@ -1577,7 +1470,7 @@
             "in": "query",
             "required": true,
             "schema": {
-              "type": "json"
+              "type": "object"
             },
             "description": "Refer to [Order model](#section/Models/Order). The maximum number of orders is 10 per API request."
           },
@@ -1622,7 +1515,7 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "json"
+              "type": "object"
             },
             "description": "Goals (cf. [Goals](#section/Models/Goals) model)."
           },
@@ -1731,7 +1624,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/v2/dropshipment \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'createuserorder',\n\t'client_id' => 'client_id',\n\t'nonce' => 'string',\n\t'signature' => 'signature',\n\t'mailingpref' => 'mailingpref',\n\t'birthdate' => 1563746400,\n\t'measures' => 'measures',\n\t'gender' => 'int',\n\t'preflang' => 'en_EN',\n\t'unit_pref' => 'unit_pref',\n\t'email' => 'email',\n\t'timezone' => 'Europe/Paris',\n\t'shortname' => 'shortname',\n\t'external_id' => 'external_id',\n\t'order' => 'order',\n\t'firstname' => 'firstname',\n\t'lastname' => 'lastname',\n\t'phonenumber' => 'string',\n\t'recovery_code' => 'string',\n\t'goals' => 'json',\n\t'testmode' => 0\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/v2/dropshipment \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'createuserorder',\n\t'client_id' => 'client_id',\n\t'nonce' => 'string',\n\t'signature' => 'signature',\n\t'mailingpref' => 'mailingpref',\n\t'birthdate' => 1563746400,\n\t'measures' => 'measures',\n\t'gender' => 'int',\n\t'preflang' => 'en_EN',\n\t'unit_pref' => 'unit_pref',\n\t'email' => 'email',\n\t'timezone' => 'Europe/Paris',\n\t'shortname' => 'shortname',\n\t'external_id' => 'external_id',\n\t'order' => 'order',\n\t'firstname' => 'firstname',\n\t'lastname' => 'lastname',\n\t'phonenumber' => 'string',\n\t'recovery_code' => 'string',\n\t'goals' => 'json',\n\t'testmode' => 0\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -1740,7 +1633,7 @@
         ]
       }
     },
-    "https://wbsapi.withings.net/v2/dropshipment   ": {
+    "/v2/dropshipment?action=delete": {
       "post": {
         "tags": [
           "dropshipment"
@@ -1749,15 +1642,6 @@
         "summary": "Dropshipment v2  - Delete",
         "operationId": "dropshipmentv2-delete",
         "parameters": [
-          {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Service action name. Must take the string value ```delete```."
-          },
           {
             "name": "client_id",
             "in": "query",
@@ -1821,7 +1705,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/v2/dropshipment   \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'delete',\n\t'client_id' => 'client_id',\n\t'signature' => 'signature',\n\t'nonce' => 'string',\n\t'order_id' => 'string'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/v2/dropshipment   \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'delete',\n\t'client_id' => 'client_id',\n\t'signature' => 'signature',\n\t'nonce' => 'string',\n\t'order_id' => 'string'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -1830,7 +1714,7 @@
         ]
       }
     },
-    "https://wbsapi.withings.net/v2/dropshipment  ": {
+    "/v2/dropshipment?action=getorderstatus": {
       "post": {
         "tags": [
           "dropshipment"
@@ -1839,15 +1723,6 @@
         "summary": "Dropshipment v2  - Getorderstatus",
         "operationId": "dropshipmentv2-getorderstatus",
         "parameters": [
-          {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Service action name. Must take the string value ```getorderstatus```."
-          },
           {
             "name": "client_id",
             "in": "query",
@@ -1880,7 +1755,7 @@
             "in": "query",
             "required": true,
             "schema": {
-              "type": "json"
+              "type": "object"
             },
             "description": "DO NOT USE WITH FOLLOWING PARAMS: [customer_ref_ids]<br>List of order_id"
           },
@@ -1889,7 +1764,7 @@
             "in": "query",
             "required": true,
             "schema": {
-              "type": "json"
+              "type": "object"
             },
             "description": "DO NOT USE WITH FOLLOWING PARAMS: [order_ids]<br>Movement reference number of dropshipment orderlines"
           },
@@ -1936,7 +1811,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/v2/dropshipment  \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'getorderstatus',\n\t'client_id' => 'client_id',\n\t'signature' => 'signature',\n\t'nonce' => 'string',\n\t'order_ids' => 'json',\n\t'customer_ref_ids' => 'json',\n\t'customerid' => 'customerid'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/v2/dropshipment  \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'getorderstatus',\n\t'client_id' => 'client_id',\n\t'signature' => 'signature',\n\t'nonce' => 'string',\n\t'order_ids' => 'json',\n\t'customer_ref_ids' => 'json',\n\t'customerid' => 'customerid'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -1945,7 +1820,7 @@
         ]
       }
     },
-    "https://wbsapi.withings.net/v2/dropshipment    ": {
+    "/v2/dropshipment?action=update": {
       "post": {
         "tags": [
           "dropshipment"
@@ -1954,15 +1829,6 @@
         "summary": "Dropshipment v2  - Update",
         "operationId": "dropshipmentv2-update",
         "parameters": [
-          {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Service action name. Must take the string value ```update```."
-          },
           {
             "name": "client_id",
             "in": "query",
@@ -2004,7 +1870,7 @@
             "in": "query",
             "required": true,
             "schema": {
-              "type": "json"
+              "type": "object"
             },
             "description": "Refer to [Order model](#section/Models/Order). Restricted to one order only."
           }
@@ -2042,7 +1908,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/v2/dropshipment    \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'update',\n\t'client_id' => 'client_id',\n\t'signature' => 'signature',\n\t'nonce' => 'string',\n\t'order_id' => 'string',\n\t'order' => 'order'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/v2/dropshipment    \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'update',\n\t'client_id' => 'client_id',\n\t'signature' => 'signature',\n\t'nonce' => 'string',\n\t'order_id' => 'string',\n\t'order' => 'order'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -2051,7 +1917,7 @@
         ]
       }
     },
-    "https://wbsapi.withings.net/v2/heart ": {
+    "/v2/heart?action=get": {
       "post": {
         "tags": [
           "heart"
@@ -2061,20 +1927,11 @@
         "operationId": "heartv2-get",
         "parameters": [
           {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Service action name. Must take the string value ```get```."
-          },
-          {
             "name": "signalid",
             "in": "query",
             "required": true,
             "schema": {
-              "type": "id32m64"
+              "type": "integer"
             },
             "description": "ID of a signal"
           },
@@ -2133,7 +1990,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/v2/heart \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'get',\n\t'signalid' => 'signalid'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/v2/heart \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'get',\n\t'signalid' => 'signalid'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -2142,7 +1999,7 @@
         ]
       }
     },
-    "https://wbsapi.withings.net/v2/heart": {
+    "/v2/heart?action=list": {
       "post": {
         "tags": [
           "heart"
@@ -2152,23 +2009,13 @@
         "operationId": "heartv2-list",
         "parameters": [
           {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Service action name. Must take the string value ```list```."
-          },
-          {
             "name": "startdate",
             "in": "query",
             "required": false,
             "schema": {
               "type": "integer"
             },
-            "description": "Measures' start date.",
-            "format": "timestamp"
+            "description": "Measures' start date."
           },
           {
             "name": "enddate",
@@ -2177,8 +2024,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "Measures' end date.",
-            "format": "timestamp"
+            "description": "Measures' end date."
           },
           {
             "name": "offset",
@@ -2240,7 +2086,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/v2/heart\");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'list',\n\t'startdate' => 'startdate',\n\t'enddate' => 'enddate',\n\t'offset' => 'offset'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/v2/heart\");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'list',\n\t'startdate' => 'startdate',\n\t'enddate' => 'enddate',\n\t'offset' => 'offset'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -2249,7 +2095,7 @@
         ]
       }
     },
-    "https://wbsapi.withings.net/v2/measure": {
+    "/v2/measure?action=getactivity": {
       "post": {
         "tags": [
           "measure"
@@ -2259,23 +2105,13 @@
         "operationId": "measurev2-getactivity",
         "parameters": [
           {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Service action name. Must take the string value ```getactivity```."
-          },
-          {
             "name": "startdateymd",
             "in": "query",
             "required": true,
             "schema": {
               "type": "string"
             },
-            "description": "DO NOT USE WITH FOLLOWING PARAMS: [lastupdate]<br>Start date.",
-            "format": "Y-m-d"
+            "description": "DO NOT USE WITH FOLLOWING PARAMS: [lastupdate]<br>Start date."
           },
           {
             "name": "enddateymd",
@@ -2284,8 +2120,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "DO NOT USE WITH FOLLOWING PARAMS: [lastupdate]<br>End date.",
-            "format": "Y-m-d"
+            "description": "DO NOT USE WITH FOLLOWING PARAMS: [lastupdate]<br>End date."
           },
           {
             "name": "lastupdate",
@@ -2365,7 +2200,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/v2/measure\");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'getactivity',\n\t'startdateymd' => '2020-07-01',\n\t'enddateymd' => '2020-07-02'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/v2/measure\");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'getactivity',\n\t'startdateymd' => '2020-07-01',\n\t'enddateymd' => '2020-07-02'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -2374,7 +2209,7 @@
         ]
       }
     },
-    "https://wbsapi.withings.net/v2/measure  ": {
+    "/v2/measure$getintradayactivity": {
       "post": {
         "tags": [
           "measure"
@@ -2384,23 +2219,13 @@
         "operationId": "measurev2-getintradayactivity",
         "parameters": [
           {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Service action name. Must take the string value ```getintradayactivity```."
-          },
-          {
             "name": "startdate",
             "in": "query",
             "required": false,
             "schema": {
               "type": "integer"
             },
-            "description": "Measures' start date.",
-            "format": "timestamp"
+            "description": "Measures' start date."
           },
           {
             "name": "enddate",
@@ -2409,8 +2234,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "Measures' end date.",
-            "format": "timestamp"
+            "description": "Measures' end date."
           },
           {
             "name": "data_fields",
@@ -2520,7 +2344,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/v2/measure  \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'getintradayactivity',\n\t'startdate' => 'startdate',\n\t'enddate' => 'enddate',\n\t'data_fields' => 'data_fields'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/v2/measure  \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'getintradayactivity',\n\t'startdate' => 'startdate',\n\t'enddate' => 'enddate',\n\t'data_fields' => 'data_fields'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -2529,7 +2353,7 @@
         ]
       }
     },
-    "https://wbsapi.withings.net/v2/measure ": {
+    "/v2/measure?action=getworkouts": {
       "post": {
         "tags": [
           "measure"
@@ -2539,23 +2363,13 @@
         "operationId": "measurev2-getworkouts",
         "parameters": [
           {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Service action name. Must take the string value ```getworkouts```."
-          },
-          {
             "name": "startdateymd",
             "in": "query",
             "required": true,
             "schema": {
               "type": "string"
             },
-            "description": "DO NOT USE WITH FOLLOWING PARAMS: [lastupdate]<br>Start date.",
-            "format": "Y-m-d"
+            "description": "DO NOT USE WITH FOLLOWING PARAMS: [lastupdate]<br>Start date."
           },
           {
             "name": "enddateymd",
@@ -2564,8 +2378,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "DO NOT USE WITH FOLLOWING PARAMS: [lastupdate]<br>End date. Required if startdateymd is provided.",
-            "format": "Y-m-d"
+            "description": "DO NOT USE WITH FOLLOWING PARAMS: [lastupdate]<br>End date. Required if startdateymd is provided."
           },
           {
             "name": "lastupdate",
@@ -2645,7 +2458,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/v2/measure \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'getworkouts',\n\t'startdateymd' => '2020-07-01',\n\t'enddateymd' => '2020-07-02'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/v2/measure \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'getworkouts',\n\t'startdateymd' => '2020-07-01',\n\t'enddateymd' => '2020-07-02'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -2654,7 +2467,7 @@
         ]
       }
     },
-    "https://wbsapi.withings.net/v2/order": {
+    "/v2/order?action=getdetail": {
       "post": {
         "tags": [
           "order"
@@ -2663,15 +2476,6 @@
         "summary": "Order v2  - Getdetail",
         "operationId": "orderv2-getdetail",
         "parameters": [
-          {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Service action name. Must take the string value ```getdetail```."
-          },
           {
             "name": "client_id",
             "in": "query",
@@ -2704,7 +2508,7 @@
             "in": "query",
             "required": true,
             "schema": {
-              "type": "json"
+              "type": "object"
             },
             "description": "DO NOT USE WITH FOLLOWING PARAMS: [customer_ref_ids]<br>List of order_id"
           },
@@ -2713,7 +2517,7 @@
             "in": "query",
             "required": true,
             "schema": {
-              "type": "json"
+              "type": "object"
             },
             "description": "DO NOT USE WITH FOLLOWING PARAMS: [order_ids]<br>Movement reference number of dropshipment orderlines"
           },
@@ -2760,7 +2564,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/v2/order\");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'getdetail',\n\t'client_id' => 'client_id',\n\t'signature' => 'signature',\n\t'nonce' => 'string',\n\t'order_ids' => 'json',\n\t'customer_ref_ids' => 'json',\n\t'customerid' => 'customerid'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/v2/order\");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'getdetail',\n\t'client_id' => 'client_id',\n\t'signature' => 'signature',\n\t'nonce' => 'string',\n\t'order_ids' => 'json',\n\t'customer_ref_ids' => 'json',\n\t'customerid' => 'customerid'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -2769,7 +2573,7 @@
         ]
       }
     },
-    "https://wbsapi.withings.net/v2/signature": {
+    "/v2/signature?action=getnonce": {
       "post": {
         "tags": [
           "signature"
@@ -2778,15 +2582,6 @@
         "summary": "Signature v2  - Getnonce",
         "operationId": "signaturev2-getnonce",
         "parameters": [
-          {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Service action name. Must take the string value ```getnonce```."
-          },
           {
             "name": "client_id",
             "in": "query",
@@ -2847,7 +2642,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/v2/signature\");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'getnonce',\n\t'client_id' => 'client_id',\n\t'timestamp' => 'timestamp',\n\t'signature' => 'signature'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/v2/signature\");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'getnonce',\n\t'client_id' => 'client_id',\n\t'timestamp' => 'timestamp',\n\t'signature' => 'signature'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -2856,7 +2651,7 @@
         ]
       }
     },
-    "https://wbsapi.withings.net/v2/sleep": {
+    "/v2/sleep?action=get": {
       "post": {
         "tags": [
           "sleep"
@@ -2866,23 +2661,13 @@
         "operationId": "sleepv2-get",
         "parameters": [
           {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Service action name. Must take the string value ```get```."
-          },
-          {
             "name": "startdate",
             "in": "query",
             "required": true,
             "schema": {
               "type": "integer"
             },
-            "description": "Measures' start date.",
-            "format": "timestamp"
+            "description": "Measures' start date."
           },
           {
             "name": "enddate",
@@ -2891,8 +2676,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "Measures' end date.",
-            "format": "timestamp"
+            "description": "Measures' end date."
           },
           {
             "name": "data_fields",
@@ -2935,13 +2719,13 @@
                             "startdate": {
                               "type": "integer",
                               "description": "The starting datetime for the sleep state data.",
-                              "format": "timestamp",
+                              "format": "int64",
                               "example": 1594159200
                             },
                             "enddate": {
                               "type": "integer",
                               "description": "The end datetime for the sleep data. A single call can span up to 7 days maximum. To cover a wider time range, you will need to perform multiple calls.",
-                              "format": "timestamp",
+                              "format": "int64",
                               "example": 1594202400
                             },
                             "state": {
@@ -3019,7 +2803,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/v2/sleep\");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'get',\n\t'startdate' => 'startdate',\n\t'enddate' => 'enddate',\n\t'data_fields' => 'data_fields'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/v2/sleep\");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'get',\n\t'startdate' => 'startdate',\n\t'enddate' => 'enddate',\n\t'data_fields' => 'data_fields'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -3028,7 +2812,7 @@
         ]
       }
     },
-    "https://wbsapi.withings.net/v2/sleep ": {
+    "/v2/sleep?action=getsummary": {
       "post": {
         "tags": [
           "sleep"
@@ -3038,23 +2822,13 @@
         "operationId": "sleepv2-getsummary",
         "parameters": [
           {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Service action name. Must take the string value ```getsummary```."
-          },
-          {
             "name": "startdateymd",
             "in": "query",
             "required": true,
             "schema": {
               "type": "string"
             },
-            "description": "DO NOT USE WITH FOLLOWING PARAMS: [lastupdate]<br>Start date. Required if no lastupdate.",
-            "format": "Y-m-d"
+            "description": "DO NOT USE WITH FOLLOWING PARAMS: [lastupdate]<br>Start date. Required if no lastupdate."
           },
           {
             "name": "enddateymd",
@@ -3063,8 +2837,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "DO NOT USE WITH FOLLOWING PARAMS: [lastupdate]<br>End date. Required if startdateymd is provided.",
-            "format": "Y-m-d"
+            "description": "DO NOT USE WITH FOLLOWING PARAMS: [lastupdate]<br>End date. Required if startdateymd is provided."
           },
           {
             "name": "lastupdate",
@@ -3113,7 +2886,171 @@
                         "series": {
                           "type": "array",
                           "items": {
-                            "$ref": "#/components/schemas/sleep_summary_object"
+                            "type": "object",
+                            "properties": {
+                              "timezone": {
+                                "type": "string",
+                                "description": "Timezone for the date.",
+                                "example": "Europe/Paris"
+                              },
+                              "model": {
+                                "type": "integer",
+                                "description": "The source for sleep data. Value can be 16 for a tracker or 32 for a Sleep Monitor.",
+                                "example": 16
+                              },
+                              "model_id": {
+                                "type": "integer",
+                                "description": "\n\n| Value | Description|\n|---|---|\n|60 | Aura Dock|\n|61 | Aura Sensor|\n|63 | Aura Sensor V2|\n|51 | Pulse|\n|52 | Activite|\n|53 | Activite (Pop, Steel)|\n|54 | Withings Go|\n|55 | Activite Steel HR|\n|59 | Activite Steel HR Sport Edition|\n|58 | Pulse HR|\n|90 | Move|\n|91 | Move ECG|\n|92 | Move ECG|\n|93 | ScanWatch|\n",
+                                "example": 51
+                              },
+                              "startdate": {
+                                "type": "integer",
+                                "description": "The starting datetime for the sleep state data.",
+                                "format": "int64",
+                                "example": 1594245600
+                              },
+                              "enddate": {
+                                "type": "integer",
+                                "description": "The end datetime for the sleep data. A single call can span up to 7 days maximum. To cover a wider time range, you will need to perform multiple calls.",
+                                "format": "int64",
+                                "example": 1594257200
+                              },
+                              "date": {
+                                "type": "string",
+                                "description": "Date at which the measure was taken or entered.",
+                                "example": "2020-07-09"
+                              },
+                              "created": {
+                                "type": "integer",
+                                "format": "int64",
+                                "example": 1594257200
+                              },
+                              "modified": {
+                                "type": "integer",
+                                "description": "The timestamp of the last modification.",
+                                "format": "int64",
+                                "example": 1594257200
+                              },
+                              "data": {
+                                "type": "object",
+                                "description": "Details of sleep.",
+                                "properties": {
+                                  "apnea_hypopnea_index": {
+                                    "type": "integer",
+                                    "description": "Medical grade AHI. Only available for devices purchased in Europe and Australia, with the sleep apnea detection feature activated. Average number of hypopnea and apnea episodes per hour, that occured during sleep time."
+                                  },
+                                  "asleepduration": {
+                                    "type": "integer",
+                                    "description": "Duration of sleep when night comes from external source (light, deep and rem sleep durations are null in this case). *(Use 'data_fields' to request this data.)*"
+                                  },
+                                  "breathing_disturbances_intensity": {
+                                    "type": "integer",
+                                    "description": "Wellness metric, available for all Sleep and Sleep Analyzer devices. Intensity of <a href='/api-reference/#section/Glossary'>breathing disturbances</a>"
+                                  },
+                                  "deepsleepduration": {
+                                    "type": "integer",
+                                    "description": "Duration in state deep sleep (in seconds). *(Use 'data_fields' to request this data.)*"
+                                  },
+                                  "durationtosleep": {
+                                    "type": "integer",
+                                    "description": "Time to sleep (in seconds). (deprecated) *(Use 'data_fields' to request this data.)*"
+                                  },
+                                  "durationtowakeup": {
+                                    "type": "integer",
+                                    "description": "Time to wake up (in seconds). (deprecated) *(Use 'data_fields' to request this data.)*"
+                                  },
+                                  "hr_average": {
+                                    "type": "integer",
+                                    "description": "Average heart rate. *(Use 'data_fields' to request this data.)*"
+                                  },
+                                  "hr_max": {
+                                    "type": "integer",
+                                    "description": "Maximal heart rate. *(Use 'data_fields' to request this data.)*"
+                                  },
+                                  "hr_min": {
+                                    "type": "integer",
+                                    "description": "Minimal heart rate. *(Use 'data_fields' to request this data.)*"
+                                  },
+                                  "lightsleepduration": {
+                                    "type": "integer",
+                                    "description": "Duration in state light sleep (in seconds). *(Use 'data_fields' to request this data.)*"
+                                  },
+                                  "nb_rem_episodes": {
+                                    "type": "integer",
+                                    "description": "Count of the REM sleep phases. *(Use 'data_fields' to request this data.)*"
+                                  },
+                                  "night_events": {
+                                    "type": "string",
+                                    "description": "Events list happened during the night",
+                                    "format": "json"
+                                  },
+                                  "out_of_bed_count": {
+                                    "type": "integer",
+                                    "description": "Number of times the user got out of bed during the night. *(Use 'data_fields' to request this data.)*"
+                                  },
+                                  "remsleepduration": {
+                                    "type": "integer",
+                                    "description": "Duration in state REM sleep (in seconds). *(Use 'data_fields' to request this data.)*"
+                                  },
+                                  "rr_average": {
+                                    "type": "integer",
+                                    "description": "Average respiration rate. *(Use 'data_fields' to request this data.)*"
+                                  },
+                                  "rr_max": {
+                                    "type": "integer",
+                                    "description": "Maximal respiration rate. *(Use 'data_fields' to request this data.)*"
+                                  },
+                                  "rr_min": {
+                                    "type": "integer",
+                                    "description": "Minimal respiration rate. *(Use 'data_fields' to request this data.)*"
+                                  },
+                                  "sleep_efficiency": {
+                                    "type": "number",
+                                    "description": "Ratio of the total sleep time over the time spent in bed. *(Use 'data_fields' to request this data.)*"
+                                  },
+                                  "sleep_latency": {
+                                    "type": "integer",
+                                    "description": "Time spent in bed before falling asleep. *(Use 'data_fields' to request this data.)*"
+                                  },
+                                  "sleep_score": {
+                                    "type": "integer",
+                                    "description": "Sleep score"
+                                  },
+                                  "snoring": {
+                                    "type": "integer",
+                                    "description": "Total snoring time"
+                                  },
+                                  "snoringepisodecount": {
+                                    "type": "integer",
+                                    "description": "Numbers of snoring episodes of at least one minute"
+                                  },
+                                  "total_sleep_time": {
+                                    "type": "integer",
+                                    "description": "Total time spent asleep. Sum of light, deep and rem durations. *(Use 'data_fields' to request this data.)*"
+                                  },
+                                  "total_timeinbed": {
+                                    "type": "integer",
+                                    "description": "Total time spent in bed. *(Use 'data_fields' to request this data.)*"
+                                  },
+                                  "wakeup_latency": {
+                                    "type": "integer",
+                                    "description": "Time spent in bed after waking up. *(Use 'data_fields' to request this data.)*"
+                                  },
+                                  "wakeupcount": {
+                                    "type": "integer",
+                                    "description": "Number of times the user woke up while in bed. Does not include the number of times the user got out of bed. *(Use 'data_fields' to request this data.)*"
+                                  },
+                                  "wakeupduration": {
+                                    "type": "integer",
+                                    "description": "Time spent awake (in seconds). *(Use 'data_fields' to request this data.)*"
+                                  },
+                                  "waso": {
+                                    "type": "integer",
+                                    "description": "Time spent awake in bed after falling asleep for the 1st time during the night. *(Use 'data_fields' to request this data.)*"
+                                  }
+                                }
+                              }
+                            }
                           }
                         },
                         "more": {
@@ -3135,7 +3072,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/v2/sleep \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'getsummary',\n\t'startdateymd' => '2020-07-01',\n\t'enddateymd' => '2020-07-02'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/v2/sleep \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'getsummary',\n\t'startdateymd' => '2020-07-01',\n\t'enddateymd' => '2020-07-02'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -3144,7 +3081,7 @@
         ]
       }
     },
-    "https://wbsapi.withings.net/v2/user ": {
+    "/v2/user?action=activate": {
       "post": {
         "tags": [
           "user"
@@ -3153,15 +3090,6 @@
         "summary": "User v2  - Activate",
         "operationId": "userv2-activate",
         "parameters": [
-          {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Service action name. Must take the string value ```activate```."
-          },
           {
             "name": "client_id",
             "in": "query",
@@ -3212,7 +3140,7 @@
             "in": "query",
             "required": true,
             "schema": {
-              "type": "json_string"
+              "type": "string"
             },
             "description": "User measures (Cf. [Measures](#section/Models/Measures) model)."
           },
@@ -3239,7 +3167,7 @@
             "in": "query",
             "required": true,
             "schema": {
-              "type": "json"
+              "type": "object"
             },
             "description": "Unit pref (cf. [Unit preferences](#section/Models/Unit-preferences) model)."
           },
@@ -3248,7 +3176,7 @@
             "in": "query",
             "required": true,
             "schema": {
-              "type": "email"
+              "type": "string"
             },
             "description": "User's email address"
           },
@@ -3257,7 +3185,7 @@
             "in": "query",
             "required": true,
             "schema": {
-              "type": "timezone"
+              "type": "string"
             },
             "description": "User's timezone. Examples: \"Europe/Paris\" / \"America/New_York\". A complete list of all possible timezones can be found on the \"TZ database name\" column of this page : https://en.wikipedia.org/wiki/List_of_tz_database_time_zones"
           },
@@ -3284,7 +3212,7 @@
             "in": "query",
             "required": true,
             "schema": {
-              "type": "macaddress"
+              "type": "string"
             },
             "description": "List of Withings device MAC addresses that will be linked to the created user. Example: [\"00:24:e4:xx:xx:xx\",\"00:24:e4:xx:xx:xx\"]"
           },
@@ -3329,7 +3257,7 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "json"
+              "type": "object"
             },
             "description": "Goals (cf. [Goals](#section/Models/Goals) model)."
           }
@@ -3382,7 +3310,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/v2/user \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'activate',\n\t'client_id' => 'client_id',\n\t'nonce' => 'string',\n\t'signature' => 'signature',\n\t'mailingpref' => 'mailingpref',\n\t'birthdate' => 1563746400,\n\t'measures' => 'measures',\n\t'gender' => 'int',\n\t'preflang' => 'en_EN',\n\t'unit_pref' => 'unit_pref',\n\t'email' => 'email',\n\t'timezone' => 'Europe/Paris',\n\t'shortname' => 'shortname',\n\t'external_id' => 'external_id',\n\t'mac_addresses' => '[\"00:24:e4:xx:xx:xx\",\"00:24:e4:xx:xx:xx\"]',\n\t'firstname' => 'firstname',\n\t'lastname' => 'lastname',\n\t'phonenumber' => 'string',\n\t'recovery_code' => 'string',\n\t'goals' => 'json'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/v2/user \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'activate',\n\t'client_id' => 'client_id',\n\t'nonce' => 'string',\n\t'signature' => 'signature',\n\t'mailingpref' => 'mailingpref',\n\t'birthdate' => 1563746400,\n\t'measures' => 'measures',\n\t'gender' => 'int',\n\t'preflang' => 'en_EN',\n\t'unit_pref' => 'unit_pref',\n\t'email' => 'email',\n\t'timezone' => 'Europe/Paris',\n\t'shortname' => 'shortname',\n\t'external_id' => 'external_id',\n\t'mac_addresses' => '[\"00:24:e4:xx:xx:xx\",\"00:24:e4:xx:xx:xx\"]',\n\t'firstname' => 'firstname',\n\t'lastname' => 'lastname',\n\t'phonenumber' => 'string',\n\t'recovery_code' => 'string',\n\t'goals' => 'json'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -3391,7 +3319,7 @@
         ]
       }
     },
-    "https://wbsapi.withings.net/v2/user": {
+    "/v2/user?action=get": {
       "post": {
         "tags": [
           "user"
@@ -3400,15 +3328,6 @@
         "summary": "User v2  - Get",
         "operationId": "userv2-get",
         "parameters": [
-          {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Service action name. Must take the string value ```get```."
-          },
           {
             "name": "client_id",
             "in": "query",
@@ -3441,7 +3360,7 @@
             "in": "query",
             "required": true,
             "schema": {
-              "type": "email"
+              "type": "string"
             },
             "description": "User's email address"
           }
@@ -3549,7 +3468,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/v2/user\");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'get',\n\t'client_id' => 'client_id',\n\t'nonce' => 'string',\n\t'signature' => 'signature',\n\t'email' => 'email'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/v2/user\");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'get',\n\t'client_id' => 'client_id',\n\t'nonce' => 'string',\n\t'signature' => 'signature',\n\t'email' => 'email'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -3558,7 +3477,7 @@
         ]
       }
     },
-    "https://wbsapi.withings.net/v2/user   ": {
+    "/v2/user?action=getdevice": {
       "post": {
         "tags": [
           "user"
@@ -3567,15 +3486,6 @@
         "summary": "User v2  - Getdevice",
         "operationId": "userv2-getdevice",
         "parameters": [
-          {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Service action name. Must take the string value ```getdevice```."
-          },
           {
             "name": "Authorization",
             "in": "header",
@@ -3619,7 +3529,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/v2/user   \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'getdevice'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/v2/user   \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'getdevice'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -3628,7 +3538,7 @@
         ]
       }
     },
-    "https://wbsapi.withings.net/v2/user     ": {
+    "/v2/user?action=getgoals": {
       "post": {
         "tags": [
           "user"
@@ -3637,15 +3547,6 @@
         "summary": "User v2  - Getgoals",
         "operationId": "userv2-getgoals",
         "parameters": [
-          {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Service action name. Must take the string value ```getgoals```."
-          },
           {
             "name": "Authorization",
             "in": "header",
@@ -3714,7 +3615,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/v2/user     \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'getgoals'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/v2/user     \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'getgoals'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -3723,7 +3624,7 @@
         ]
       }
     },
-    "https://wbsapi.withings.net/v2/user  ": {
+    "/v2/user?action=link": {
       "post": {
         "tags": [
           "user"
@@ -3733,20 +3634,11 @@
         "operationId": "userv2-link",
         "parameters": [
           {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Service action name. Must take the string value ```link```."
-          },
-          {
             "name": "mac_addresses",
             "in": "query",
             "required": true,
             "schema": {
-              "type": "macaddress"
+              "type": "string"
             },
             "description": "List of Withings device MAC addresses that will be linked to the created user. Example: [\"00:24:e4:xx:xx:xx\",\"00:24:e4:xx:xx:xx\"]"
           },
@@ -3793,7 +3685,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/v2/user  \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'link',\n\t'mac_addresses' => '[\"00:24:e4:xx:xx:xx\",\"00:24:e4:xx:xx:xx\"]'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/v2/user  \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'link',\n\t'mac_addresses' => '[\"00:24:e4:xx:xx:xx\",\"00:24:e4:xx:xx:xx\"]'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -3802,7 +3694,7 @@
         ]
       }
     },
-    "https://wbsapi.withings.net/v2/user    ": {
+    "/v2/user?action=unlink": {
       "post": {
         "tags": [
           "user"
@@ -3812,20 +3704,11 @@
         "operationId": "userv2-unlink",
         "parameters": [
           {
-            "name": "action",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Service action name. Must take the string value ```unlink```."
-          },
-          {
             "name": "mac_address",
             "in": "query",
             "required": true,
             "schema": {
-              "type": "macaddress"
+              "type": "string"
             },
             "description": "The mac address of the target device."
           },
@@ -3865,7 +3748,7 @@
         "x-codeSamples": [
           {
             "lang": "PHP",
-            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"https://wbsapi.withings.net/v2/user    \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'unlink',\n\t'mac_address' => 'macaddress'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
+            "source": "<?php\n\n$ch = curl_init();\n\ncurl_setopt($ch, CURLOPT_URL, \"/v2/user    \");\n\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);\n\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t'Authorization: Bearer YOUR_ACCESS_TOKEN'\n]);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([ \n\t'action' => 'unlink',\n\t'mac_address' => 'macaddress'\n]));\n\n$rsp = curl_exec($ch);\ncurl_close($ch);\n\nvar_dump($rsp);\n\n?>"
           },
           {
             "lang": "CURL",
@@ -4008,13 +3891,13 @@
           "date": {
             "type": "integer",
             "description": "UNIX timestamp when measures were taken.",
-            "format": "timestamp",
+            "format": "int64",
             "example": 1594245600
           },
           "created": {
             "type": "integer",
             "description": "UNIX timestamp when measures were stored.",
-            "format": "timestamp",
+            "format": "int64",
             "example": 1594246600
           },
           "category": {
@@ -4102,13 +3985,13 @@
           "startdate": {
             "type": "integer",
             "description": "The starting datetime for the sleep state data.",
-            "format": "timestamp",
+            "format": "int64",
             "example": 1594245600
           },
           "enddate": {
             "type": "integer",
             "description": "The end datetime for the sleep data. A single call can span up to 7 days maximum. To cover a wider time range, you will need to perform multiple calls.",
-            "format": "timestamp",
+            "format": "int64",
             "example": 1594257200
           },
           "date": {
@@ -4118,13 +4001,13 @@
           },
           "created": {
             "type": "integer",
-            "format": "timestamp",
+            "format": "int64",
             "example": 1594257200
           },
           "modified": {
             "type": "integer",
             "description": "The timestamp of the last modification.",
-            "format": "timestamp",
+            "format": "int64",
             "example": 1594257200
           },
           "data": {
@@ -4177,7 +4060,10 @@
               },
               "night_events": {
                 "type": "array",
-                "description": "Events list happened during the night"
+                "description": "Events list happened during the night",
+                "items": {
+                  "type": "object"
+                }
               },
               "out_of_bed_count": {
                 "type": "integer",
@@ -4272,13 +4158,13 @@
           "startdate": {
             "type": "integer",
             "description": "The starting datetime for workouts data.",
-            "format": "timestamp",
+            "format": "int64",
             "example": 1594245600
           },
           "enddate": {
             "type": "integer",
             "description": "The ending datetime for workouts data.",
-            "format": "timestamp",
+            "format": "int64",
             "example": 1594257200
           },
           "date": {
@@ -4289,7 +4175,7 @@
           "modified": {
             "type": "integer",
             "description": "The timestamp of the last modification.",
-            "format": "timestamp",
+            "format": "int64",
             "example": 1594257200
           },
           "deviceid": {
@@ -4401,7 +4287,7 @@
           "expires": {
             "type": "integer",
             "description": "Date at which the notification configuration will expire.",
-            "format": "timestamp",
+            "format": "int64",
             "example": 2147483647
           },
           "comment": {
@@ -4452,7 +4338,7 @@
           "last_session_date": {
             "type": "integer",
             "description": "The timestamp of the last server connection of the device",
-            "format": "timestamp",
+            "format": "int64",
             "example": 1594159644
           }
         }
@@ -4498,7 +4384,7 @@
           "last_session_date": {
             "type": "integer",
             "description": "The timestamp of the last server connection of the device",
-            "format": "timestamp",
+            "format": "int64",
             "example": 1594159644
           }
         }
@@ -4554,7 +4440,7 @@
           "timestamp": {
             "type": "integer",
             "description": "Timestamp of the recording.",
-            "format": "timestamp",
+            "format": "int64",
             "example": 1594159644
           },
           "timezone": {
@@ -4673,7 +4559,7 @@
               "00:24:e4:xx:xx:xx"
             ],
             "items": {
-              "type": "macaddress"
+              "type": "string"
             }
           }
         }
@@ -4689,7 +4575,7 @@
           "measure": {
             "type": "integer",
             "description": "Most recent modified date of user measures",
-            "format": "timestamp",
+            "format": "int64",
             "example": 1594159644
           }
         }

@@ -1,4 +1,4 @@
-package openapi2
+package openapi
 
 import (
 	"bytes"
