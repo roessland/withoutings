@@ -29,7 +29,7 @@ func Configure(app *serverapp.App) *http.Server {
 
 	return &http.Server{
 		Handler:      r,
-		Addr:         "127.0.0.1:9094",
+		Addr:         "127.0.0.1:3628",
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}

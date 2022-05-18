@@ -23,9 +23,9 @@ To make callback to a remote server call your development app you can
 use SSH port forwarding.
 
 ```bash
-ssh -R 9094:127.0.0.1:9094 -N -f myuser@withings.mywebsite.com
+ssh -R 3628:127.0.0.1:3628 -N -f myuser@withings.mywebsite.com
 ```
 
 So Withings calls `https://withings.mywebsite.com/auth/callback` which is
-forwarded to port 9094 on the server (e.g. using Caddy or nginx), which
-is again forwarded to port 9094 in your development environment.
+forwarded to port 3628 on the server (e.g. using Caddy or nginx), which
+is again forwarded to port 3628 in your development environment.

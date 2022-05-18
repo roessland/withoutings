@@ -14,7 +14,7 @@ func main() {
 	workerApp := workerapp.NewApp()
 	go workerApp.Work()
 
-	// 3 - We start up our Client on port 9094
+	// 3 - We start up our Client on port 3528
 	serverApp.Log.Print("Serving at ", srv.Addr)
 	log.Fatal(srv.ListenAndServe())
 }
