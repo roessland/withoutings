@@ -32,7 +32,7 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > /home/runner/.ssh/id_ed25519
           chmod 600 /home/runner/.ssh/id_ed25519
           scp -P 222 withoutings-server withoutings@withoutings.roessland.com:~/bin/withoutings-server-new
-          ssh -p 222 withoutings@withoutings.roessland.com "rm bin/withoutings-server; mv bin/withoutings-server-new bin/withoutings-server; sudo /bin/systemctl restart withoutings"
+          ssh -p 222 withoutings@withoutings.roessland.com "rm -f bin/withoutings-server; mv bin/withoutings-server-new bin/withoutings-server; sudo /bin/systemctl restart withoutings"
           
           status_code=$(curl --write-out %{http_code} --silent --output /dev/null https://withoutings.roessland.com/api/health)
           
