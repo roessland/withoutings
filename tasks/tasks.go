@@ -64,7 +64,7 @@ func (processor *WithingsAPICallProcessor) ProcessTask(ctx context.Context, t *a
 	if err := json.Unmarshal(t.Payload(), &p); err != nil {
 		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
 	}
-	log.Printf("Calling but not really %s", p.URL)
+	log.Printf("Calling but not really %s", p.URL.String())
 
 	// TODO actually call API
 	return nil

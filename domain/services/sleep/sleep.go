@@ -73,7 +73,7 @@ func (sleepSvc *Sleep) GetSleepSummaries(ctx context.Context, in GetSleepSummary
 		"wakeupduration",
 	}
 	params := &openapi2.Sleepv2GetsummaryParams{
-		Startdateymd:  "2022-05-08",
+		Startdateymd:  "2022-05-01",
 		Enddateymd:    "2022-05-10",
 		Lastupdate:    0,
 		DataFields:    ptrof.String(strings.Join(fields, ",")),

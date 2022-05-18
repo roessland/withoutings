@@ -12,7 +12,7 @@ import (
 
 func Configure(app *serverapp.App) *http.Server {
 	r := mux.NewRouter()
-	r.HandleFunc("/health", handlers.Health(app))
+	r.HandleFunc("/api/health", handlers.Health(app))
 	r.HandleFunc("/", handlers.HomePage(app))
 	r.PathPrefix("/static/").Handler(http.FileServer(http.FS(static.FS)))
 

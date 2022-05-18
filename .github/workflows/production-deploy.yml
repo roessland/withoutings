@@ -1,0 +1,44 @@
+name: Production deploy
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+
+  test-and-deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.18
+
+      - name: Test
+        run: go test -v ./...
+
+      - name: Build
+        run: go build -v -o . ./...
+
+      - name: Deploy app
+        run: |
+          mkdir -p /home/runner/.ssh
+          ssh-keyscan -p 222 withoutings.roessland.com >> /home/runner/.ssh/known_hosts
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > /home/runner/.ssh/id_ed25519
+          chmod 600 /home/runner/.ssh/id_ed25519
+          scp -P 222 withoutings-server withoutings@withoutings.roessland.com:~/bin/withoutings-server-new
+          ssh -p 222 withoutings@withoutings.roessland.com "rm bin/withoutings-server; mv bin/withoutings-server-new bin/withoutings-server; sudo /bin/systemctl restart withoutings"
+          
+          status_code=$(curl --write-out %{http_code} --silent --output /dev/null https://withoutings.roessland.com/api/health)
+          
+          if [[ "$status_code" -ne 200 ]] ; then
+            echo "FAIL: Health check status changed to $status_code !!!"
+            exit 1
+          else
+            exit 0
+          fi
