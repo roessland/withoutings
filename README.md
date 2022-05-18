@@ -10,7 +10,7 @@ Create a new application.
 ## Required environment variables
 
 ```bash
-SESSION_KEY=<random uuid> \
+SESSION_SECRET=<random uuid, generated once> \
 WITHINGS_CLIENT_ID=<your app id> \
 WITHINGS_CLIENT_SECRET=<your app secret> \
 WITHINGS_REDIRECT_URL=<your app callback URL> \

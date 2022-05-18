@@ -27,11 +27,11 @@ func NewApp() *App {
 	logger := logrus.New()
 	app.Log = logger
 
-	sessionKey := []byte(os.Getenv("SESSION_KEY"))
-	if len(sessionKey) == 0 {
-		app.Log.Fatal("SESSION_KEY missing")
+	sessionSecret := []byte(os.Getenv("SESSION_SECRET"))
+	if len(sessionSecret) == 0 {
+		app.Log.Fatal("SESSION_SECRET missing")
 	}
-	app.Sessions = sessions.NewManager(sessionKey)
+	app.Sessions = sessions.NewManager(sessionSecret)
 
 	withingsClientID := os.Getenv("WITHINGS_CLIENT_ID")
 	if withingsClientID == "" {
