@@ -1,10 +1,10 @@
-package serverapp
+package app
 
 import (
 	"github.com/hibiken/asynq"
 	"github.com/roessland/withoutings/domain/services/sleep"
-	"github.com/roessland/withoutings/server/sessions"
-	"github.com/roessland/withoutings/server/templates"
+	"github.com/roessland/withoutings/web/sessions"
+	"github.com/roessland/withoutings/web/templates"
 	"github.com/roessland/withoutings/withings"
 	"github.com/sirupsen/logrus"
 	"os"
@@ -17,6 +17,7 @@ type App struct {
 	Templates templates.Templates
 	Sleep     *sleep.Sleep
 	Async     *asynq.Client
+	// DB        *pgx.DB // TODO
 }
 
 const redisAddr = "127.0.0.1:6379"

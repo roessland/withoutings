@@ -2,11 +2,11 @@ package handlers
 
 import (
 	"github.com/roessland/withoutings/logging"
-	"github.com/roessland/withoutings/server/serverapp"
+	"github.com/roessland/withoutings/web/webapp"
 	"net/http"
 )
 
-func HomePage(app *serverapp.App) http.HandlerFunc {
+func HomePage(app *app.App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		log := logging.MustGetLoggerFromContext(ctx)

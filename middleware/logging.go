@@ -6,13 +6,13 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/roessland/withoutings/logging"
-	"github.com/roessland/withoutings/server/serverapp"
+	"github.com/roessland/withoutings/web/webapp"
 	"net/http"
 )
 
 var ContextKeyRequestID = "requestID"
 
-func Logging(app *serverapp.App) mux.MiddlewareFunc {
+func Logging(app *app.App) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
