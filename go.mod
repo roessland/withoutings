@@ -19,10 +19,16 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/gorilla/securecookie v1.1.1 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
+	github.com/jackc/pgx/v5 v5.0.4 // indirect
+	github.com/jackc/puddle/v2 v2.0.0 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
+	golang.org/x/crypto v0.0.0-20220829220503-c86fa9a7ed90 // indirect
 	golang.org/x/net v0.0.0-20220418201149-a630d4f3e7a2 // indirect
-	golang.org/x/sys v0.0.0-20220503163025-988cb79eb6c6 // indirect
+	golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f // indirect
+	golang.org/x/text v0.3.8 // indirect
 	golang.org/x/time v0.0.0-20220411224347-583f2d630306 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
