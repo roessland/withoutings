@@ -5,11 +5,11 @@ Copied from my personal notes [[PostgreSQL setup on MacOS]].
 
 ## Install
 
-- Install latest stable version:
+- Install v14 since that is the stable version for Ubuntu
   - https://www.postgresql.org/support/versioning/
 
 ```bash
-brew install postgresql@15
+brew install postgresql@14
 ```
 
 ## Start service

@@ -8,11 +8,19 @@ create role wotrw
     password '<otherpass>'
     login;
 
+-- PostgreSQL 15
+-- create database wot
+--     owner wotsa
+--     template template0
+--     encoding 'utf8'
+--     locale 'en_US'
+--     lc_collate = 'C'
+--     icu_locale 'en_US_POSIX'
+--     locale_provider icu;
+
+-- PostgreSQL 14
 create database wot
     owner wotsa
     template template0
     encoding 'utf8'
-    locale 'en_US'
-    lc_collate = 'C'
-    icu_locale 'en_US_POSIX'
-    locale_provider icu;
+    lc_collate = 'C';
