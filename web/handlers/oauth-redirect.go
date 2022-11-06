@@ -1,14 +1,14 @@
 package handlers
 
 import (
+	"github.com/roessland/withoutings/app/webapp"
 	"github.com/roessland/withoutings/logging"
-	"github.com/roessland/withoutings/web/webapp"
 	"github.com/roessland/withoutings/withings"
 	"net/http"
 )
 
 // Login logs users in via Withings OAuth2.
-func Login(app *app.App) http.HandlerFunc {
+func Login(app *webapp.WebApp) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		log := logging.MustGetLoggerFromContext(ctx)

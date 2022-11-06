@@ -1,19 +1,40 @@
 package main
 
 import (
+	"context"
+	"github.com/roessland/withoutings/app/webapp"
+	"github.com/roessland/withoutings/app/workerapp"
 	"github.com/roessland/withoutings/web"
-	"github.com/roessland/withoutings/web/webapp"
-	"github.com/roessland/withoutings/worker/workerapp"
-	"log"
+	"os"
+	"os/signal"
+	"runtime/pprof"
 )
 
 func main() {
-	app := app.NewApp()
-	srv := web.Configure(app)
+	ctx, cancel := context.WithCancel(context.Background())
 
-	workerApp := workerapp.NewApp()
-	go workerApp.Work()
+	app := webapp.NewApp(ctx)
+	server := web.Configure(app)
 
-	app.Log.Print("Serving at ", srv.Addr)
-	log.Fatal(srv.ListenAndServe())
+	worker := workerapp.NewApp()
+	go worker.Work(ctx)
+
+	go func() {
+		app.Log.Info("Serving at ", server.Addr)
+		app.Log.Info(server.ListenAndServe())
+	}()
+
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, os.Interrupt)
+	<-signalChan
+	app.Log.Info("Interrupted. Exiting gracefully. Press Ctrl-C again to exit immediately.")
+	go func() {
+		<-signalChan
+		app.Log.Info("Interrupted again. Exiting immediately. Running goroutines:")
+		_ = pprof.Lookup("goroutine").WriteTo(os.Stdout, 1)
+		os.Exit(1)
+	}()
+
+	cancel()
+	_ = server.Close()
 }

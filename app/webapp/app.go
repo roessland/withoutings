@@ -1,8 +1,7 @@
-package app
+package webapp
 
 import (
 	"context"
-	"github.com/hibiken/asynq"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/roessland/withoutings/domain/services/sleep"
 	"github.com/roessland/withoutings/web/sessions"
@@ -13,24 +12,24 @@ import (
 	"time"
 )
 
-type App struct {
+type WebApp struct {
 	Log       logrus.FieldLogger
 	Withings  *withings.Client
 	Sessions  *sessions.Manager
 	Templates templates.Templates
 	Sleep     *sleep.Sleep
-	Async     *asynq.Client
-	DB        *pgxpool.Pool
+	//Async     *asynq.Client
+	DB *pgxpool.Pool
 }
 
-const redisAddr = "127.0.0.1:6379"
+// const redisAddr = "127.0.0.1:6379"
 
-func NewApp() *App {
+func NewApp(ctx context.Context) *WebApp {
 	var err error
-	initCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	initCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	app := App{}
+	app := WebApp{}
 
 	logger := logrus.New()
 	app.Log = logger
@@ -70,19 +69,19 @@ func NewApp() *App {
 	app.Templates = templates.LoadTemplates()
 
 	app.Sleep = sleep.NewSleep(app.Withings)
-
-	app.Async = asynq.NewClient(asynq.RedisClientOpt{
-		Addr: redisAddr,
-	})
+	//
+	//app.Async = asynq.NewClient(asynq.RedisClientOpt{
+	//	Addr: redisAddr,
+	//})
 
 	return &app
 }
 
-func (app *App) Close() {
-	err := app.Async.Close()
-	if err != nil {
-		app.Log.Print(err)
-	}
+func (app *WebApp) Close() {
+	//err := app.Async.Close()
+	//if err != nil {
+	//	app.Log.Print(err)
+	//}
 
 	app.DB.Close()
 }

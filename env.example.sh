@@ -5,7 +5,10 @@ export WITHINGS_CLIENT_ID=asdfasdf
 export WITHINGS_CLIENT_SECRET=asdfasdf
 
 # Enter your callback URL here
-export WITHINGS_REDIRECT_URL=https://withings.yourdomain/callbackurl
+export WITHINGS_REDIRECT_URL=https://withings.yourdomain.com/callbackurl
+
+# Enter your session key secret here, for encrypting cookies.
+export SESSION_SECRET=asdfasdf
 
 # Enter your DB connection string here
 export WOT_DATABASE_URL='postgres://wotrw:<pass>@127.0.0.1:5432/wot?pool_max_conns=10'

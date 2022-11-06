@@ -1,13 +1,13 @@
 package handlers
 
 import (
+	"github.com/roessland/withoutings/app/webapp"
 	"github.com/roessland/withoutings/logging"
-	"github.com/roessland/withoutings/web/webapp"
 	"net/http"
 )
 
 // Logout logs users out via Withings OAuth2.
-func Logout(app *app.App) http.HandlerFunc {
+func Logout(app *webapp.WebApp) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		log := logging.MustGetLoggerFromContext(ctx)
