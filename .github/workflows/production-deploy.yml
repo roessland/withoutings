@@ -28,13 +28,13 @@ jobs:
       - name: Deploy app
         run: |
           mkdir -p /home/runner/.ssh
-          ssh-keyscan -p 222 withings.roessland.com >> /home/runner/.ssh/known_hosts
+          ssh-keyscan -p 222 ${{ secrets.SSH_HOST }} >> /home/runner/.ssh/known_hosts
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > /home/runner/.ssh/id_ed25519
           chmod 600 /home/runner/.ssh/id_ed25519
-          scp -P 222 withoutings-server withoutings@withings.roessland.com:~/bin/withoutings-server-new
-          ssh -p 222 withoutings@withings.roessland.com "rm -f bin/withoutings-server; mv bin/withoutings-server-new bin/withoutings-server; sudo /bin/systemctl restart withoutings"
+          scp -P 222 withoutings-server ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/bin/withoutings-server-new
+          ssh -p 222 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "rm -f bin/withoutings-server; mv bin/withoutings-server-new bin/withoutings-server; sudo /bin/systemctl restart withoutings"
           
-          status_code=$(curl --write-out %{http_code} --silent --output /dev/null https://withings.roessland.com/api/health)
+          status_code=$(curl --write-out %{http_code} --silent --output /dev/null ${{ secrets.WEB_URL }}/api/health)
           
           if [[ "$status_code" -ne 200 ]] ; then
             echo "FAIL: Health check status changed to $status_code !!!"
