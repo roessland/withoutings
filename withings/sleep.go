@@ -125,7 +125,7 @@ func (c *Client) NewSleepGetsummaryRequest(params SleepGetSummaryParams) (*http.
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequest(http.MethodGet, c.APIBase, io.NopCloser(bytes.NewReader(body)))
+	req, err := http.NewRequest(http.MethodGet, c.APIBase+"/v2/sleep", io.NopCloser(bytes.NewReader(body)))
 	if err != nil {
 		return nil, err
 	}
