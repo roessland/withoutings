@@ -22,6 +22,7 @@ func Configure(app *webapp.WebApp) *http.Server {
 	r.HandleFunc("/auth/refresh", handlers.Refresh(app))
 
 	r.HandleFunc("/sleepsummaries", handlers.SleepSummaries(app))
+	r.HandleFunc("/sleepget.json", handlers.SleepGetJSON(app))
 
 	r.Use(
 		middleware.Logging(app),

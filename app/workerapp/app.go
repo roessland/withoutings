@@ -80,7 +80,7 @@ func (app *WorkerApp) Work(ctx context.Context) {
 			app.close()
 			return
 
-		case <-time.After(time.Second):
+		case <-time.After(10 * time.Minute):
 			fmt.Println("working")
 		}
 

@@ -9,7 +9,7 @@ type SleepSummaries []SleepSummary
 
 type SleepSummary struct {
 	Date           civil.Date
-	SleepScore     *int
+	SleepScore     *float64
 	TotalSleepTime *time.Duration
 	RawResponse    string
 }

@@ -1,7 +1,13 @@
 package withings
 
 import (
+	"bytes"
+	"fmt"
+	"github.com/google/go-querystring/query"
+	"github.com/roessland/withoutings/logging"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
+	"io"
 	"net/http"
 	"time"
 )
@@ -61,13 +67,67 @@ func (c *Client) WithAccessToken(accessToken string) *AuthenticatedClient {
 	return &ac
 }
 
+// NewRequest creates a standard request to the Withings API.
+func (c *Client) NewRequest(endpoint string, params any) (*http.Request, error) {
+	q, err := query.Values(params)
+	if err != nil {
+		return nil, err
+	}
+
+	url := fmt.Sprintf("%s%s?%s", c.APIBase, endpoint, q.Encode())
+	req, err := http.NewRequest(http.MethodPost, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // Do sends a request
 func (c *Client) Do(req *http.Request) (*http.Response, error) {
-	return c.HTTPClient.Do(req)
+	var err error
+	logger := logging.MustGetLoggerFromContext(req.Context())
+
+	var reqBody []byte
+	if req.Body != nil {
+		reqBody, err = io.ReadAll(req.Body)
+		if err != nil {
+			return nil, err
+		}
+		req.Body = io.NopCloser(bytes.NewReader(reqBody))
+	}
+
+	logger.WithFields(logrus.Fields{
+		"event":           "withings-api-request.started",
+		"url":             req.URL,
+		"request.body":    string(reqBody),
+		"request.headers": req.Header,
+		"request.method":  req.Method,
+	}).Info()
+
+	resp, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	resp.Body = io.NopCloser(bytes.NewReader(respBody))
+
+	logger.WithFields(logrus.Fields{
+		"event":            "withings-api-request.finished",
+		"response.body":    string(respBody),
+		"response.headers": resp.Header,
+		"response.status":  resp.StatusCode,
+	}).Info()
+
+	return resp, nil
 }
 
 // Do sends a request with an authorization header.
 func (c *AuthenticatedClient) Do(req *http.Request) (*http.Response, error) {
 	req.Header.Set("Authorization", "Bearer "+c.AccessToken)
-	return c.HTTPClient.Do(req)
+	return c.Client.Do(req)
 }

@@ -4,11 +4,12 @@ go 1.19
 
 require (
 	cloud.google.com/go v0.101.1
-	github.com/deepmap/oapi-codegen v1.10.1
+	github.com/google/go-querystring v1.1.0
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/sessions v1.2.1
 	github.com/hibiken/asynq v0.23.0
+	github.com/jackc/pgx/v5 v5.0.4
 	github.com/sirupsen/logrus v1.8.1
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
 )
@@ -21,7 +22,6 @@ require (
 	github.com/gorilla/securecookie v1.1.1 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
-	github.com/jackc/pgx/v5 v5.0.4 // indirect
 	github.com/jackc/puddle/v2 v2.0.0 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
