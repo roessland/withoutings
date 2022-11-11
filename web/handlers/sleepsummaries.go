@@ -36,10 +36,9 @@ func SleepSummaries(app *webapp.WebApp) http.HandlerFunc {
 				return
 			}
 
-			sleepData, err = app.Sleep.GetSleepSummaries(ctx, sleep.GetSleepSummaryInput{
-				AccessToken: token.AccessToken,
-				Year:        0,
-				Month:       0,
+			sleepData, err = app.Sleep.GetSleepSummaries(ctx, token.AccessToken, sleep.GetSleepSummaryInput{
+				Year:  0,
+				Month: 0,
 			})
 			if err != nil {
 				log.Error(err)

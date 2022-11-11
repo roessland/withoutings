@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"golang.org/x/oauth2"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
@@ -57,7 +56,7 @@ func (c *Client) GetAccessToken(ctx context.Context, authCode string) (*Token, e
 	if err != nil {
 		return nil, err
 	}
-	body, err := ioutil.ReadAll(io.LimitReader(resp.Body, 1<<20))
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
 	resp.Body.Close()
 	if err != nil {
 		return nil, fmt.Errorf("oauth2: cannot fetch token: %w", err)
@@ -106,7 +105,7 @@ func (c *Client) RefreshAccessToken(ctx context.Context, refreshToken string) (*
 	if err != nil {
 		return nil, err
 	}
-	body, err := ioutil.ReadAll(io.LimitReader(resp.Body, 1<<20))
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
 	resp.Body.Close()
 	if err != nil {
 		return nil, fmt.Errorf("oauth2: cannot refresh token: %w", err)

@@ -1,21 +1,28 @@
 package withings
 
 import (
-	"github.com/roessland/withoutings/withings/openapi"
 	"golang.org/x/oauth2"
-	"log"
 	"net/http"
 	"time"
 )
 
-const APIBase = "https://wbsapi.withings.net"
+// DefaultAPIBase is the base URL to the Withings API.
+const DefaultAPIBase = "https://wbsapi.withings.net"
 
+// Client sends requests to the Withings API.
 type Client struct {
 	HTTPClient   *http.Client
-	OAuth2Config oauth2.Config
-	API2         *openapi.Client
+	OAuth2Config *oauth2.Config
+	APIBase      string
 }
 
+// AuthenticatedClient is a client with an access token.
+type AuthenticatedClient struct {
+	Client
+	AccessToken string
+}
+
+// NewClient returns a client.
 func NewClient(clientID, clientSecret, redirectURL string) *Client {
 	c := Client{}
 
@@ -30,13 +37,7 @@ func NewClient(clientID, clientSecret, redirectURL string) *Client {
 		Timeout: time.Second * 35,
 	}
 
-	var err error
-	c.API2, err = openapi.NewClient(APIBase, openapi.WithHTTPClient(c.HTTPClient))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	c.OAuth2Config = oauth2.Config{
+	c.OAuth2Config = &oauth2.Config{
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		Scopes:       OAuth2Scopes,
@@ -47,5 +48,26 @@ func NewClient(clientID, clientSecret, redirectURL string) *Client {
 		},
 	}
 
+	c.APIBase = DefaultAPIBase
+
 	return &c
+}
+
+// WithAccessToken returns an authenticated version of a client
+func (c *Client) WithAccessToken(accessToken string) *AuthenticatedClient {
+	var ac AuthenticatedClient
+	ac.Client = *c
+	ac.AccessToken = accessToken
+	return &ac
+}
+
+// Do sends a request
+func (c *Client) Do(req *http.Request) (*http.Response, error) {
+	return c.HTTPClient.Do(req)
+}
+
+// Do sends a request with an authorization header.
+func (c *AuthenticatedClient) Do(req *http.Request) (*http.Response, error) {
+	req.Header.Set("Authorization", "Bearer "+c.AccessToken)
+	return c.HTTPClient.Do(req)
 }
