@@ -48,7 +48,8 @@ func (sleepSvc *Sleep) GetSleepSummaries(ctx context.Context, accessToken string
 
 	out.Raw = resp.Raw
 
-	for _, sleep := range resp.Body.Series {
+	for i := range resp.Body.Series {
+		sleep := resp.Body.Series[i]
 		sleepSummary := entities.SleepSummary{}
 		sleepSummary.Date, err = civil.ParseDate(sleep.Date)
 		if err != nil {
