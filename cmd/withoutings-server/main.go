@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
-	"github.com/roessland/withoutings/app/webapp"
-	"github.com/roessland/withoutings/app/workerapp"
+	"github.com/roessland/withoutings/domain/services/withoutings"
 	"github.com/roessland/withoutings/web"
+	"github.com/roessland/withoutings/worker"
 	"os"
 	"os/signal"
 	"runtime/pprof"
@@ -13,28 +13,32 @@ import (
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	app := webapp.NewApp(ctx)
-	server := web.Configure(app)
+	svc, err := withoutings.NewService(ctx)
+	if err != nil {
+		svc.Log.Fatal(err)
+	}
 
-	worker := workerapp.NewApp()
-	go worker.Work(ctx)
+	webserver := web.Configure(svc)
+
+	wrk := worker.NewWorker(svc)
+	go wrk.Work(ctx)
 
 	go func() {
-		app.Log.Info("Serving at ", server.Addr)
-		app.Log.Info(server.ListenAndServe())
+		svc.Log.Info("Serving at ", webserver.Addr)
+		svc.Log.Info(webserver.ListenAndServe())
 	}()
 
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt)
 	<-signalChan
-	app.Log.Info("Interrupted. Exiting gracefully. Press Ctrl-C again to exit immediately.")
+	svc.Log.Info("Interrupted. Exiting gracefully. Press Ctrl-C again to exit immediately.")
 	go func() {
 		<-signalChan
-		app.Log.Info("Interrupted again. Exiting immediately. Running goroutines:")
+		svc.Log.Info("Interrupted again. Exiting immediately. Running goroutines:")
 		_ = pprof.Lookup("goroutine").WriteTo(os.Stdout, 1)
 		os.Exit(1)
 	}()
 
 	cancel()
-	_ = server.Close()
+	_ = webserver.Close()
 }

@@ -1,14 +1,14 @@
 package handlers
 
 import (
-	"github.com/roessland/withoutings/app/webapp"
+	"github.com/roessland/withoutings/domain/services/withoutings"
 	"github.com/roessland/withoutings/logging"
-	"github.com/roessland/withoutings/withings"
+	"github.com/roessland/withoutings/withingsapi"
 	"net/http"
 )
 
 // Login logs users in via Withings OAuth2.
-func Login(app *webapp.WebApp) http.HandlerFunc {
+func Login(app *withoutings.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		log := logging.MustGetLoggerFromContext(ctx)
@@ -22,7 +22,7 @@ func Login(app *webapp.WebApp) http.HandlerFunc {
 		}
 
 		// Save state to cookie. It will be verified in the callback handler.
-		nonce := withings.RandomNonce()
+		nonce := withingsapi.RandomNonce()
 		sess.SetState(nonce)
 		err = sess.Save(r, w)
 		if err != nil {

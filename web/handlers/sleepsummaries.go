@@ -1,14 +1,14 @@
 package handlers
 
 import (
-	"github.com/roessland/withoutings/app/webapp"
 	"github.com/roessland/withoutings/domain/services/sleep"
+	"github.com/roessland/withoutings/domain/services/withoutings"
 	"github.com/roessland/withoutings/logging"
 	"net/http"
 	"time"
 )
 
-func SleepSummaries(app *webapp.WebApp) http.HandlerFunc {
+func SleepSummaries(app *withoutings.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		log := logging.MustGetLoggerFromContext(ctx)

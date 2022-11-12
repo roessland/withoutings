@@ -2,7 +2,7 @@ package web
 
 import (
 	"github.com/gorilla/mux"
-	"github.com/roessland/withoutings/app/webapp"
+	"github.com/roessland/withoutings/domain/services/withoutings"
 	"github.com/roessland/withoutings/web/handlers"
 	"github.com/roessland/withoutings/web/middleware"
 	"github.com/roessland/withoutings/web/static"
@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func Configure(app *webapp.WebApp) *http.Server {
+func Configure(app *withoutings.Service) *http.Server {
 	r := mux.NewRouter()
 	r.HandleFunc("/api/health", handlers.Health(app))
 	r.HandleFunc("/", handlers.HomePage(app))

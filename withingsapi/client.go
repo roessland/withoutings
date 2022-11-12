@@ -1,4 +1,4 @@
-package withings
+package withingsapi
 
 import (
 	"bytes"

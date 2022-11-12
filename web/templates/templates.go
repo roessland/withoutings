@@ -3,7 +3,7 @@ package templates
 import (
 	"embed"
 	"github.com/roessland/withoutings/domain/services/sleep"
-	"github.com/roessland/withoutings/withings"
+	"github.com/roessland/withoutings/withingsapi"
 	"html/template"
 	"io"
 )
@@ -27,11 +27,11 @@ func LoadTemplates() Templates {
 
 type HomePageVars struct {
 	Error     string
-	Token     *withings.Token
+	Token     *withingsapi.Token
 	SleepData interface{}
 }
 
-func (t Templates) RenderHomePage(w io.Writer, token *withings.Token) error {
+func (t Templates) RenderHomePage(w io.Writer, token *withingsapi.Token) error {
 	return t.template.ExecuteTemplate(w, "homepage.gohtml", HomePageVars{
 		Token: token,
 	})
@@ -39,7 +39,7 @@ func (t Templates) RenderHomePage(w io.Writer, token *withings.Token) error {
 
 type SleepSummariesVars struct {
 	Error     string
-	Token     *withings.Token
+	Token     *withingsapi.Token
 	SleepData interface{}
 }
 
@@ -52,10 +52,10 @@ func (t Templates) RenderSleepSummaries(w io.Writer, sleepData *sleep.GetSleepSu
 
 type RefreshAccessTokenVars struct {
 	Error            string
-	Token, PrevToken *withings.Token
+	Token, PrevToken *withingsapi.Token
 }
 
-func (t Templates) RenderRefreshAccessToken(w io.Writer, token, prevToken *withings.Token) error {
+func (t Templates) RenderRefreshAccessToken(w io.Writer, token, prevToken *withingsapi.Token) error {
 	return t.template.ExecuteTemplate(w, "refreshaccesstoken.gohtml", RefreshAccessTokenVars{
 		Token:     token,
 		PrevToken: prevToken,

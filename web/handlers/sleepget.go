@@ -1,14 +1,14 @@
 package handlers
 
 import (
-	"github.com/roessland/withoutings/app/webapp"
+	"github.com/roessland/withoutings/domain/services/withoutings"
 	"github.com/roessland/withoutings/logging"
-	"github.com/roessland/withoutings/withings"
+	"github.com/roessland/withoutings/withingsapi"
 	"net/http"
 	"time"
 )
 
-func SleepGetJSON(app *webapp.WebApp) http.HandlerFunc {
+func SleepGetJSON(app *withoutings.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		log := logging.MustGetLoggerFromContext(ctx)
@@ -22,7 +22,7 @@ func SleepGetJSON(app *webapp.WebApp) http.HandlerFunc {
 
 		token := sess.Token()
 
-		var sleepData *withings.SleepGetResponse
+		var sleepData *withingsapi.SleepGetResponse
 		if token != nil {
 			if time.Now().After(token.Expiry) {
 				w.Header().Set("Content-Type", "text/html")
@@ -39,7 +39,7 @@ func SleepGetJSON(app *webapp.WebApp) http.HandlerFunc {
 
 		authClient := app.Withings.WithAccessToken(token.AccessToken)
 
-		params := withings.NewSleepGetParams()
+		params := withingsapi.NewSleepGetParams()
 		params.Startdate = 1668116907
 		params.Enddate = 1668160107
 		sleepData, err = authClient.SleepGet(ctx, params)

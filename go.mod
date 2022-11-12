@@ -10,6 +10,7 @@ require (
 	github.com/gorilla/sessions v1.2.1
 	github.com/hibiken/asynq v0.23.0
 	github.com/jackc/pgx/v5 v5.0.4
+	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/sirupsen/logrus v1.8.1
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
 )

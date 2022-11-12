@@ -9,12 +9,10 @@ Create a new application.
 
 ## Required environment variables
 
+See [env.example.sh](env.example.sh).
+
 ```bash
-SESSION_SECRET=<random uuid, generated once> \
-WITHINGS_CLIENT_ID=<your app id> \
-WITHINGS_CLIENT_SECRET=<your app secret> \
-WITHINGS_REDIRECT_URL=<your app callback URL> \
-go run cmd/main.go
+source env.sh && go run cmd/main.go
 ```
 
 ## Forward remote port to local port

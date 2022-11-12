@@ -5,15 +5,15 @@ import (
 	"context"
 	"github.com/roessland/withoutings/domain/entities"
 	"github.com/roessland/withoutings/logging"
-	"github.com/roessland/withoutings/withings"
+	"github.com/roessland/withoutings/withingsapi"
 	"time"
 )
 
 type Sleep struct {
-	Withings *withings.Client
+	Withings *withingsapi.Client
 }
 
-func NewSleep(withings *withings.Client) *Sleep {
+func NewSleep(withings *withingsapi.Client) *Sleep {
 	return &Sleep{
 		Withings: withings,
 	}
@@ -34,7 +34,7 @@ func (sleepSvc *Sleep) GetSleepSummaries(ctx context.Context, accessToken string
 	authClient := sleepSvc.Withings.WithAccessToken(accessToken)
 
 	// todo: use input
-	params := withings.NewSleepGetsummaryParams()
+	params := withingsapi.NewSleepGetsummaryParams()
 	params.Startdateymd = "2022-11-01"
 	params.Enddateymd = "2022-11-12"
 

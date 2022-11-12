@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	"github.com/roessland/withoutings/app/webapp"
+	"github.com/roessland/withoutings/domain/services/withoutings"
 	"net/http"
 )
 
-func Health(app *webapp.WebApp) http.HandlerFunc {
+func Health(app *withoutings.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(200)
