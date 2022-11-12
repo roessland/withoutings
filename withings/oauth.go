@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-var OAuth2Scopes = []string{"user.activity,user.metrics"}
+var OAuth2Scopes = []string{"user.info,user.activity,user.metrics,user.sleepevents"}
 var OAuth2AuthURL string = "https://account.withings.com/oauth2_user/authorize2"
 var OAuth2TokenURL = "https://wbsapi.withings.net/v2/oauth2"
 

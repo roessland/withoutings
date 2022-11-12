@@ -11,4 +11,5 @@ export WITHINGS_REDIRECT_URL=https://withings.yourdomain.com/callbackurl
 export SESSION_SECRET=asdfasdf
 
 # Enter your DB connection string here
-export WOT_DATABASE_URL='postgres://wotrw:<pass>@127.0.0.1:5432/wot?pool_max_conns=10'
+export WOT_DATABASE_URL='postgres://wotrw:<pass>@127.0.0.1:5432/wot?sslmode=disable'
+export WOT_DATABASE_URL_SA='postgres://wotsa:<pass>@127.0.0.1:5432/wot?sslmode=disable'
