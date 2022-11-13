@@ -31,8 +31,8 @@ jobs:
           ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> /home/runner/.ssh/known_hosts
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > /home/runner/.ssh/id_ed25519
           chmod 600 /home/runner/.ssh/id_ed25519
-          scp -P ${{ secrets.SSH_PORT }} withoutings-server ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/bin/withoutings-server-new
-          ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "rm -f bin/withoutings-server; mv bin/withoutings-server-new bin/withoutings-server; sudo /bin/systemctl restart withoutings"
+          scp -P ${{ secrets.SSH_PORT }} withoutings ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/bin/withoutings-new
+          ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "rm -f bin/withoutings; mv bin/withoutings-new bin/withoutings; sudo /bin/systemctl restart withoutings"
           
           status_code=$(curl --write-out %{http_code} --silent --output /dev/null ${{ secrets.WEB_URL }}/api/health)
           
