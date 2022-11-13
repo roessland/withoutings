@@ -1,0 +1,18 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "accountrepo/query.sql"
+    schema: "../migrations/"
+    gen:
+      go:
+        sql_package: "pgx/v4"
+        package: "accountrepo"
+        out: "accountrepo"
+  - engine: "postgresql"
+    queries: "subscriptionrepo/query.sql"
+    schema: "../migrations/"
+    gen:
+      go:
+        sql_package: "pgx/v4"
+        package: "subscriptionrepo"
+        out: "subscriptionrepo"

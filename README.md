@@ -44,10 +44,25 @@ brew install golang-migrate
 
 ### Create migration
 ```
-migrate create -ext sql -dir deploy/migrations -seq rwuser_privileges
+migrate create -ext sql -dir migrations -seq <migration_name>
 ```
 
-### Run migrations on localhost
+### Run migrations
 ```
-source env.sh && migrate -path deploy/migrations -database $WOT_DATABASE_URL_SA up
+source env.sh && withoutings migrate
+```
+
+### Revert migration
+```sh
+migrate down
+```
+
+## Queries
+Go code is generated from SQL queries using [sqlc](https://docs.sqlc.dev/)
+
+### Install sqlc
+```sh
+brew install sqlc
+# or
+go install github.com/kyleconroy/sqlc/cmd/sqlc@latest
 ```

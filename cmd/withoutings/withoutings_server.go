@@ -10,7 +10,7 @@ import (
 	"runtime/pprof"
 )
 
-func main() {
+func withoutingsServer() {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	svc, err := withoutings.NewService(ctx)
