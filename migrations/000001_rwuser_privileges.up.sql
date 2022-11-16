@@ -1,8 +1,9 @@
 -- execute this using database owner (i.e. wotsa, not postgres).
 
-create schema wot;
+create schema if not exists wot;
 
--- drop schema if exists public; -- optional
+--alter schema public owner to wotsa; -- optional
+--drop schema if exists public; -- optional
 
 grant usage on schema wot to wotrw;
 grant temporary on database wot to wotrw;

@@ -32,6 +32,7 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > /home/runner/.ssh/id_ed25519
           chmod 600 /home/runner/.ssh/id_ed25519
           scp -P ${{ secrets.SSH_PORT }} withoutings ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/bin/withoutings-new
+          ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "set -o allexport; source withoutings.environmentfile; set +o allexport; bin/withoutings-new migrate"
           ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "rm -f bin/withoutings; mv bin/withoutings-new bin/withoutings; sudo /bin/systemctl restart withoutings"
           
           status_code=$(curl --write-out %{http_code} --silent --output /dev/null ${{ secrets.WEB_URL }}/api/health)
