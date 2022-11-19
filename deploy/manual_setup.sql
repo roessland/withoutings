@@ -33,3 +33,8 @@ create database wot
 
 -- golang-migrate needs schema to exist when creating schema migrations table.
 create schema if not exists wot;
+
+-- set search path for all _future_ connections
+alter database wot set search_path to wot;
+
+grant temporary on database wot to wotrw;

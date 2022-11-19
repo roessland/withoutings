@@ -38,7 +38,7 @@ func New(ctx context.Context) TestDatabase {
 		login;`) // Ignore error -- user might already exist
 
 	// Create role for readwrite user
-	logger.Debugf("Creating wotrw user ")
+	logger.Debugf("Creating wotrw user")
 	_, _ = postgresPool.Exec(ctx, `
 		create role wotrw
 		password 'wotrw'
@@ -53,6 +53,22 @@ func New(ctx context.Context) TestDatabase {
 		template template0
 		encoding 'utf8'
 		lc_collate = 'C';`)
+	if err != nil {
+		panic(err)
+	}
+
+	// Set search path for all _future_ connections
+	logger.Debugf("Setting search path")
+	_, err = postgresPool.Exec(ctx, fmt.Sprintf(`
+		alter database %s set search_path to wot;`, dbName))
+	if err != nil {
+		panic(err)
+	}
+
+	// Grant temp table permissions
+	logger.Debugf("Granting temp table permission to wotrw")
+	_, err = postgresPool.Exec(ctx, fmt.Sprintf(`
+		grant temporary on database %s to wotrw;`, dbName))
 	if err != nil {
 		panic(err)
 	}
