@@ -24,27 +24,41 @@ func New(ctx context.Context) TestDatabase {
 
 	// Connect to postgres using socket/trust with default user (probably <username> or postgres)
 	logger.Debugf("Connecting to template1")
-	postgresPool, err := pgxpool.Connect(ctx, "postgres://?host=/tmp&database=template1")
+	postgresPool, err := pgxpool.Connect(ctx, "postgres://?host=localhost&password=postgres&database=template1")
 	if err != nil {
 		panic(err)
 	}
+
+	// Create role for superadmin user
+	logger.Debugf("Creating wotsa user ")
+	_, _ = postgresPool.Exec(ctx, `
+		create role wotsa
+		password 'wotsa'
+		login;`) // Ignore error -- user might already exist
+
+	// Create role for readwrite user
+	logger.Debugf("Creating wotrw user ")
+	_, _ = postgresPool.Exec(ctx, `
+		create role wotrw
+		password 'wotrw'
+		login;`) // Ignore error -- user might already exist
 
 	// Create new test database as postgres user
 	dbName := "wot_test_" + strconv.FormatInt(time.Now().UnixNano(), 36)
 	logger.Debugf("Creating database " + dbName)
 	_, err = postgresPool.Exec(ctx, `
-	create database `+dbName+`
-	owner wotsa
-	template template0
-	encoding 'utf8'
-	lc_collate = 'C';`)
+		create database `+dbName+`
+		owner wotsa
+		template template0
+		encoding 'utf8'
+		lc_collate = 'C';`)
 	if err != nil {
 		panic(err)
 	}
 
 	// Connect to test DB as superuser
 	logger.Debugf("Connecting as wotsa")
-	wotsaConn, err := sql.Open("pgx", "postgres://?host=/tmp&search_path=wot&user=wotsa&database="+dbName)
+	wotsaConn, err := sql.Open("pgx", "postgres://?host=localhost&search_path=wot&user=wotsa&password=wotsa&database="+dbName)
 	if err != nil {
 		panic(err)
 	}
@@ -61,7 +75,7 @@ func New(ctx context.Context) TestDatabase {
 	migrations.Run(wotsaConn)
 
 	// Connect to test DB using wotrw user
-	wotrwPool, err := pgxpool.Connect(ctx, "postgres://?host=/tmp&&user=wotrw&database="+dbName)
+	wotrwPool, err := pgxpool.Connect(ctx, "postgres://?host=localhost&user=wotrw&password=wotrw&database="+dbName)
 	if err != nil {
 		panic(err)
 	}
