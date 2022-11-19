@@ -6,7 +6,7 @@ create table if not exists account
     withings_user_id             varchar not null,
     withings_access_token        varchar not null,
     withings_refresh_token       varchar not null,
-    withings_access_token_expiry date    not null,
+    withings_access_token_expiry timestamp with time zone not null,
     withings_scopes              varchar not null
 );
 

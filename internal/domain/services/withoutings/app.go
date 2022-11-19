@@ -3,7 +3,7 @@ package withoutings
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/roessland/withoutings/internal/config"
 	"github.com/roessland/withoutings/internal/domain/services/sleep"
 	"github.com/roessland/withoutings/web/sessions"
@@ -47,7 +47,7 @@ func NewService(ctx context.Context) (*Service, error) {
 
 	svc.Sessions = sessions.NewManager(cfg.SessionSecret)
 
-	svc.DB, err = pgxpool.New(initCtx, cfg.DatabaseURL)
+	svc.DB, err = pgxpool.Connect(initCtx, cfg.DatabaseURL)
 	if err != nil {
 		return svc, fmt.Errorf("create connection pool: %w", err)
 	}

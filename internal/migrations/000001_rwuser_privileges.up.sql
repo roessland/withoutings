@@ -2,9 +2,6 @@
 
 create schema if not exists wot;
 
---alter schema public owner to wotsa; -- optional
---drop schema if exists public; -- optional
-
 grant usage on schema wot to wotrw;
 grant temporary on database wot to wotrw;
 
@@ -28,4 +25,8 @@ alter default privileges
     in schema wot
     grant execute on routines to wotrw;
 
+-- set search path for all _future_ connections
 alter database wot set search_path to wot;
+
+-- set search path in _this_ connection (needed for migrations to work properly).
+set search_path to wot;
