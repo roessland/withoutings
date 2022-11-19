@@ -3,8 +3,8 @@ package sleep
 import (
 	"cloud.google.com/go/civil"
 	"context"
-	"github.com/roessland/withoutings/domain/entities"
-	"github.com/roessland/withoutings/logging"
+	"github.com/roessland/withoutings/internal/domain/entities"
+	"github.com/roessland/withoutings/internal/logging"
 	"github.com/roessland/withoutings/withingsapi"
 	"time"
 )

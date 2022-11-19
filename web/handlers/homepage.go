@@ -1,12 +1,12 @@
 package handlers
 
 import (
-	"github.com/roessland/withoutings/domain/services/withoutings"
-	"github.com/roessland/withoutings/logging"
+	"github.com/roessland/withoutings/internal/domain/services/withoutings"
+	"github.com/roessland/withoutings/internal/logging"
 	"net/http"
 )
 
-func HomePage(app *withoutings.Service) http.HandlerFunc {
+func Homepage(app *withoutings.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		log := logging.MustGetLoggerFromContext(ctx)

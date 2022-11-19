@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"github.com/roessland/withoutings/domain/services/withoutings"
+	"github.com/roessland/withoutings/internal/domain/services/withoutings"
 	"github.com/roessland/withoutings/web"
 	"github.com/roessland/withoutings/worker"
 	"os"

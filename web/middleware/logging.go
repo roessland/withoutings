@@ -5,8 +5,8 @@ import (
 	"context"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/roessland/withoutings/domain/services/withoutings"
-	"github.com/roessland/withoutings/logging"
+	"github.com/roessland/withoutings/internal/domain/services/withoutings"
+	"github.com/roessland/withoutings/internal/logging"
 	"net/http"
 )
 

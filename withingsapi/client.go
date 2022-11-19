@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/google/go-querystring/query"
-	"github.com/roessland/withoutings/logging"
+	"github.com/roessland/withoutings/internal/logging"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	"io"

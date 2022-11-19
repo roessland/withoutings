@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"github.com/roessland/withoutings/domain/services/withoutings"
+	"github.com/roessland/withoutings/internal/domain/services/withoutings"
 	"net/http"
 )
 

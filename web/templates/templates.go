@@ -2,7 +2,7 @@ package templates
 
 import (
 	"embed"
-	"github.com/roessland/withoutings/domain/services/sleep"
+	"github.com/roessland/withoutings/internal/domain/services/sleep"
 	"github.com/roessland/withoutings/withingsapi"
 	"html/template"
 	"io"

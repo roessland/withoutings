@@ -2,7 +2,7 @@ package web
 
 import (
 	"github.com/gorilla/mux"
-	"github.com/roessland/withoutings/domain/services/withoutings"
+	"github.com/roessland/withoutings/internal/domain/services/withoutings"
 	"github.com/roessland/withoutings/web/handlers"
 	"github.com/roessland/withoutings/web/middleware"
 	"github.com/roessland/withoutings/web/static"
@@ -13,10 +13,10 @@ import (
 func Configure(app *withoutings.Service) *http.Server {
 	r := mux.NewRouter()
 	r.HandleFunc("/api/health", handlers.Health(app))
-	r.HandleFunc("/", handlers.HomePage(app))
+	r.HandleFunc("/", handlers.Homepage(app))
 	r.PathPrefix("/static/").Handler(http.FileServer(http.FS(static.FS)))
 
-	r.HandleFunc("/auth/login", handlers.Login(app))
+	r.Path("/auth/login").Methods("GET").Handler(handlers.Login(app))
 	r.HandleFunc("/auth/logout", handlers.Logout(app))
 	r.HandleFunc("/auth/callback", handlers.Callback(app))
 	r.HandleFunc("/auth/refresh", handlers.Refresh(app))
