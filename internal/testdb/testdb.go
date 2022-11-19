@@ -22,7 +22,8 @@ type TestDatabase struct {
 func New(ctx context.Context) TestDatabase {
 	logger := logging.MustGetLoggerFromContext(ctx)
 
-	// Connect to postgres using socket/trust with default user (probably <username> or postgres)
+	// Connect to postgres using socket/trust with current user
+	// (<myuser> on localhost, "runner" in CI)
 	logger.Debugf("Connecting to template1")
 	postgresPool, err := pgxpool.Connect(ctx, "postgres://?host=localhost&password=postgres&database=template1")
 	if err != nil {
