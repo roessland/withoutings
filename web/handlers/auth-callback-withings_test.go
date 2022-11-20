@@ -2,12 +2,14 @@ package handlers_test
 
 import (
 	"fmt"
-	"github.com/roessland/withoutings/internal/domain/services/withoutings"
+	"github.com/alexedwards/scs/v2"
+	"github.com/alexedwards/scs/v2/memstore"
+	"github.com/jackc/pgtype"
 	"github.com/roessland/withoutings/internal/repos/db"
+	"github.com/roessland/withoutings/internal/services/withoutings"
 	"github.com/roessland/withoutings/internal/testctx"
 	"github.com/roessland/withoutings/internal/testdb"
 	"github.com/roessland/withoutings/web"
-	"github.com/roessland/withoutings/web/sessions"
 	"github.com/roessland/withoutings/withingsapi"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -20,7 +22,7 @@ import (
 func TestCallback(t *testing.T) {
 	ctx := testctx.New()
 	database := testdb.New(ctx)
-	defer database.Drop(ctx)
+	//defer database.Drop(ctx)
 
 	mockWithingsTokenEndpoint := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, `
@@ -42,13 +44,19 @@ func TestCallback(t *testing.T) {
 
 	svc := &withoutings.Service{}
 	svc.Log = ctx.Logger
-	svc.Sessions = sessions.NewManager([]byte("abc123"))
+	svc.DB = database.Pool
+	svc.Queries = db.New(svc.DB)
+	svc.AccountRepo = svc.Queries
+	svc.SubscriptionRepo = svc.Queries
+
+	svc.Sessions = scs.New()
+	sessionsMock := memstore.New()
+	svc.Sessions.Store = sessionsMock
+
 	svc.Withings = withingsapi.NewClient("testclientid", "testclientsecret", "testredirecturl")
 	svc.Withings.APIBase = mockWithingsTokenEndpoint.URL
 	svc.Withings.OAuth2Config.Endpoint.TokenURL = mockWithingsTokenEndpoint.URL
 	svc.Withings.OAuth2Config.Endpoint.AuthURL = mockWithingsTokenEndpoint.URL
-	svc.DB = database.Pool
-	svc.AccountRepo = db.New(svc.DB)
 
 	router := web.Router(svc)
 
@@ -59,16 +67,30 @@ func TestCallback(t *testing.T) {
 		require.Equal(t, 400, resp.Code)
 	})
 
-	t.Run("without state yields bad request", func(t *testing.T) {
+	t.Run("without cookie yields bad request", func(t *testing.T) {
+
 		resp := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/auth/callback?code=qwerty", nil)
+
 		router.ServeHTTP(resp, req)
 		require.Equal(t, 400, resp.Code)
 	})
 
-	t.Run("with valid code creates user", func(t *testing.T) {
+	t.Run("with correct code and state succeeds", func(t *testing.T) {
+		// Store state in DB
+		sessData := pgtype.JSONB{}
+		require.NoError(t, sessData.Set(map[string]string{
+			"state": "e0+GANQxF1SG",
+		}))
+
 		resp := httptest.NewRecorder()
-		req := httptest.NewRequest(http.MethodGet, "/auth/callback?code=qwerty&state=asdf", nil)
+		req := httptest.NewRequest(http.MethodGet, "/auth/callback?code=qwerty&state=e0%2BGANQxF1SG", nil)
+
+		// Add cookie with correct session_id, referring to state in DB
+		cookie := http.Cookie{Name: svc.Sessions.Cookie.Name, Value: "todo"}
+		req.AddCookie(&cookie)
+
+		// Should be success and redirect
 		router.ServeHTTP(resp, req)
 		assert.Equal(t, 302, resp.Code)
 

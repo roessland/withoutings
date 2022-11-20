@@ -46,7 +46,7 @@ func New(ctx context.Context) TestDatabase {
 
 	// Create new test database as postgres user
 	dbName := "wot_test_" + strconv.FormatInt(time.Now().UnixNano(), 36)
-	logger.Debugf("Creating database " + dbName)
+	logger.Infof("Creating database " + dbName)
 	_, err = postgresPool.Exec(ctx, `
 		create database `+dbName+`
 		owner wotsa

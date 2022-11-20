@@ -7,9 +7,6 @@ package db
 import (
 	"database/sql"
 	"time"
-
-	"github.com/google/uuid"
-	"github.com/jackc/pgtype"
 )
 
 type Account struct {
@@ -22,10 +19,9 @@ type Account struct {
 }
 
 type Session struct {
-	SessionID uuid.UUID
-	Data      pgtype.JSONB
-	Created   time.Time
-	Expiry    time.Time
+	Token  string
+	Data   []byte
+	Expiry time.Time
 }
 
 type Subscription struct {

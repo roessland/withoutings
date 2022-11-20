@@ -1,9 +1,9 @@
-create extension pgcrypto;
-
-create table if not exists session
+-- https://github.com/alexedwards/scs/tree/master/pgxstore
+CREATE TABLE sessions
 (
-    session_id uuid primary key default gen_random_uuid(),
-    data       jsonb                    not null default '{}'::jsonb,
-    created    timestamp with time zone not null default now(),
-    expiry     timestamp with time zone not null default now() + interval '1' month
+    token  TEXT PRIMARY KEY,
+    data   BYTEA       NOT NULL,
+    expiry TIMESTAMPTZ NOT NULL
 );
+
+CREATE INDEX sessions_expiry_idx ON sessions (expiry);

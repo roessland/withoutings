@@ -4,6 +4,8 @@ go 1.19
 
 require (
 	cloud.google.com/go v0.101.1
+	github.com/alexedwards/scs/pgxstore v0.0.0-20220528130143-d93ace5be94b
+	github.com/alexedwards/scs/v2 v2.5.0
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/google/go-querystring v1.1.0
 	github.com/google/uuid v1.3.0
@@ -11,8 +13,8 @@ require (
 	github.com/gorilla/sessions v1.2.1
 	github.com/hibiken/asynq v0.23.0
 	github.com/jackc/pgconn v1.8.0
+	github.com/jackc/pgtype v1.6.2
 	github.com/jackc/pgx/v4 v4.10.1
-	github.com/jackc/pgx/v5 v5.0.4
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.8.0
@@ -34,9 +36,8 @@ require (
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgproto3/v2 v2.0.7 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
-	github.com/jackc/pgtype v1.6.2 // indirect
 	github.com/jackc/puddle v1.1.3 // indirect
-	github.com/jackc/puddle/v2 v2.0.0 // indirect
+	github.com/kr/pretty v0.3.0 // indirect
 	github.com/lib/pq v1.10.7 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect

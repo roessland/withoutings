@@ -3,7 +3,7 @@ package worker
 import (
 	"context"
 	"fmt"
-	"github.com/roessland/withoutings/internal/domain/services/withoutings"
+	"github.com/roessland/withoutings/internal/services/withoutings"
 	"time"
 )
 

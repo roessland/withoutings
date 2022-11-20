@@ -2,7 +2,8 @@ package templates
 
 import (
 	"embed"
-	"github.com/roessland/withoutings/internal/domain/services/sleep"
+	"github.com/roessland/withoutings/internal/repos/db"
+	"github.com/roessland/withoutings/internal/services/sleep"
 	"github.com/roessland/withoutings/withingsapi"
 	"html/template"
 	"io"
@@ -26,14 +27,13 @@ func LoadTemplates() Templates {
 }
 
 type HomePageVars struct {
-	Error     string
-	Token     *withingsapi.Token
-	SleepData interface{}
+	Error   string
+	Account *db.Account
 }
 
-func (t Templates) RenderHomePage(w io.Writer, token *withingsapi.Token) error {
+func (t Templates) RenderHomePage(w io.Writer, account *db.Account) error {
 	return t.template.ExecuteTemplate(w, "homepage.gohtml", HomePageVars{
-		Token: token,
+		Account: account,
 	})
 }
 

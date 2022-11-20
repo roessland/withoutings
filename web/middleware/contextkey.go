@@ -1,3 +1,3 @@
 package middleware
 
-type ContextKey string
+type contextKey string

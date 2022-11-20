@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"github.com/roessland/withoutings/internal/domain/services/withoutings"
 	"github.com/roessland/withoutings/internal/logging"
 	"github.com/roessland/withoutings/internal/repos/db"
+	"github.com/roessland/withoutings/internal/services/withoutings"
 	"net/http"
 )
 
@@ -21,18 +21,11 @@ func Callback(svc *withoutings.Service) http.HandlerFunc {
 			return
 		}
 
-		sess, err := svc.Sessions.Get(r)
-		if err != nil {
-			log.WithError(err).Error("parsing cookie")
-			http.Error(w, "Invalid cookie", http.StatusBadRequest)
-			return
-		}
-
 		// Validate state
-		storedState := sess.State()
-		state := r.Form.Get("state")
-		if state != storedState || state == "" {
-			log.Info("invalid state")
+		storedState := svc.Sessions.GetString(ctx, "state")
+		callbackState := r.Form.Get("state")
+		if callbackState != storedState || callbackState == "" {
+			log.Infof("invalid state, had %s, expected %s", storedState, callbackState)
 			http.Error(w, "State invalid", http.StatusBadRequest)
 			return
 		}
@@ -54,7 +47,7 @@ func Callback(svc *withoutings.Service) http.HandlerFunc {
 		}
 
 		// Clear nonce
-		sess.SetState("")
+		svc.Sessions.Remove(ctx, "state")
 
 		// Create account
 		account, err := svc.AccountRepo.CreateAccount(ctx, db.CreateAccountParams{
@@ -73,19 +66,7 @@ func Callback(svc *withoutings.Service) http.HandlerFunc {
 		}
 
 		// Login user by saving account ID to session.
-		sess.SetAccountID(account.AccountID)
-
-		// Save token // TODO remove
-		sess.SetToken(token)
-
-		// Save session
-		err = sess.Save(r, w)
-		if err != nil {
-			log.WithField("event", "error.callback.setcookie").
-				WithError(err).Error()
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			return
-		}
+		svc.Sessions.Put(ctx, "account_id", account.AccountID)
 
 		// Redirect to homepage
 		http.Redirect(w, r, "/", http.StatusFound)

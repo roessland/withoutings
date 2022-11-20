@@ -2,7 +2,7 @@ package web
 
 import (
 	"github.com/gorilla/mux"
-	"github.com/roessland/withoutings/internal/domain/services/withoutings"
+	"github.com/roessland/withoutings/internal/services/withoutings"
 	"github.com/roessland/withoutings/web/handlers"
 	"github.com/roessland/withoutings/web/middleware"
 	"github.com/roessland/withoutings/web/static"
@@ -19,13 +19,15 @@ func Router(svc *withoutings.Service) *mux.Router {
 	r.Path("/auth/login").Methods("GET").Handler(handlers.Login(svc))
 	r.HandleFunc("/auth/logout", handlers.Logout(svc))
 	r.HandleFunc("/auth/callback", handlers.Callback(svc))
-	r.HandleFunc("/auth/refresh", handlers.Refresh(svc))
-
+	//r.HandleFunc("/auth/refresh", handlers.Refresh(svc))
+	//
 	r.HandleFunc("/sleepsummaries", handlers.SleepSummaries(svc))
-	r.HandleFunc("/sleepget.json", handlers.SleepGetJSON(svc))
+	//r.HandleFunc("/sleepget.json", handlers.SleepGetJSON(svc))
 
 	r.Use(
 		middleware.Logging(svc),
+		svc.Sessions.LoadAndSave,
+		middleware.Account(svc),
 	)
 	return r
 }

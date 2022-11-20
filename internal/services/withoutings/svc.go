@@ -3,11 +3,12 @@ package withoutings
 import (
 	"context"
 	"fmt"
+	"github.com/alexedwards/scs/pgxstore"
+	"github.com/alexedwards/scs/v2"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/roessland/withoutings/internal/config"
-	"github.com/roessland/withoutings/internal/domain/services/sleep"
 	"github.com/roessland/withoutings/internal/repos/db"
-	"github.com/roessland/withoutings/web/sessions"
+	"github.com/roessland/withoutings/internal/services/sleep"
 	"github.com/roessland/withoutings/web/templates"
 	"github.com/roessland/withoutings/withingsapi"
 	"github.com/sirupsen/logrus"
@@ -16,14 +17,16 @@ import (
 
 // Service holds all application resources.
 type Service struct {
-	Log         logrus.FieldLogger
-	Withings    *withingsapi.Client
-	Sessions    *sessions.Manager
-	Templates   templates.Templates
-	Sleep       *sleep.Sleep
-	DB          *pgxpool.Pool
-	Config      *config.Config
-	AccountRepo *db.Queries
+	Log              logrus.FieldLogger
+	Withings         *withingsapi.Client
+	Sessions         *scs.SessionManager
+	Templates        templates.Templates
+	Sleep            *sleep.Sleep
+	DB               *pgxpool.Pool
+	Config           *config.Config
+	Queries          *db.Queries
+	AccountRepo      *db.Queries
+	SubscriptionRepo *db.Queries
 	//Async     *asynq.Client
 }
 
@@ -47,14 +50,16 @@ func NewService(ctx context.Context) (*Service, error) {
 	}
 	svc.Config = cfg
 
-	svc.Sessions = sessions.NewManager(cfg.SessionSecret)
-
 	svc.DB, err = pgxpool.Connect(initCtx, cfg.DatabaseURL)
 	if err != nil {
 		return svc, fmt.Errorf("create connection pool: %w", err)
 	}
 
-	svc.AccountRepo = db.New(svc.DB)
+	svc.Queries = db.New(svc.DB)
+	svc.AccountRepo = svc.Queries
+
+	svc.Sessions = scs.New()
+	svc.Sessions.Store = pgxstore.New(svc.DB)
 
 	svc.Withings = withingsapi.NewClient(cfg.WithingsClientID, cfg.WithingsClientSecret, cfg.WithingsRedirectURL)
 
