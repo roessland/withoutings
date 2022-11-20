@@ -18,7 +18,7 @@ func withoutingsServer() {
 		svc.Log.Fatal(err)
 	}
 
-	webserver := web.Configure(svc)
+	webserver := web.Server(svc)
 
 	wrk := worker.NewWorker(svc)
 	go wrk.Work(ctx)

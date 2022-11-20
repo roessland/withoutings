@@ -23,7 +23,7 @@ type GetAccessTokenResponse struct {
 }
 
 type Token struct {
-	UserID       string    `json:"user_id,omitempty"`
+	UserID       string    `json:"userid,omitempty"`
 	AccessToken  string    `json:"access_token,omitempty"`
 	RefreshToken string    `json:"refresh_token,omitempty"`
 	ExpiresIn    int       `json:"expires_in,omitempty"`
@@ -44,7 +44,7 @@ func (c *Client) GetAccessToken(ctx context.Context, authCode string) (*Token, e
 
 	req, err := http.NewRequestWithContext(ctx,
 		http.MethodPost,
-		OAuth2TokenURL,
+		c.OAuth2Config.Endpoint.TokenURL,
 		strings.NewReader(v.Encode()),
 	)
 	if err != nil {
@@ -93,7 +93,7 @@ func (c *Client) RefreshAccessToken(ctx context.Context, refreshToken string) (*
 
 	req, err := http.NewRequestWithContext(ctx,
 		http.MethodPost,
-		OAuth2TokenURL,
+		c.OAuth2Config.Endpoint.TokenURL,
 		strings.NewReader(v.Encode()),
 	)
 	if err != nil {

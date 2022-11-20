@@ -10,26 +10,29 @@ import (
 	"time"
 )
 
-func Configure(app *withoutings.Service) *http.Server {
+func Router(svc *withoutings.Service) *mux.Router {
 	r := mux.NewRouter()
-	r.HandleFunc("/api/health", handlers.Health(app))
-	r.HandleFunc("/", handlers.Homepage(app))
+	r.HandleFunc("/api/health", handlers.Health(svc))
+	r.HandleFunc("/", handlers.Homepage(svc))
 	r.PathPrefix("/static/").Handler(http.FileServer(http.FS(static.FS)))
 
-	r.Path("/auth/login").Methods("GET").Handler(handlers.Login(app))
-	r.HandleFunc("/auth/logout", handlers.Logout(app))
-	r.HandleFunc("/auth/callback", handlers.Callback(app))
-	r.HandleFunc("/auth/refresh", handlers.Refresh(app))
+	r.Path("/auth/login").Methods("GET").Handler(handlers.Login(svc))
+	r.HandleFunc("/auth/logout", handlers.Logout(svc))
+	r.HandleFunc("/auth/callback", handlers.Callback(svc))
+	r.HandleFunc("/auth/refresh", handlers.Refresh(svc))
 
-	r.HandleFunc("/sleepsummaries", handlers.SleepSummaries(app))
-	r.HandleFunc("/sleepget.json", handlers.SleepGetJSON(app))
+	r.HandleFunc("/sleepsummaries", handlers.SleepSummaries(svc))
+	r.HandleFunc("/sleepget.json", handlers.SleepGetJSON(svc))
 
 	r.Use(
-		middleware.Logging(app),
+		middleware.Logging(svc),
 	)
+	return r
+}
 
+func Server(svc *withoutings.Service) *http.Server {
 	return &http.Server{
-		Handler:      r,
+		Handler:      Router(svc),
 		Addr:         "127.0.0.1:3628",
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,

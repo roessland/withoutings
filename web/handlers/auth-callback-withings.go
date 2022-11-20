@@ -3,12 +3,13 @@ package handlers
 import (
 	"github.com/roessland/withoutings/internal/domain/services/withoutings"
 	"github.com/roessland/withoutings/internal/logging"
+	"github.com/roessland/withoutings/internal/repos/db"
 	"net/http"
 )
 
 // Callback is used for OAuth2 callbacks,
 // but also for event notifications.
-func Callback(app *withoutings.Service) http.HandlerFunc {
+func Callback(svc *withoutings.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		log := logging.MustGetLoggerFromContext(ctx)
@@ -20,7 +21,7 @@ func Callback(app *withoutings.Service) http.HandlerFunc {
 			return
 		}
 
-		sess, err := app.Sessions.Get(r)
+		sess, err := svc.Sessions.Get(r)
 		if err != nil {
 			log.WithError(err).Error("parsing cookie")
 			http.Error(w, "Invalid cookie", http.StatusBadRequest)
@@ -30,7 +31,7 @@ func Callback(app *withoutings.Service) http.HandlerFunc {
 		// Validate state
 		storedState := sess.State()
 		state := r.Form.Get("state")
-		if state != storedState {
+		if state != storedState || state == "" {
 			log.Info("invalid state")
 			http.Error(w, "State invalid", http.StatusBadRequest)
 			return
@@ -43,7 +44,7 @@ func Callback(app *withoutings.Service) http.HandlerFunc {
 			http.Error(w, "Code not found", http.StatusBadRequest)
 			return
 		}
-		token, err := app.Withings.GetAccessToken(ctx, code)
+		token, err := svc.Withings.GetAccessToken(ctx, code)
 		if err != nil {
 			log.WithError(err).
 				WithField("event", "error.callback.getaccesstoken").
@@ -55,7 +56,26 @@ func Callback(app *withoutings.Service) http.HandlerFunc {
 		// Clear nonce
 		sess.SetState("")
 
-		// Save token
+		// Create account
+		account, err := svc.AccountRepo.CreateAccount(ctx, db.CreateAccountParams{
+			WithingsUserID:            token.UserID,
+			WithingsAccessToken:       token.AccessToken,
+			WithingsRefreshToken:      token.RefreshToken,
+			WithingsAccessTokenExpiry: token.Expiry,
+			WithingsScopes:            token.Scope,
+		})
+		if err != nil {
+			log.WithError(err).
+				WithField("event", "error.callback.createaccount").
+				Error()
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// Login user by saving account ID to session.
+		sess.SetAccountID(account.AccountID)
+
+		// Save token // TODO remove
 		sess.SetToken(token)
 
 		// Save session

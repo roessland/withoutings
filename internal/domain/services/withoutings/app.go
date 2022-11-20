@@ -6,6 +6,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/roessland/withoutings/internal/config"
 	"github.com/roessland/withoutings/internal/domain/services/sleep"
+	"github.com/roessland/withoutings/internal/repos/db"
 	"github.com/roessland/withoutings/web/sessions"
 	"github.com/roessland/withoutings/web/templates"
 	"github.com/roessland/withoutings/withingsapi"
@@ -15,13 +16,14 @@ import (
 
 // Service holds all application resources.
 type Service struct {
-	Log       logrus.FieldLogger
-	Withings  *withingsapi.Client
-	Sessions  *sessions.Manager
-	Templates templates.Templates
-	Sleep     *sleep.Sleep
-	DB        *pgxpool.Pool
-	Config    *config.Config
+	Log         logrus.FieldLogger
+	Withings    *withingsapi.Client
+	Sessions    *sessions.Manager
+	Templates   templates.Templates
+	Sleep       *sleep.Sleep
+	DB          *pgxpool.Pool
+	Config      *config.Config
+	AccountRepo *db.Queries
 	//Async     *asynq.Client
 }
 
@@ -51,6 +53,8 @@ func NewService(ctx context.Context) (*Service, error) {
 	if err != nil {
 		return svc, fmt.Errorf("create connection pool: %w", err)
 	}
+
+	svc.AccountRepo = db.New(svc.DB)
 
 	svc.Withings = withingsapi.NewClient(cfg.WithingsClientID, cfg.WithingsClientSecret, cfg.WithingsRedirectURL)
 

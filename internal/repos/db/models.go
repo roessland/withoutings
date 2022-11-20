@@ -2,11 +2,14 @@
 // versions:
 //   sqlc v1.16.0
 
-package accountrepo
+package db
 
 import (
 	"database/sql"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgtype"
 )
 
 type Account struct {
@@ -16,6 +19,13 @@ type Account struct {
 	WithingsRefreshToken      string
 	WithingsAccessTokenExpiry time.Time
 	WithingsScopes            string
+}
+
+type Session struct {
+	SessionID uuid.UUID
+	Data      pgtype.JSONB
+	Created   time.Time
+	Expiry    time.Time
 }
 
 type Subscription struct {

@@ -1,8 +1,8 @@
-package accountrepo_test
+package db_test
 
 import (
 	_ "github.com/jackc/pgx/v4/stdlib"
-	"github.com/roessland/withoutings/internal/repos/accountrepo"
+	"github.com/roessland/withoutings/internal/repos/db"
 	"github.com/roessland/withoutings/internal/testctx"
 	"github.com/roessland/withoutings/internal/testdb"
 	"github.com/stretchr/testify/assert"
@@ -13,23 +13,21 @@ import (
 
 func TestAccountRepo(t *testing.T) {
 	ctx := testctx.New()
-	db := testdb.New(ctx)
-	defer db.Drop(ctx)
+	database := testdb.New(ctx)
+	defer database.Drop(ctx)
 
-	repo := accountrepo.New(db)
+	queries := db.New(database)
 
 	t.Run("CreateAccount", func(t *testing.T) {
-
 		accessTokenExpiry := time.Now().Add(time.Hour)
-		createAccountParams := accountrepo.CreateAccountParams{
+		createAccountParams := db.CreateAccountParams{
 			WithingsUserID:            "userid",
 			WithingsAccessToken:       "accesstoken",
 			WithingsRefreshToken:      "refreshtoken",
 			WithingsAccessTokenExpiry: accessTokenExpiry,
 			WithingsScopes:            "scope1,scope2,scope3",
 		}
-
-		account, err := repo.CreateAccount(ctx, createAccountParams)
+		account, err := queries.CreateAccount(ctx, createAccountParams)
 		require.NoError(t, err)
 
 		assert.True(t, account.AccountID > 0)
