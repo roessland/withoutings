@@ -2,9 +2,8 @@ package handlers_test
 
 import (
 	"fmt"
+	"github.com/alexedwards/scs/pgxstore"
 	"github.com/alexedwards/scs/v2"
-	"github.com/alexedwards/scs/v2/memstore"
-	"github.com/jackc/pgtype"
 	"github.com/roessland/withoutings/internal/repos/db"
 	"github.com/roessland/withoutings/internal/services/withoutings"
 	"github.com/roessland/withoutings/internal/testctx"
@@ -22,9 +21,10 @@ import (
 func TestCallback(t *testing.T) {
 	ctx := testctx.New()
 	database := testdb.New(ctx)
-	//defer database.Drop(ctx)
+	defer database.Drop(ctx)
 
 	mockWithingsTokenEndpoint := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Example response from docs. Not an actual token.
 		fmt.Fprintln(w, `
 		{
 			"status": 0,
@@ -50,8 +50,7 @@ func TestCallback(t *testing.T) {
 	svc.SubscriptionRepo = svc.Queries
 
 	svc.Sessions = scs.New()
-	sessionsMock := memstore.New()
-	svc.Sessions.Store = sessionsMock
+	svc.Sessions.Store = pgxstore.New(svc.DB)
 
 	svc.Withings = withingsapi.NewClient("testclientid", "testclientsecret", "testredirecturl")
 	svc.Withings.APIBase = mockWithingsTokenEndpoint.URL
@@ -68,7 +67,6 @@ func TestCallback(t *testing.T) {
 	})
 
 	t.Run("without cookie yields bad request", func(t *testing.T) {
-
 		resp := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/auth/callback?code=qwerty", nil)
 
@@ -76,21 +74,50 @@ func TestCallback(t *testing.T) {
 		require.Equal(t, 400, resp.Code)
 	})
 
-	t.Run("with correct code and state succeeds", func(t *testing.T) {
-		// Store state in DB
-		sessData := pgtype.JSONB{}
-		require.NoError(t, sessData.Set(map[string]string{
-			"state": "e0+GANQxF1SG",
-		}))
+	t.Run("with correct code and wrong state yields bad request", func(t *testing.T) {
+		// Store state in session
+		exampleDeadline := time.Now().Add(time.Hour)
+		encodedValue, err := svc.Sessions.Codec.Encode(exampleDeadline, map[string]interface{}{
+			"state": "e0GANQxF1SG",
+		})
+		require.NoError(t, err)
+		err = svc.Sessions.Store.Commit("some-session-id", encodedValue, exampleDeadline)
+		require.NoError(t, err)
 
-		resp := httptest.NewRecorder()
-		req := httptest.NewRequest(http.MethodGet, "/auth/callback?code=qwerty&state=e0%2BGANQxF1SG", nil)
+		req := httptest.NewRequest(http.MethodGet, "/auth/callback?code=qwerty&state=WRONGSTATE", nil)
 
-		// Add cookie with correct session_id, referring to state in DB
-		cookie := http.Cookie{Name: svc.Sessions.Cookie.Name, Value: "todo"}
+		// Add cookie with correct session_id, referring to session state stored earlier
+		cookie := http.Cookie{Name: svc.Sessions.Cookie.Name, Value: "some-session-id"}
 		req.AddCookie(&cookie)
 
 		// Should be success and redirect
+		resp := httptest.NewRecorder()
+		router.ServeHTTP(resp, req)
+		assert.Equal(t, 400, resp.Code)
+
+		accounts, err := svc.AccountRepo.ListAccounts(ctx)
+		require.NoError(t, err)
+		require.Len(t, accounts, 0)
+	})
+
+	t.Run("with correct code and state creates account", func(t *testing.T) {
+		// Store state in session
+		exampleDeadline := time.Now().Add(time.Hour)
+		encodedValue, err := svc.Sessions.Codec.Encode(exampleDeadline, map[string]interface{}{
+			"state": "e0GANQxF1SG",
+		})
+		require.NoError(t, err)
+		err = svc.Sessions.Store.Commit("some-session-id", encodedValue, exampleDeadline)
+		require.NoError(t, err)
+
+		req := httptest.NewRequest(http.MethodGet, "/auth/callback?code=qwerty&state=e0GANQxF1SG", nil)
+
+		// Add cookie with correct session_id, referring to session state stored earlier
+		cookie := http.Cookie{Name: svc.Sessions.Cookie.Name, Value: "some-session-id"}
+		req.AddCookie(&cookie)
+
+		// Should be success and redirect
+		resp := httptest.NewRecorder()
 		router.ServeHTTP(resp, req)
 		assert.Equal(t, 302, resp.Code)
 
@@ -104,4 +131,5 @@ func TestCallback(t *testing.T) {
 		assert.WithinDuration(t, time.Now().Add(10800*time.Second), acc.WithingsAccessTokenExpiry, time.Minute)
 		assert.Equal(t, "user.info,user.metrics", acc.WithingsScopes)
 	})
+
 }
