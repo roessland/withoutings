@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"github.com/roessland/withoutings/internal/services/withoutings"
+	"github.com/roessland/withoutings/internal/withoutings/service"
 	"github.com/roessland/withoutings/web"
 	"github.com/roessland/withoutings/worker"
 	"os"
@@ -13,7 +13,7 @@ import (
 func withoutingsServer() {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	svc, err := withoutings.NewService(ctx)
+	svc, err := service.NewApplication(ctx)
 	if err != nil {
 		svc.Log.Fatal(err)
 	}

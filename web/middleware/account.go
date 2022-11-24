@@ -6,7 +6,7 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/roessland/withoutings/internal/logging"
 	"github.com/roessland/withoutings/internal/repos/db"
-	"github.com/roessland/withoutings/internal/services/withoutings"
+	"github.com/roessland/withoutings/internal/service"
 	"net/http"
 )
 
@@ -24,7 +24,7 @@ func AddAccountToContext(ctx context.Context, account db.Account) context.Contex
 	return context.WithValue(ctx, contextKeyAccount, account)
 }
 
-func Account(svc *withoutings.Service) mux.MiddlewareFunc {
+func Account(svc *service.App) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()

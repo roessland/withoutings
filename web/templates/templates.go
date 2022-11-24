@@ -3,7 +3,7 @@ package templates
 import (
 	"embed"
 	"github.com/roessland/withoutings/internal/repos/db"
-	"github.com/roessland/withoutings/internal/services/sleep"
+	"github.com/roessland/withoutings/internal/service/sleep"
 	"github.com/roessland/withoutings/withingsapi"
 	"html/template"
 	"io"

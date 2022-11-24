@@ -1,6 +1,6 @@
 package handlers
 
-//func SleepGetJSON(app *withoutings.Service) http.HandlerFunc {
+//func SleepGetJSON(app *withoutings.App) http.HandlerFunc {
 //	return func(w http.ResponseWriter, r *http.Request) {
 //		ctx := r.Context()
 //		log := logging.MustGetLoggerFromContext(ctx)

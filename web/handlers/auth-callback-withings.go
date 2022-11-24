@@ -2,14 +2,14 @@ package handlers
 
 import (
 	"github.com/roessland/withoutings/internal/logging"
-	"github.com/roessland/withoutings/internal/repos/db"
-	"github.com/roessland/withoutings/internal/services/withoutings"
+	"github.com/roessland/withoutings/internal/withoutings/app"
+	"github.com/roessland/withoutings/internal/withoutings/domain/account"
 	"net/http"
 )
 
 // Callback is used for OAuth2 callbacks,
 // but also for event notifications.
-func Callback(svc *withoutings.Service) http.HandlerFunc {
+func Callback(app app.App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		log := logging.MustGetLoggerFromContext(ctx)
@@ -22,7 +22,7 @@ func Callback(svc *withoutings.Service) http.HandlerFunc {
 		}
 
 		// Validate state
-		storedState := svc.Sessions.GetString(ctx, "state")
+		storedState := app.Sessions.GetString(ctx, "state")
 		callbackState := r.Form.Get("state")
 		if callbackState != storedState || callbackState == "" {
 			log.Infof("invalid state, had %s, expected %s", storedState, callbackState)
@@ -37,7 +37,7 @@ func Callback(svc *withoutings.Service) http.HandlerFunc {
 			http.Error(w, "Code not found", http.StatusBadRequest)
 			return
 		}
-		token, err := svc.Withings.GetAccessToken(ctx, code)
+		token, err := app.Withings.GetAccessToken(ctx, code)
 		if err != nil {
 			log.WithError(err).
 				WithField("event", "error.callback.getaccesstoken").
@@ -47,16 +47,17 @@ func Callback(svc *withoutings.Service) http.HandlerFunc {
 		}
 
 		// Clear nonce
-		svc.Sessions.Remove(ctx, "state")
+		app.Sessions.Remove(ctx, "state")
 
-		// Create account
-		account, err := svc.AccountRepo.CreateAccount(ctx, db.CreateAccountParams{
-			WithingsUserID:            token.UserID,
-			WithingsAccessToken:       token.AccessToken,
-			WithingsRefreshToken:      token.RefreshToken,
-			WithingsAccessTokenExpiry: token.Expiry,
-			WithingsScopes:            token.Scope,
-		})
+		err := app.App
+
+		//	db.CreateAccountParams{
+		//	WithingsUserID:            token.UserID,
+		//	WithingsAccessToken:       token.AccessToken,
+		//	WithingsRefreshToken:      token.RefreshToken,
+		//	WithingsAccessTokenExpiry: token.Expiry,
+		//	WithingsScopes:            token.Scope,
+		//})
 		if err != nil {
 			log.WithError(err).
 				WithField("event", "error.callback.createaccount").
@@ -65,8 +66,10 @@ func Callback(svc *withoutings.Service) http.HandlerFunc {
 			return
 		}
 
-		// Login user by saving account ID to session.
-		svc.Sessions.Put(ctx, "account_id", account.AccountID)
+		err := app.
+
+			// Login user by saving account ID to session.
+			svc.Sessions.Put(ctx, "account_id", account.AccountID)
 
 		// Redirect to homepage
 		http.Redirect(w, r, "/", http.StatusFound)

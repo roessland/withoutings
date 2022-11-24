@@ -10,11 +10,10 @@ import (
 	"time"
 )
 
-const createAccount = `-- name: CreateAccount :one
+const createAccount = `-- name: CreateAccount :exec
 INSERT INTO account (withings_user_id, withings_access_token, withings_refresh_token,
                          withings_access_token_expiry, withings_scopes)
 VALUES ($1, $2, $3, $4, $5)
-RETURNING account_id, withings_user_id, withings_access_token, withings_refresh_token, withings_access_token_expiry, withings_scopes
 `
 
 type CreateAccountParams struct {
@@ -25,24 +24,15 @@ type CreateAccountParams struct {
 	WithingsScopes            string
 }
 
-func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error) {
-	row := q.db.QueryRow(ctx, createAccount,
+func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) error {
+	_, err := q.db.Exec(ctx, createAccount,
 		arg.WithingsUserID,
 		arg.WithingsAccessToken,
 		arg.WithingsRefreshToken,
 		arg.WithingsAccessTokenExpiry,
 		arg.WithingsScopes,
 	)
-	var i Account
-	err := row.Scan(
-		&i.AccountID,
-		&i.WithingsUserID,
-		&i.WithingsAccessToken,
-		&i.WithingsRefreshToken,
-		&i.WithingsAccessTokenExpiry,
-		&i.WithingsScopes,
-	)
-	return i, err
+	return err
 }
 
 const deleteAccount = `-- name: DeleteAccount :exec
@@ -56,15 +46,36 @@ func (q *Queries) DeleteAccount(ctx context.Context, accountID int64) error {
 	return err
 }
 
-const getAccount = `-- name: GetAccount :one
+const getAccountByID = `-- name: GetAccountByID :one
 SELECT account_id, withings_user_id, withings_access_token, withings_refresh_token, withings_access_token_expiry, withings_scopes
 FROM account
 WHERE account_id = $1
 LIMIT 1
 `
 
-func (q *Queries) GetAccount(ctx context.Context, accountID int64) (Account, error) {
-	row := q.db.QueryRow(ctx, getAccount, accountID)
+func (q *Queries) GetAccountByID(ctx context.Context, accountID int64) (Account, error) {
+	row := q.db.QueryRow(ctx, getAccountByID, accountID)
+	var i Account
+	err := row.Scan(
+		&i.AccountID,
+		&i.WithingsUserID,
+		&i.WithingsAccessToken,
+		&i.WithingsRefreshToken,
+		&i.WithingsAccessTokenExpiry,
+		&i.WithingsScopes,
+	)
+	return i, err
+}
+
+const getAccountByWithingsUserID = `-- name: GetAccountByWithingsUserID :one
+SELECT account_id, withings_user_id, withings_access_token, withings_refresh_token, withings_access_token_expiry, withings_scopes
+FROM account
+WHERE withings_user_id = $1
+LIMIT 1
+`
+
+func (q *Queries) GetAccountByWithingsUserID(ctx context.Context, withingsUserID string) (Account, error) {
+	row := q.db.QueryRow(ctx, getAccountByWithingsUserID, withingsUserID)
 	var i Account
 	err := row.Scan(
 		&i.AccountID,

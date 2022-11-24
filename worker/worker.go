@@ -3,17 +3,17 @@ package worker
 import (
 	"context"
 	"fmt"
-	"github.com/roessland/withoutings/internal/services/withoutings"
+	"github.com/roessland/withoutings/internal/service"
 	"time"
 )
 
 type Worker struct {
-	*withoutings.Service
+	*service.App
 }
 
 // const redisAddr = "127.0.0.1:6379"
 
-func NewWorker(app *withoutings.Service) *Worker {
+func NewWorker(app *service.App) *Worker {
 	return &Worker{app}
 }
 

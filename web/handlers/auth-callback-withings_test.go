@@ -5,7 +5,7 @@ import (
 	"github.com/alexedwards/scs/pgxstore"
 	"github.com/alexedwards/scs/v2"
 	"github.com/roessland/withoutings/internal/repos/db"
-	"github.com/roessland/withoutings/internal/services/withoutings"
+	"github.com/roessland/withoutings/internal/service"
 	"github.com/roessland/withoutings/internal/testctx"
 	"github.com/roessland/withoutings/internal/testdb"
 	"github.com/roessland/withoutings/web"
@@ -42,7 +42,7 @@ func TestCallback(t *testing.T) {
 
 	defer mockWithingsTokenEndpoint.Close()
 
-	svc := &withoutings.Service{}
+	svc := &service.App{}
 	svc.Log = ctx.Logger
 	svc.DB = database.Pool
 	svc.Queries = db.New(svc.DB)

@@ -2,7 +2,7 @@ package web
 
 import (
 	"github.com/gorilla/mux"
-	"github.com/roessland/withoutings/internal/services/withoutings"
+	"github.com/roessland/withoutings/internal/service"
 	"github.com/roessland/withoutings/web/handlers"
 	"github.com/roessland/withoutings/web/middleware"
 	"github.com/roessland/withoutings/web/static"
@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func Router(svc *withoutings.Service) *mux.Router {
+func Router(svc *service.App) *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/api/health", handlers.Health(svc))
 	r.HandleFunc("/", handlers.Homepage(svc))
@@ -32,7 +32,7 @@ func Router(svc *withoutings.Service) *mux.Router {
 	return r
 }
 
-func Server(svc *withoutings.Service) *http.Server {
+func Server(svc *service.App) *http.Server {
 	return &http.Server{
 		Handler:      Router(svc),
 		Addr:         "127.0.0.1:3628",

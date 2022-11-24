@@ -18,7 +18,7 @@ func TestAccountRepo(t *testing.T) {
 
 	queries := db.New(database)
 
-	t.Run("CreateAccount", func(t *testing.T) {
+	t.Run("CreateOrUpdateAccount", func(t *testing.T) {
 		accessTokenExpiry := time.Now().Add(time.Hour)
 		createAccountParams := db.CreateAccountParams{
 			WithingsUserID:            "userid",
@@ -27,7 +27,7 @@ func TestAccountRepo(t *testing.T) {
 			WithingsAccessTokenExpiry: accessTokenExpiry,
 			WithingsScopes:            "scope1,scope2,scope3",
 		}
-		account, err := queries.CreateAccount(ctx, createAccountParams)
+		account, err := queries.CreateOrUpdateAccount(ctx, createAccountParams)
 		require.NoError(t, err)
 
 		assert.True(t, account.AccountID > 0)
