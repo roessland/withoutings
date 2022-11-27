@@ -8,8 +8,8 @@ import (
 	"github.com/roessland/withoutings/internal/service"
 	"github.com/roessland/withoutings/internal/testctx"
 	"github.com/roessland/withoutings/internal/testdb"
+	"github.com/roessland/withoutings/internal/withoutings/adapters/withingsapi"
 	"github.com/roessland/withoutings/web"
-	"github.com/roessland/withoutings/withingsapi"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"net/http"
@@ -52,7 +52,7 @@ func TestCallback(t *testing.T) {
 	svc.Sessions = scs.New()
 	svc.Sessions.Store = pgxstore.New(svc.DB)
 
-	svc.Withings = withingsapi.NewClient("testclientid", "testclientsecret", "testredirecturl")
+	svc.Withings = withingsapiadapter.NewClient("testclientid", "testclientsecret", "testredirecturl")
 	svc.Withings.APIBase = mockWithingsTokenEndpoint.URL
 	svc.Withings.OAuth2Config.Endpoint.TokenURL = mockWithingsTokenEndpoint.URL
 	svc.Withings.OAuth2Config.Endpoint.AuthURL = mockWithingsTokenEndpoint.URL

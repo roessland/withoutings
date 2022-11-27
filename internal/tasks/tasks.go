@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hibiken/asynq"
-	"github.com/roessland/withoutings/withingsapi"
+	"github.com/roessland/withoutings/internal/withoutings/adapters/withingsapi"
 	"io"
 	"log"
 	"net/http"
@@ -22,11 +22,11 @@ type WithingsAPICallPayload struct {
 	Body   []byte
 	Header http.Header
 	Method string
-	Token  withingsapi.Token
+	Token  withingsapiadapter.Token
 	URL    url.URL
 }
 
-func NewWithingsAPICallTask(req *http.Request, token withingsapi.Token) (*asynq.Task, error) {
+func NewWithingsAPICallTask(req *http.Request, token withingsapiadapter.Token) (*asynq.Task, error) {
 	reqBody, err := io.ReadAll(req.Body)
 	if err != nil {
 		return nil, err
@@ -38,7 +38,7 @@ func NewWithingsAPICallTask(req *http.Request, token withingsapi.Token) (*asynq.
 		Body:   reqBody,
 		Header: req.Header,
 		Method: req.Method,
-		Token:  withingsapi.Token{},
+		Token:  withingsapiadapter.Token{},
 		URL:    url.URL{},
 	})
 	if err != nil {

@@ -5,15 +5,15 @@ import (
 	"github.com/roessland/withoutings/internal/withoutings/domain/account"
 )
 
-type CreateOrUpdateAccount struct {
+type SubscribeAccount struct {
 	Account account.Account
 }
 
-type CreateOrUpdateAccountHandler interface {
-	Handle(ctx context.Context, cmd CreateOrUpdateAccount) error
+type SubscribeAccountHandler interface {
+	Handle(ctx context.Context, cmd SubscribeAccount) error
 }
 
-func (h createOrUpdateAccountHandler) Handle(ctx context.Context, cmd CreateOrUpdateAccount) (err error) {
+func (h subscribeAccountHandler) Handle(ctx context.Context, cmd SubscribeAccount) (err error) {
 	_, err = h.accountRepo.GetAccountByWithingsUserID(ctx, cmd.Account.WithingsUserID)
 
 	return h.accountRepo.CreateAccount(ctx, account.Account{
@@ -25,12 +25,12 @@ func (h createOrUpdateAccountHandler) Handle(ctx context.Context, cmd CreateOrUp
 	})
 }
 
-func NewCreateOrUpdateAccountHandler(accountRepo account.Repo) CreateOrUpdateAccountHandler {
-	return createOrUpdateAccountHandler{
+func NewSubscribeAccountHandler(accountRepo account.Repo) SubscribeAccountHandler {
+	return subscribeAccountHandler{
 		accountRepo: accountRepo,
 	}
 }
 
-type createOrUpdateAccountHandler struct {
+type subscribeAccountHandler struct {
 	accountRepo account.Repo
 }

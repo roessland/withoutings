@@ -1,4 +1,4 @@
-package adapters
+package adapter
 
 import (
 	"context"
@@ -8,17 +8,17 @@ import (
 	"github.com/roessland/withoutings/internal/withoutings/domain/account"
 )
 
-type AccountPostgresRepository struct {
+type AccountPgRepo struct {
 	queries *db.Queries
 }
 
-func NewAccountPostgresRepository(queries *db.Queries) AccountPostgresRepository {
-	return AccountPostgresRepository{
+func NewAccountPgRepo(queries *db.Queries) AccountPgRepo {
+	return AccountPgRepo{
 		queries: queries,
 	}
 }
 
-func (r AccountPostgresRepository) GetAccountByWithingsUserID(ctx context.Context, withingsUserID string) (account.Account, error) {
+func (r AccountPgRepo) GetAccountByWithingsUserID(ctx context.Context, withingsUserID string) (account.Account, error) {
 	acc, err := r.queries.GetAccountByWithingsUserID(ctx, withingsUserID)
 	if err == pgx.ErrNoRows {
 		return account.Account{}, account.NotFoundError{WithingsUserID: withingsUserID}
@@ -36,7 +36,7 @@ func (r AccountPostgresRepository) GetAccountByWithingsUserID(ctx context.Contex
 	}, err
 }
 
-func (r AccountPostgresRepository) CreateAccount(ctx context.Context, account account.Account) error {
+func (r AccountPgRepo) CreateAccount(ctx context.Context, account account.Account) error {
 	return r.queries.CreateAccount(ctx, db.CreateAccountParams{
 		WithingsUserID:            account.WithingsUserID,
 		WithingsAccessToken:       account.WithingsAccessToken,

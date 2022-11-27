@@ -6,17 +6,17 @@ import (
 	"github.com/roessland/withoutings/internal/config"
 	"github.com/roessland/withoutings/internal/repos/db"
 	"github.com/roessland/withoutings/internal/service/sleep"
+	"github.com/roessland/withoutings/internal/withoutings/adapters/withingsapi"
 	"github.com/roessland/withoutings/internal/withoutings/app/command"
 	"github.com/roessland/withoutings/internal/withoutings/app/query"
 	"github.com/roessland/withoutings/web/templates"
-	"github.com/roessland/withoutings/withingsapi"
 	"github.com/sirupsen/logrus"
 )
 
 // App holds all application resources.
 type App struct {
 	Log              logrus.FieldLogger
-	Withings         *withingsapi.Client
+	Withings         *withingsapiadapter.Client
 	Sessions         *scs.SessionManager
 	Templates        templates.Templates
 	Sleep            *sleep.Sleep
@@ -30,7 +30,7 @@ type App struct {
 }
 
 type Commands struct {
-	CreateOrUpdateAccount command.CreateOrUpdateAccountHandler
+	CreateOrUpdateAccount command.SubscribeAccountHandler
 }
 
 type Queries struct {

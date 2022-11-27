@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"github.com/roessland/withoutings/internal/service"
-	"github.com/roessland/withoutings/withingsapi"
+	"github.com/roessland/withoutings/internal/withoutings/adapters/withingsapi"
 	"net/http"
 )
 
@@ -13,7 +13,7 @@ func Login(svc *service.App) http.HandlerFunc {
 		// log := logging.MustGetLoggerFromContext(ctx)
 
 		// Save state to cookie. It will be verified in the callback handler.
-		nonce := withingsapi.RandomNonce()
+		nonce := withingsapiadapter.RandomNonce()
 		svc.Sessions.Put(ctx, "state", nonce)
 
 		authCodeURL := svc.Withings.AuthCodeURL(nonce)

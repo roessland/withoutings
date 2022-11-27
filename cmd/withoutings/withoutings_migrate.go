@@ -24,6 +24,6 @@ func withoutingsMigrate() {
 	}
 
 	// Run migrations
-	migrations.Run(db)
+	migration.Run(db)
 	fmt.Fprintf(os.Stdout, "Migrations complete\n")
 }

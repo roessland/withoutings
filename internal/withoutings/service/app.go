@@ -10,12 +10,12 @@ import (
 	"github.com/roessland/withoutings/internal/repos/db"
 	"github.com/roessland/withoutings/internal/service/sleep"
 	"github.com/roessland/withoutings/internal/withoutings/adapters"
+	"github.com/roessland/withoutings/internal/withoutings/adapters/withingsapi"
 	"github.com/roessland/withoutings/internal/withoutings/app"
 	"github.com/roessland/withoutings/internal/withoutings/app/command"
 	"github.com/roessland/withoutings/internal/withoutings/app/query"
 	"github.com/roessland/withoutings/internal/withoutings/domain/account"
 	"github.com/roessland/withoutings/web/templates"
-	"github.com/roessland/withoutings/withingsapi"
 	"github.com/sirupsen/logrus"
 	"time"
 )
@@ -51,7 +51,7 @@ func NewApplication_(ctx context.Context) (*app.App, error) {
 	svc.Sessions = scs.New()
 	svc.Sessions.Store = pgxstore.New(svc.DB)
 
-	svc.Withings = withingsapi.NewClient(cfg.WithingsClientID, cfg.WithingsClientSecret, cfg.WithingsRedirectURL)
+	svc.Withings = withingsapiadapter.NewClient(cfg.WithingsClientID, cfg.WithingsClientSecret, cfg.WithingsRedirectURL)
 
 	svc.Templates = templates.LoadTemplates()
 
@@ -82,11 +82,11 @@ func newApplication(ctx context.Context) app.App {
 
 	queries := db.New(pool)
 
-	var accountRepo account.Repository = adapters.NewAccountPostgresRepository(queries)
+	var accountRepo account.Repo = adapter.NewAccountPgRepo(queries)
 
 	return app.App{
 		Commands: app.Commands{
-			CreateOrUpdateAccount: command.NewCreateOrUpdateAccountHandler(accountRepo),
+			CreateOrUpdateAccount: command.NewSubscribeAccountHandler(accountRepo),
 		},
 		Queries: app.Queries{
 			AccountForWithingsUserID: query.NewAccountByWithingsUserIDHandler(accountRepo),

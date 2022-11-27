@@ -89,7 +89,7 @@ func New(ctx context.Context) TestDatabase {
 
 	// Run migrations on test DB as superuser
 	logger.Debugf("Running migrations")
-	migrations.Run(wotsaConn)
+	migration.Run(wotsaConn)
 
 	// Connect to test DB using wotrw user
 	wotrwPool, err := pgxpool.Connect(ctx, "postgres://?host=localhost&user=wotrw&password=wotrw&database="+dbName)
