@@ -1,15 +1,17 @@
 package handlers
 
 import (
-	"github.com/roessland/withoutings/internal/logging"
-	"github.com/roessland/withoutings/internal/withoutings/app"
-	"github.com/roessland/withoutings/internal/withoutings/domain/account"
+	"github.com/roessland/withoutings/pkg/logging"
+	"github.com/roessland/withoutings/pkg/withoutings/app"
+	"github.com/roessland/withoutings/pkg/withoutings/app/command"
+	"github.com/roessland/withoutings/pkg/withoutings/app/query"
+	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"net/http"
 )
 
 // Callback is used for OAuth2 callbacks,
 // but also for event notifications.
-func Callback(app app.App) http.HandlerFunc {
+func Callback(app *app.App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		log := logging.MustGetLoggerFromContext(ctx)
@@ -49,15 +51,16 @@ func Callback(app app.App) http.HandlerFunc {
 		// Clear nonce
 		app.Sessions.Remove(ctx, "state")
 
-		err := app.App
-
-		//	db.CreateAccountParams{
-		//	WithingsUserID:            token.UserID,
-		//	WithingsAccessToken:       token.AccessToken,
-		//	WithingsRefreshToken:      token.RefreshToken,
-		//	WithingsAccessTokenExpiry: token.Expiry,
-		//	WithingsScopes:            token.Scope,
-		//})
+		// Create or update account
+		err = app.Commands.CreateOrUpdateAccount.Handle(ctx, command.CreateOrUpdateAccount{
+			Account: account.Account{
+				WithingsUserID:            token.UserID,
+				WithingsAccessToken:       token.AccessToken,
+				WithingsRefreshToken:      token.RefreshToken,
+				WithingsAccessTokenExpiry: token.Expiry,
+				WithingsScopes:            token.Scope,
+			},
+		})
 		if err != nil {
 			log.WithError(err).
 				WithField("event", "error.callback.createaccount").
@@ -66,10 +69,18 @@ func Callback(app app.App) http.HandlerFunc {
 			return
 		}
 
-		err := app.
+		// Find account ID
+		acc, err := app.Queries.AccountForWithingsUserID.Handle(ctx, query.AccountByWithingsUserID{WithingsUserID: token.UserID})
+		if err != nil {
+			log.WithError(err).
+				WithField("event", "error.callback.getaccount").
+				Error()
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-			// Login user by saving account ID to session.
-			svc.Sessions.Put(ctx, "account_id", account.AccountID)
+		// Login user by saving account ID to session.
+		app.Sessions.Put(ctx, "account_id", acc.AccountID)
 
 		// Redirect to homepage
 		http.Redirect(w, r, "/", http.StatusFound)

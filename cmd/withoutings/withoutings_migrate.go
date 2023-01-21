@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/jackc/pgx/v4/stdlib"
-	"github.com/roessland/withoutings/internal/migrations"
+	"github.com/roessland/withoutings/pkg/migration"
 	"os"
 )
 

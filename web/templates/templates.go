@@ -2,9 +2,9 @@ package templates
 
 import (
 	"embed"
-	"github.com/roessland/withoutings/internal/repos/db"
-	"github.com/roessland/withoutings/internal/service/sleep"
-	"github.com/roessland/withoutings/internal/withoutings/adapters/withingsapi"
+	"github.com/roessland/withoutings/pkg/service/sleep"
+	"github.com/roessland/withoutings/pkg/withoutings/clients/withingsapi"
+	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"html/template"
 	"io"
 )
@@ -28,18 +28,18 @@ func LoadTemplates() Templates {
 
 type HomePageVars struct {
 	Error   string
-	Account *db.Account
+	Account *account.Account
 }
 
-func (t Templates) RenderHomePage(w io.Writer, account *db.Account) error {
+func (t Templates) RenderHomePage(w io.Writer, account_ *account.Account) error {
 	return t.template.ExecuteTemplate(w, "homepage.gohtml", HomePageVars{
-		Account: account,
+		Account: account_,
 	})
 }
 
 type SleepSummariesVars struct {
 	Error     string
-	Token     *withingsapiadapter.Token
+	Token     *withingsapi.Token
 	SleepData interface{}
 }
 
@@ -52,10 +52,10 @@ func (t Templates) RenderSleepSummaries(w io.Writer, sleepData *sleep.GetSleepSu
 
 type RefreshAccessTokenVars struct {
 	Error            string
-	Token, PrevToken *withingsapiadapter.Token
+	Token, PrevToken *withingsapi.Token
 }
 
-func (t Templates) RenderRefreshAccessToken(w io.Writer, token, prevToken *withingsapiadapter.Token) error {
+func (t Templates) RenderRefreshAccessToken(w io.Writer, token, prevToken *withingsapi.Token) error {
 	return t.template.ExecuteTemplate(w, "refreshaccesstoken.gohtml", RefreshAccessTokenVars{
 		Token:     token,
 		PrevToken: prevToken,

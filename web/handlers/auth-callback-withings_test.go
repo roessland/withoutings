@@ -4,11 +4,15 @@ import (
 	"fmt"
 	"github.com/alexedwards/scs/pgxstore"
 	"github.com/alexedwards/scs/v2"
-	"github.com/roessland/withoutings/internal/repos/db"
-	"github.com/roessland/withoutings/internal/service"
-	"github.com/roessland/withoutings/internal/testctx"
-	"github.com/roessland/withoutings/internal/testdb"
-	"github.com/roessland/withoutings/internal/withoutings/adapters/withingsapi"
+	"github.com/roessland/withoutings/pkg/repos/db"
+	"github.com/roessland/withoutings/pkg/testctx"
+	"github.com/roessland/withoutings/pkg/testdb"
+	"github.com/roessland/withoutings/pkg/withoutings/adapter"
+	"github.com/roessland/withoutings/pkg/withoutings/app"
+	"github.com/roessland/withoutings/pkg/withoutings/app/command"
+	"github.com/roessland/withoutings/pkg/withoutings/app/query"
+	"github.com/roessland/withoutings/pkg/withoutings/clients/withingsapi"
+	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"github.com/roessland/withoutings/web"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -42,17 +46,28 @@ func TestCallback(t *testing.T) {
 
 	defer mockWithingsTokenEndpoint.Close()
 
-	svc := &service.App{}
+	svc := &app.App{}
 	svc.Log = ctx.Logger
-	svc.DB = database.Pool
-	svc.Queries = db.New(svc.DB)
-	svc.AccountRepo = svc.Queries
-	svc.SubscriptionRepo = svc.Queries
+	queries := db.New(database)
+	var accountRepo account.Repo = adapter.NewAccountPgRepo(queries)
+	svc.AccountRepo = accountRepo
+	svc.Queries = app.Queries{
+		AccountForUserID:         query.NewAccountByIDHandler(accountRepo),
+		AccountForWithingsUserID: query.NewAccountByWithingsUserIDHandler(accountRepo),
+		Accounts:                 query.NewAccountsHandler(accountRepo),
+	}
+	svc.Queries.Validate()
+
+	svc.Commands = app.Commands{
+		SubscribeAccount:      command.NewSubscribeAccountHandler(accountRepo),
+		CreateOrUpdateAccount: command.NewCreateOrUpdateAccountHandler(accountRepo),
+	}
+	svc.Commands.Validate()
 
 	svc.Sessions = scs.New()
-	svc.Sessions.Store = pgxstore.New(svc.DB)
+	svc.Sessions.Store = pgxstore.New(database.Pool)
 
-	svc.Withings = withingsapiadapter.NewClient("testclientid", "testclientsecret", "testredirecturl")
+	svc.Withings = withingsapi.NewClient("testclientid", "testclientsecret", "testredirecturl")
 	svc.Withings.APIBase = mockWithingsTokenEndpoint.URL
 	svc.Withings.OAuth2Config.Endpoint.TokenURL = mockWithingsTokenEndpoint.URL
 	svc.Withings.OAuth2Config.Endpoint.AuthURL = mockWithingsTokenEndpoint.URL
@@ -95,7 +110,7 @@ func TestCallback(t *testing.T) {
 		router.ServeHTTP(resp, req)
 		assert.Equal(t, 400, resp.Code)
 
-		accounts, err := svc.AccountRepo.ListAccounts(ctx)
+		accounts, err := svc.Queries.Accounts.Handle(ctx, query.Accounts{})
 		require.NoError(t, err)
 		require.Len(t, accounts, 0)
 	})

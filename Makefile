@@ -1,3 +1,3 @@
 .PHONY: sqlc
 sqlc:
-	cd internal/repos && sqlc generate
+	cd pkg/repos && sqlc generate
