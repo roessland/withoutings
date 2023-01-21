@@ -7,38 +7,28 @@ package db
 
 import (
 	"context"
-	"database/sql"
 )
 
-const createSubscription = `-- name: CreateSubscription :one
+const createSubscription = `-- name: CreateSubscription :exec
 INSERT INTO subscription (account_id, appli, callbackurl, comment)
 VALUES ($1, $2, $3, $4)
-RETURNING subscription_id, account_id, appli, callbackurl, comment
 `
 
 type CreateSubscriptionParams struct {
-	AccountID   sql.NullInt64
+	AccountID   int64
 	Appli       int32
 	Callbackurl string
 	Comment     string
 }
 
-func (q *Queries) CreateSubscription(ctx context.Context, arg CreateSubscriptionParams) (Subscription, error) {
-	row := q.db.QueryRow(ctx, createSubscription,
+func (q *Queries) CreateSubscription(ctx context.Context, arg CreateSubscriptionParams) error {
+	_, err := q.db.Exec(ctx, createSubscription,
 		arg.AccountID,
 		arg.Appli,
 		arg.Callbackurl,
 		arg.Comment,
 	)
-	var i Subscription
-	err := row.Scan(
-		&i.SubscriptionID,
-		&i.AccountID,
-		&i.Appli,
-		&i.Callbackurl,
-		&i.Comment,
-	)
-	return i, err
+	return err
 }
 
 const deleteSubscription = `-- name: DeleteSubscription :exec
@@ -47,20 +37,19 @@ FROM subscription
 WHERE subscription_id = $1
 `
 
-func (q *Queries) DeleteSubscription(ctx context.Context, subscriptionID int32) error {
+func (q *Queries) DeleteSubscription(ctx context.Context, subscriptionID int64) error {
 	_, err := q.db.Exec(ctx, deleteSubscription, subscriptionID)
 	return err
 }
 
-const getSubscription = `-- name: GetSubscription :one
+const getSubscriptionByID = `-- name: GetSubscriptionByID :one
 SELECT subscription_id, account_id, appli, callbackurl, comment
 FROM subscription
-WHERE account_id = $1
-LIMIT 1
+WHERE subscription_id = $1
 `
 
-func (q *Queries) GetSubscription(ctx context.Context, accountID sql.NullInt64) (Subscription, error) {
-	row := q.db.QueryRow(ctx, getSubscription, accountID)
+func (q *Queries) GetSubscriptionByID(ctx context.Context, subscriptionID int64) (Subscription, error) {
+	row := q.db.QueryRow(ctx, getSubscriptionByID, subscriptionID)
 	var i Subscription
 	err := row.Scan(
 		&i.SubscriptionID,
@@ -72,14 +61,46 @@ func (q *Queries) GetSubscription(ctx context.Context, accountID sql.NullInt64) 
 	return i, err
 }
 
-const listSubscription = `-- name: ListSubscription :many
+const getSubscriptionsByAccountID = `-- name: GetSubscriptionsByAccountID :many
+SELECT subscription_id, account_id, appli, callbackurl, comment
+FROM subscription
+WHERE account_id = $1
+`
+
+func (q *Queries) GetSubscriptionsByAccountID(ctx context.Context, accountID int64) ([]Subscription, error) {
+	rows, err := q.db.Query(ctx, getSubscriptionsByAccountID, accountID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Subscription
+	for rows.Next() {
+		var i Subscription
+		if err := rows.Scan(
+			&i.SubscriptionID,
+			&i.AccountID,
+			&i.Appli,
+			&i.Callbackurl,
+			&i.Comment,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listSubscriptions = `-- name: ListSubscriptions :many
 SELECT subscription_id, account_id, appli, callbackurl, comment
 FROM subscription
 ORDER BY account_id
 `
 
-func (q *Queries) ListSubscription(ctx context.Context) ([]Subscription, error) {
-	rows, err := q.db.Query(ctx, listSubscription)
+func (q *Queries) ListSubscriptions(ctx context.Context) ([]Subscription, error) {
+	rows, err := q.db.Query(ctx, listSubscriptions)
 	if err != nil {
 		return nil, err
 	}

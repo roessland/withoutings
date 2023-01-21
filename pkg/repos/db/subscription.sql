@@ -1,18 +1,21 @@
--- name: GetSubscription :one
+-- name: GetSubscriptionByID :one
 SELECT *
 FROM subscription
-WHERE account_id = $1
-LIMIT 1;
+WHERE subscription_id = $1;
 
--- name: ListSubscription :many
+-- name: GetSubscriptionsByAccountID :many
+SELECT *
+FROM subscription
+WHERE account_id = $1;
+
+-- name: ListSubscriptions :many
 SELECT *
 FROM subscription
 ORDER BY account_id;
 
--- name: CreateSubscription :one
+-- name: CreateSubscription :exec
 INSERT INTO subscription (account_id, appli, callbackurl, comment)
-VALUES ($1, $2, $3, $4)
-RETURNING *;
+VALUES ($1, $2, $3, $4);
 
 -- name: DeleteSubscription :exec
 DELETE

@@ -31,8 +31,8 @@ type Session struct {
 }
 
 type Subscription struct {
-	SubscriptionID int32
-	AccountID      sql.NullInt64
+	SubscriptionID int64
+	AccountID      int64
 	Appli          int32
 	Callbackurl    string
 	Comment        string

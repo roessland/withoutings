@@ -19,9 +19,6 @@ func NewAccountPgRepo(queries *db.Queries) AccountPgRepo {
 }
 
 func (r AccountPgRepo) GetAccountByID(ctx context.Context, accountID int64) (account.Account, error) {
-	if r.queries == nil {
-		panic("queries was nil")
-	}
 	acc, err := r.queries.GetAccountByID(ctx, accountID)
 	if err == pgx.ErrNoRows {
 		return account.Account{}, account.NotFoundError{}
