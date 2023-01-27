@@ -14,8 +14,8 @@ FROM subscription
 ORDER BY account_id;
 
 -- name: CreateSubscription :exec
-INSERT INTO subscription (account_id, appli, callbackurl, comment)
-VALUES ($1, $2, $3, $4);
+INSERT INTO subscription (account_id, appli, callbackurl, webhook_secret, comment)
+VALUES ($1, $2, $3, $4, $5);
 
 -- name: DeleteSubscription :exec
 DELETE

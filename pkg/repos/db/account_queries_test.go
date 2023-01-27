@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func TestAccountRepo(t *testing.T) {
+func TestAccountQueries(t *testing.T) {
 	ctx := testctx.New()
 	database := testdb.New(ctx)
 	defer database.Drop(ctx)

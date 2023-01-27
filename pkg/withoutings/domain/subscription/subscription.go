@@ -7,3 +7,7 @@ type Subscription struct {
 	CallbackURL    string
 	Comment        string
 }
+
+func NewSubscription(accountID int64) {
+
+}

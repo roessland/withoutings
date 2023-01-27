@@ -35,5 +35,6 @@ type Subscription struct {
 	AccountID      int64
 	Appli          int32
 	Callbackurl    string
+	WebhookSecret  string
 	Comment        string
 }

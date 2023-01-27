@@ -43,6 +43,7 @@ create table if not exists subscription
     account_id      bigint  not null,
     appli           int     not null,
     callbackurl     varchar not null,
+    webhook_secret  varchar not null,
     comment         varchar not null default '',
     constraint fk_account
         foreign key (account_id)

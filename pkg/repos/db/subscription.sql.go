@@ -10,15 +10,16 @@ import (
 )
 
 const createSubscription = `-- name: CreateSubscription :exec
-INSERT INTO subscription (account_id, appli, callbackurl, comment)
-VALUES ($1, $2, $3, $4)
+INSERT INTO subscription (account_id, appli, callbackurl, webhook_secret, comment)
+VALUES ($1, $2, $3, $4, $5)
 `
 
 type CreateSubscriptionParams struct {
-	AccountID   int64
-	Appli       int32
-	Callbackurl string
-	Comment     string
+	AccountID     int64
+	Appli         int32
+	Callbackurl   string
+	WebhookSecret string
+	Comment       string
 }
 
 func (q *Queries) CreateSubscription(ctx context.Context, arg CreateSubscriptionParams) error {
@@ -26,6 +27,7 @@ func (q *Queries) CreateSubscription(ctx context.Context, arg CreateSubscription
 		arg.AccountID,
 		arg.Appli,
 		arg.Callbackurl,
+		arg.WebhookSecret,
 		arg.Comment,
 	)
 	return err
@@ -43,7 +45,7 @@ func (q *Queries) DeleteSubscription(ctx context.Context, subscriptionID int64) 
 }
 
 const getSubscriptionByID = `-- name: GetSubscriptionByID :one
-SELECT subscription_id, account_id, appli, callbackurl, comment
+SELECT subscription_id, account_id, appli, callbackurl, webhook_secret, comment
 FROM subscription
 WHERE subscription_id = $1
 `
@@ -56,13 +58,14 @@ func (q *Queries) GetSubscriptionByID(ctx context.Context, subscriptionID int64)
 		&i.AccountID,
 		&i.Appli,
 		&i.Callbackurl,
+		&i.WebhookSecret,
 		&i.Comment,
 	)
 	return i, err
 }
 
 const getSubscriptionsByAccountID = `-- name: GetSubscriptionsByAccountID :many
-SELECT subscription_id, account_id, appli, callbackurl, comment
+SELECT subscription_id, account_id, appli, callbackurl, webhook_secret, comment
 FROM subscription
 WHERE account_id = $1
 `
@@ -81,6 +84,7 @@ func (q *Queries) GetSubscriptionsByAccountID(ctx context.Context, accountID int
 			&i.AccountID,
 			&i.Appli,
 			&i.Callbackurl,
+			&i.WebhookSecret,
 			&i.Comment,
 		); err != nil {
 			return nil, err
@@ -94,7 +98,7 @@ func (q *Queries) GetSubscriptionsByAccountID(ctx context.Context, accountID int
 }
 
 const listSubscriptions = `-- name: ListSubscriptions :many
-SELECT subscription_id, account_id, appli, callbackurl, comment
+SELECT subscription_id, account_id, appli, callbackurl, webhook_secret, comment
 FROM subscription
 ORDER BY account_id
 `
@@ -113,6 +117,7 @@ func (q *Queries) ListSubscriptions(ctx context.Context) ([]Subscription, error)
 			&i.AccountID,
 			&i.Appli,
 			&i.Callbackurl,
+			&i.WebhookSecret,
 			&i.Comment,
 		); err != nil {
 			return nil, err
