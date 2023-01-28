@@ -20,10 +20,17 @@ subgraph accountdomain
     account.Repo
 end
 
+subgraph subscriptionsdomain
+    subscription.Subscription
+    subscription.RawNotification
+    subscription.Repo
+end
 
 subgraph adapters
     AccountPgRepo-->account.Repo
     AccountPgRepo-->PostgreSQL
+    SubscriptionPgRepo-->subscription.Repo
+    SubscriptionPgRepo-->PostgreSQL
     WithingsAPIDefaultClient-->WithingsAPI
     WithingsAPIDefaultClient-->WithingsAPIClient
 end

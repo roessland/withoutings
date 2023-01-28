@@ -13,6 +13,7 @@ import (
 	"github.com/roessland/withoutings/pkg/withoutings/app/query"
 	"github.com/roessland/withoutings/pkg/withoutings/clients/withingsapi"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
+	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 	"github.com/roessland/withoutings/web"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -49,8 +50,13 @@ func TestCallback(t *testing.T) {
 	svc := &app.App{}
 	svc.Log = ctx.Logger
 	queries := db.New(database)
+
 	var accountRepo account.Repo = adapter.NewAccountPgRepo(queries)
 	svc.AccountRepo = accountRepo
+
+	var subscriptionRepo subscription.Repo = adapter.NewSubscriptionPgRepo(queries)
+	svc.SubscriptionRepo = subscriptionRepo
+
 	svc.Queries = app.Queries{
 		AccountForUserID:         query.NewAccountByIDHandler(accountRepo),
 		AccountForWithingsUserID: query.NewAccountByWithingsUserIDHandler(accountRepo),
@@ -59,7 +65,7 @@ func TestCallback(t *testing.T) {
 	svc.Queries.Validate()
 
 	svc.Commands = app.Commands{
-		SubscribeAccount:      command.NewSubscribeAccountHandler(accountRepo),
+		SubscribeAccount:      command.NewSubscribeAccountHandler(accountRepo, subscriptionRepo),
 		CreateOrUpdateAccount: command.NewCreateOrUpdateAccountHandler(accountRepo),
 	}
 	svc.Commands.Validate()

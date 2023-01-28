@@ -10,6 +10,7 @@ type Config struct {
 	WithingsClientID     string `envconfig:"WITHINGS_CLIENT_ID"`
 	WithingsClientSecret string `envconfig:"WITHINGS_CLIENT_SECRET"`
 	WithingsRedirectURL  string `envconfig:"WITHINGS_REDIRECT_URL"`
+	PublicURL            string `envconfig:"PUBLIC_URL"`
 }
 
 func LoadFromEnv() (*Config, error) {

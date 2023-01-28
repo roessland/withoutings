@@ -1,5 +1,3 @@
-begin transaction;
-
 create table if not exists account
 (
     account_id                   bigserial primary key,
@@ -44,10 +42,17 @@ create table if not exists subscription
     appli           int     not null,
     callbackurl     varchar not null,
     webhook_secret  varchar not null,
+    status          varchar not null,
     comment         varchar not null default '',
     constraint fk_account
         foreign key (account_id)
             references account (account_id)
 );
 
-commit;
+create table if not exists raw_notification
+(
+    raw_notification_id bigserial primary key,
+    source              varchar not null,
+    status              varchar not null,
+    data                varchar not null
+);

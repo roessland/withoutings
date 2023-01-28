@@ -5,6 +5,7 @@ import (
 	"github.com/roessland/withoutings/pkg/service/sleep"
 	"github.com/roessland/withoutings/pkg/withoutings/clients/withingsapi"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
+	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 	"html/template"
 	"io"
 )
@@ -59,5 +60,16 @@ func (t Templates) RenderRefreshAccessToken(w io.Writer, token, prevToken *withi
 	return t.template.ExecuteTemplate(w, "refreshaccesstoken.gohtml", RefreshAccessTokenVars{
 		Token:     token,
 		PrevToken: prevToken,
+	})
+}
+
+type SubscriptionsPageVars struct {
+	Error         string
+	Subscriptions []subscription.Subscription
+}
+
+func (t Templates) RenderSubscriptionsPage(w io.Writer, subscriptions []subscription.Subscription) error {
+	return t.template.ExecuteTemplate(w, "subscriptions.gohtml", SubscriptionsPageVars{
+		Subscriptions: subscriptions,
 	})
 }

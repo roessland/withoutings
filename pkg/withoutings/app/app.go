@@ -10,6 +10,7 @@ import (
 	"github.com/roessland/withoutings/pkg/withoutings/app/query"
 	"github.com/roessland/withoutings/pkg/withoutings/clients/withingsapi"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
+	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 	"github.com/roessland/withoutings/web/templates"
 	"github.com/sirupsen/logrus"
 )
@@ -25,7 +26,7 @@ type App struct {
 	Config           *config.Config
 	DBQueries        *db.Queries
 	AccountRepo      account.Repo
-	SubscriptionRepo *db.Queries
+	SubscriptionRepo subscription.Repo
 	Commands         Commands
 	Queries          Queries
 }

@@ -24,6 +24,13 @@ type NotificationCategory struct {
 	Description sql.NullString
 }
 
+type RawNotification struct {
+	RawNotificationID int64
+	Source            string
+	Status            string
+	Data              string
+}
+
 type Session struct {
 	Token  string
 	Data   []byte
@@ -36,5 +43,6 @@ type Subscription struct {
 	Appli          int32
 	Callbackurl    string
 	WebhookSecret  string
+	Status         string
 	Comment        string
 }

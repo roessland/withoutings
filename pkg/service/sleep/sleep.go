@@ -35,8 +35,8 @@ func (sleepSvc *Sleep) GetSleepSummaries(ctx context.Context, accessToken string
 
 	// todo: use input
 	params := withingsapi.NewSleepGetsummaryParams()
-	params.Startdateymd = "2022-11-01"
-	params.Enddateymd = "2022-11-12"
+	params.Startdateymd = "2023-01-01"
+	params.Enddateymd = "2023-01-27"
 
 	resp, err := authClient.SleepGetsummary(ctx, params)
 	if err != nil {

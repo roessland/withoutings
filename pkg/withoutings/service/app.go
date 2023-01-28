@@ -88,7 +88,7 @@ func newApplication(ctx context.Context) *app.App {
 	sessions.Store = pgxstore.New(pool)
 
 	accountRepo := adapter.NewAccountPgRepo(dbQueries)
-	subscriptionRepo := dbQueries // TODO refactor to adapter
+	subscriptionRepo := adapter.NewSubscriptionPgRepo(dbQueries)
 
 	withings := withingsapi.NewClient(cfg.WithingsClientID, cfg.WithingsClientSecret, cfg.WithingsRedirectURL)
 
@@ -104,7 +104,7 @@ func newApplication(ctx context.Context) *app.App {
 		AccountRepo:      accountRepo,
 		SubscriptionRepo: subscriptionRepo,
 		Commands: app.Commands{
-			SubscribeAccount:      command.NewSubscribeAccountHandler(accountRepo),
+			SubscribeAccount:      command.NewSubscribeAccountHandler(accountRepo, subscriptionRepo),
 			CreateOrUpdateAccount: command.NewCreateOrUpdateAccountHandler(accountRepo),
 		},
 		Queries: app.Queries{

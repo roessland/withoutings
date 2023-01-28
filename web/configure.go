@@ -24,6 +24,11 @@ func Router(svc *app.App) *mux.Router {
 	r.HandleFunc("/sleepsummaries", handlers.SleepSummaries(svc))
 	//r.HandleFunc("/sleepget.json", handlers.SleepGetJSON(svc))
 
+	r.Path("/subscriptions").Methods("GET").Handler(handlers.SubscriptionsPage(svc))
+	r.Path("/subscriptions/subscribe").Methods("POST").Handler(handlers.Subscribe(svc))
+
+	r.Path("/withings/webhooks/{webhook_secret}").Methods("POST").Handler(handlers.WithingsWebhook(svc))
+
 	r.Use(
 		middleware.Logging(svc),
 		svc.Sessions.LoadAndSave,
