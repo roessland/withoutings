@@ -30,15 +30,11 @@ func (r SubscriptionPgRepo) GetSubscriptionByID(ctx context.Context, subscriptio
 }
 
 func (r SubscriptionPgRepo) GetSubscriptionsByAccountID(ctx context.Context, accountID int64) ([]subscription.Subscription, error) {
-	var subscriptions []subscription.Subscription
 	dbSubscriptions, err := r.queries.GetSubscriptionsByAccountID(ctx, accountID)
 	if err != nil {
 		return nil, err
 	}
-	for _, dbSub := range dbSubscriptions {
-		subscriptions = append(subscriptions, toDomainSubscription(dbSub))
-	}
-	return subscriptions, nil
+	return toDomainSubscriptions(dbSubscriptions), nil
 }
 
 func (r SubscriptionPgRepo) GetSubscriptionByWebhookSecret(ctx context.Context, webhookSecret string) (subscription.Subscription, error) {
@@ -50,6 +46,14 @@ func (r SubscriptionPgRepo) GetSubscriptionByWebhookSecret(ctx context.Context, 
 		return subscription.Subscription{}, errors.Wrap(err, "unable to retrieve subscription")
 	}
 	return toDomainSubscription(dbSub), nil
+}
+
+func (r SubscriptionPgRepo) GetPendingSubscriptions(ctx context.Context) ([]subscription.Subscription, error) {
+	dbSubscriptions, err := r.queries.GetPendingSubscriptions(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return toDomainSubscriptions(dbSubscriptions), nil
 }
 
 func (r SubscriptionPgRepo) CreateSubscription(ctx context.Context, sub subscription.Subscription) error {
@@ -64,15 +68,19 @@ func (r SubscriptionPgRepo) CreateSubscription(ctx context.Context, sub subscrip
 }
 
 func (r SubscriptionPgRepo) ListSubscriptions(ctx context.Context) ([]subscription.Subscription, error) {
-	var subscriptions []subscription.Subscription
 	dbSubscriptions, err := r.queries.ListSubscriptions(ctx)
 	if err != nil {
 		return nil, err
 	}
-	for _, dbSub := range dbSubscriptions {
+	return toDomainSubscriptions(dbSubscriptions), nil
+}
+
+func toDomainSubscriptions(dbSubs []db.Subscription) []subscription.Subscription {
+	var subscriptions []subscription.Subscription
+	for _, dbSub := range dbSubs {
 		subscriptions = append(subscriptions, toDomainSubscription(dbSub))
 	}
-	return subscriptions, nil
+	return subscriptions
 }
 
 func toDomainSubscription(dbSub db.Subscription) subscription.Subscription {
