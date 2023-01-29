@@ -90,6 +90,7 @@ func toDomainSubscription(dbSub db.Subscription) subscription.Subscription {
 		Appli:          int(dbSub.Appli),
 		CallbackURL:    dbSub.Callbackurl,
 		Comment:        dbSub.Comment,
+		Status:         subscription.Status(dbSub.Status),
 	}
 }
 

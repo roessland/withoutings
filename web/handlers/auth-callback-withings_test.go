@@ -65,7 +65,8 @@ func TestCallback(t *testing.T) {
 	svc.Queries.Validate()
 
 	svc.Commands = app.Commands{
-		SubscribeAccount:      command.NewSubscribeAccountHandler(accountRepo, subscriptionRepo),
+		// TODO replace withingsClient with interface
+		SubscribeAccount:      command.NewSubscribeAccountHandler(accountRepo, subscriptionRepo, nil),
 		CreateOrUpdateAccount: command.NewCreateOrUpdateAccountHandler(accountRepo),
 	}
 	svc.Commands.Validate()

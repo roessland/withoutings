@@ -23,13 +23,14 @@ const StatusActive Status = "active"
 const StatusUnlinked Status = "unlinked"
 const StatusUserDeleted Status = "user-deleted"
 
-func NewSubscription(accountID int64, appli int, callbackURL string, webhookSecret string) Subscription {
+func NewSubscription(accountID int64, appli int, callbackURL string, comment string, webhookSecret string, status Status) Subscription {
 	return Subscription{
 		AccountID:     accountID,
 		Appli:         appli,
 		CallbackURL:   callbackURL,
-		Status:        StatusPending,
+		Comment:       comment,
 		WebhookSecret: webhookSecret,
+		Status:        status,
 	}
 }
 

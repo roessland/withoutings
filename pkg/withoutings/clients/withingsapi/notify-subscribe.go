@@ -3,6 +3,7 @@ package withingsapi
 import (
 	"context"
 	"encoding/json"
+	"github.com/roessland/withoutings/pkg/logging"
 	"io"
 	"net/http"
 )
@@ -12,9 +13,9 @@ import (
 // NotifySubscribeParams are the parameters for Notify - Subscribe
 type NotifySubscribeParams struct {
 	Action      string `json:"action" url:"action"`
-	Callbackurl int64  `json:"startdate" url:"startdate"`
-	Appli       int64  `json:"enddate" url:"enddate"`
-	Comment     string `json:"data_fields" url:"data_fields"`
+	Callbackurl string `json:"callbackurl" url:"callbackurl"`
+	Appli       int    `json:"appli" url:"appli"`
+	Comment     string `json:"comment" url:"comment"`
 }
 
 type NotifySubscribeResponse struct {
@@ -36,6 +37,8 @@ func (c *Client) NewNotifySubscribeRequest(params NotifySubscribeParams) (*http.
 
 // NotifySubscribe subscribes to health data events for the current user.
 func (c *AuthenticatedClient) NotifySubscribe(ctx context.Context, params NotifySubscribeParams) (*NotifySubscribeResponse, error) {
+	log := logging.MustGetLoggerFromContext(ctx)
+
 	req, err := c.NewNotifySubscribeRequest(params)
 	if err != nil {
 		return nil, err
@@ -50,12 +53,28 @@ func (c *AuthenticatedClient) NotifySubscribe(ctx context.Context, params Notify
 
 	resp.Raw, err = io.ReadAll(httpResp.Body)
 	if err != nil {
+		log.WithField("event", "NotifySubscribe io.ReadAll failed").
+			WithError(err).
+			Error()
 		return nil, err
 	}
 
+	log.WithField("event", "NotifySubscribe response read").
+		WithField("response_body", string(resp.Raw)).
+		WithField("http_status_code", httpResp.StatusCode).
+		Info()
+
 	err = json.Unmarshal(resp.Raw, &resp)
 	if err != nil {
+		log.WithField("response_body", string(resp.Raw)).
+			WithField("event", "NotifySubscribe io.ReadAll failed").
+			WithError(err).
+			Error()
 		return nil, err
+	}
+
+	if resp.Status != 0 {
+		return &resp, APIError(resp.Status)
 	}
 
 	return &resp, nil

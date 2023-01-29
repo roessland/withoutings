@@ -90,21 +90,21 @@ func newApplication(ctx context.Context) *app.App {
 	accountRepo := adapter.NewAccountPgRepo(dbQueries)
 	subscriptionRepo := adapter.NewSubscriptionPgRepo(dbQueries)
 
-	withings := withingsapi.NewClient(cfg.WithingsClientID, cfg.WithingsClientSecret, cfg.WithingsRedirectURL)
+	withingsClient := withingsapi.NewClient(cfg.WithingsClientID, cfg.WithingsClientSecret, cfg.WithingsRedirectURL)
 
 	return &app.App{
 		Log:              logger,
-		Withings:         withings,
+		Withings:         withingsClient,
 		Sessions:         sessions,
 		Templates:        templates.LoadTemplates(),
-		Sleep:            sleep.NewSleep(withings),
+		Sleep:            sleep.NewSleep(withingsClient),
 		DB:               pool,
 		Config:           cfg,
 		DBQueries:        dbQueries,
 		AccountRepo:      accountRepo,
 		SubscriptionRepo: subscriptionRepo,
 		Commands: app.Commands{
-			SubscribeAccount:      command.NewSubscribeAccountHandler(accountRepo, subscriptionRepo),
+			SubscribeAccount:      command.NewSubscribeAccountHandler(accountRepo, subscriptionRepo, withingsClient),
 			CreateOrUpdateAccount: command.NewCreateOrUpdateAccountHandler(accountRepo),
 		},
 		Queries: app.Queries{
