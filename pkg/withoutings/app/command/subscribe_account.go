@@ -22,7 +22,8 @@ func (h subscribeAccountHandler) Handle(ctx context.Context, cmd SubscribeAccoun
 		return err
 	}
 
-	webhookSecret := subscription.RandomWebhookSecret()
+	// TODO add IP filtering for webhook requests
+	webhookSecret := "supersecret" // TODO extract into environment variable
 	callbackURL := "https://withings.roessland.com/withings/webhooks/" + webhookSecret
 
 	params := withingsapi.NewNotifySubscribeParams()

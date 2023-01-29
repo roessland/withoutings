@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/roessland/withoutings/pkg/logging"
@@ -64,16 +63,9 @@ func WithingsWebhook(svc *app.App) http.HandlerFunc {
 		log := logging.MustGetLoggerFromContext(ctx)
 		vars := mux.Vars(r)
 		webhookSecret := vars["webhook_secret"]
-
-		// Make sure subscription exists before storing notification to database.
-		sub, err := svc.SubscriptionRepo.GetSubscriptionByWebhookSecret(ctx, webhookSecret)
-		if errors.Is(err, subscription.NotFoundError{}) {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-		if err != nil {
-			log.WithError(err).Error()
-			w.WriteHeader(500)
+		if webhookSecret != "supersecret" {
+			log.Error("invalid webhook URL secret")
+			w.WriteHeader(401)
 			return
 		}
 
@@ -84,7 +76,8 @@ func WithingsWebhook(svc *app.App) http.HandlerFunc {
 			return
 		}
 
-		source := fmt.Sprintf("subscription_id:%d", sub.SubscriptionID)
+		// TODO add IP filtering
+		source := fmt.Sprintf("ip=%s", r.RemoteAddr)
 		err = svc.SubscriptionRepo.CreateRawNotification(ctx, subscription.NewRawNotification(source, string(data)))
 		if err != nil {
 			log.WithError(err).Error()
