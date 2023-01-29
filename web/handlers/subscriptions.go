@@ -77,6 +77,8 @@ func WithingsWebhook(svc *app.App) http.HandlerFunc {
 		}
 
 		// TODO add IP filtering
+		// TODO handle when we are behind proxy so we don't just log 127.0.0.1
+		// TODO log more headers
 		source := fmt.Sprintf("ip=%s", r.RemoteAddr)
 		err = svc.SubscriptionRepo.CreateRawNotification(ctx, subscription.NewRawNotification(source, string(data)))
 		if err != nil {
