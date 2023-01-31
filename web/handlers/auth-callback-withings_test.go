@@ -51,10 +51,10 @@ func TestCallback(t *testing.T) {
 	svc.Log = ctx.Logger
 	queries := db.New(database)
 
-	var accountRepo account.Repo = adapter.NewAccountPgRepo(queries)
+	var accountRepo account.Repo = adapter.NewAccountPgRepo(database.Pool, queries)
 	svc.AccountRepo = accountRepo
 
-	var subscriptionRepo subscription.Repo = adapter.NewSubscriptionPgRepo(queries)
+	var subscriptionRepo subscription.Repo = adapter.NewSubscriptionPgRepo(database.Pool, queries)
 	svc.SubscriptionRepo = subscriptionRepo
 
 	svc.Queries = app.Queries{

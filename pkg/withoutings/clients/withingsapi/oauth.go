@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/roessland/withoutings/pkg/logging"
 	"golang.org/x/oauth2"
 	"io"
 	"net/http"
@@ -90,6 +91,9 @@ func (c *Client) RefreshAccessToken(ctx context.Context, refreshToken string) (*
 	v.Set("client_id", c.OAuth2Config.ClientID)
 	v.Set("client_secret", c.OAuth2Config.ClientSecret)
 	v.Set("refresh_token", refreshToken)
+
+	log := logging.MustGetLoggerFromContext(ctx)
+	log.WithField("Post body", v.Encode()).Info()
 
 	req, err := http.NewRequestWithContext(ctx,
 		http.MethodPost,

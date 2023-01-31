@@ -52,14 +52,13 @@ func (t Templates) RenderSleepSummaries(w io.Writer, sleepData *sleep.GetSleepSu
 }
 
 type RefreshAccessTokenVars struct {
-	Error            string
-	Token, PrevToken *withingsapi.Token
+	Error string
+	Token *withingsapi.Token
 }
 
-func (t Templates) RenderRefreshAccessToken(w io.Writer, token, prevToken *withingsapi.Token) error {
+func (t Templates) RenderRefreshAccessToken(w io.Writer, token *withingsapi.Token) error {
 	return t.template.ExecuteTemplate(w, "refreshaccesstoken.gohtml", RefreshAccessTokenVars{
-		Token:     token,
-		PrevToken: prevToken,
+		Token: token,
 	})
 }
 

@@ -26,4 +26,9 @@ type Repo interface {
 	GetAccountByWithingsUserID(ctx context.Context, withingsUserID string) (Account, error)
 	CreateAccount(ctx context.Context, account Account) error
 	ListAccounts(ctx context.Context) ([]Account, error)
+	UpdateAccount(
+		ctx context.Context,
+		accountID int64,
+		updateFn func(ctx context.Context, acc Account) (Account, error),
+	) error
 }

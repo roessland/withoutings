@@ -5,7 +5,6 @@
 package db
 
 import (
-	"database/sql"
 	"time"
 )
 
@@ -20,8 +19,8 @@ type Account struct {
 
 type NotificationCategory struct {
 	Appli       int32
-	Scope       sql.NullString
-	Description sql.NullString
+	Scope       string
+	Description string
 }
 
 type RawNotification struct {

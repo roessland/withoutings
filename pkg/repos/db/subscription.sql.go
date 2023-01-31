@@ -9,6 +9,32 @@ import (
 	"context"
 )
 
+const allNotificationCategories = `-- name: AllNotificationCategories :many
+SELECT appli, scope, description
+FROM notification_category
+ORDER BY appli
+`
+
+func (q *Queries) AllNotificationCategories(ctx context.Context) ([]NotificationCategory, error) {
+	rows, err := q.db.Query(ctx, allNotificationCategories)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []NotificationCategory
+	for rows.Next() {
+		var i NotificationCategory
+		if err := rows.Scan(&i.Appli, &i.Scope, &i.Description); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const createRawNotification = `-- name: CreateRawNotification :exec
 INSERT INTO raw_notification (source, status, data)
 VALUES ($1, $2, $3)

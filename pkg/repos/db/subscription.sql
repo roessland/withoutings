@@ -1,3 +1,8 @@
+-- name: AllNotificationCategories :many
+SELECT *
+FROM notification_category
+ORDER BY appli;
+
 -- name: GetSubscriptionByID :one
 SELECT *
 FROM subscription

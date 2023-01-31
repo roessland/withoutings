@@ -16,54 +16,7 @@ import (
 	"github.com/roessland/withoutings/pkg/withoutings/clients/withingsapi"
 	"github.com/roessland/withoutings/web/templates"
 	"github.com/sirupsen/logrus"
-	"time"
 )
-
-// const redisAddr = "127.0.0.1:6379"
-
-// NewApplication creates a new Withoutings service.
-func NewApplication_(ctx context.Context) (*app.App, error) {
-	svc := &app.App{}
-
-	var err error
-
-	initCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
-
-	logger := logrus.New()
-	svc.Log = logger
-
-	cfg, err := config.LoadFromEnv()
-	if err != nil {
-		return svc, fmt.Errorf("load config: %w", err)
-	}
-	svc.Config = cfg
-
-	svc.DB, err = pgxpool.Connect(initCtx, cfg.DatabaseURL)
-	if err != nil {
-		return svc, fmt.Errorf("create connection pool: %w", err)
-	}
-
-	queries := db.New(svc.DB)
-	svc.DBQueries = queries
-	svc.AccountRepo = adapter.NewAccountPgRepo(queries)
-
-	svc.Sessions = scs.New()
-	svc.Sessions.Store = pgxstore.New(svc.DB)
-
-	svc.Withings = withingsapi.NewClient(cfg.WithingsClientID, cfg.WithingsClientSecret, cfg.WithingsRedirectURL)
-
-	svc.Templates = templates.LoadTemplates()
-
-	svc.Sleep = sleep.NewSleep(svc.Withings)
-
-	//
-	//svc.Async = asynq.NewClient(asynq.RedisClientOpt{
-	//	Addr: redisAddr,
-	//})
-
-	return svc, nil
-}
 
 func NewApplication(ctx context.Context) *app.App {
 	return newApplication(ctx)
@@ -87,8 +40,8 @@ func newApplication(ctx context.Context) *app.App {
 	sessions := scs.New()
 	sessions.Store = pgxstore.New(pool)
 
-	accountRepo := adapter.NewAccountPgRepo(dbQueries)
-	subscriptionRepo := adapter.NewSubscriptionPgRepo(dbQueries)
+	accountRepo := adapter.NewAccountPgRepo(pool, dbQueries)
+	subscriptionRepo := adapter.NewSubscriptionPgRepo(pool, dbQueries)
 
 	withingsClient := withingsapi.NewClient(cfg.WithingsClientID, cfg.WithingsClientSecret, cfg.WithingsRedirectURL)
 

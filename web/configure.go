@@ -19,7 +19,7 @@ func Router(svc *app.App) *mux.Router {
 	r.Path("/auth/login").Methods("GET").Handler(handlers.Login(svc))
 	r.HandleFunc("/auth/logout", handlers.Logout(svc))
 	r.HandleFunc("/auth/callback", handlers.Callback(svc))
-	//r.HandleFunc("/auth/refresh", handlers.Refresh(svc))
+	r.HandleFunc("/auth/refresh", handlers.RefreshWithingsAccessToken(svc))
 	//
 	r.HandleFunc("/sleepsummaries", handlers.SleepSummaries(svc))
 	//r.HandleFunc("/sleepget.json", handlers.SleepGetJSON(svc))

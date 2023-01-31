@@ -11,8 +11,8 @@ create table if not exists account
 create table if not exists notification_category
 (
     appli       integer primary key,
-    scope       varchar,
-    description text
+    scope       varchar not null,
+    description text not null
 );
 
 

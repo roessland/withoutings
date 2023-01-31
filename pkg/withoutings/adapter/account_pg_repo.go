@@ -3,17 +3,27 @@ package adapter
 import (
 	"context"
 	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/pkg/errors"
 	"github.com/roessland/withoutings/pkg/repos/db"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 )
 
 type AccountPgRepo struct {
+	db      *pgxpool.Pool
 	queries *db.Queries
 }
 
-func NewAccountPgRepo(queries *db.Queries) AccountPgRepo {
+func (r AccountPgRepo) WithTx(tx pgx.Tx) AccountPgRepo {
 	return AccountPgRepo{
+		db:      r.db,
+		queries: r.queries.WithTx(tx),
+	}
+}
+
+func NewAccountPgRepo(db *pgxpool.Pool, queries *db.Queries) AccountPgRepo {
+	return AccountPgRepo{
+		db:      db,
 		queries: queries,
 	}
 }
@@ -84,4 +94,33 @@ func (r AccountPgRepo) ListAccounts(ctx context.Context) ([]account.Account, err
 		})
 	}
 	return accounts, nil
+}
+
+func (r AccountPgRepo) UpdateAccount(ctx context.Context, accountID int64, updateFn func(ctx context.Context, acc account.Account) (account.Account, error)) error {
+	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
+	defer tx.Rollback(ctx)
+
+	acc, err := r.WithTx(tx).GetAccountByID(ctx, accountID)
+	if err != nil {
+		return err
+	}
+	updatedAcc, err := updateFn(ctx, acc)
+	err = r.WithTx(tx).queries.UpdateAccount(ctx, db.UpdateAccountParams{
+		AccountID:                 accountID,
+		WithingsUserID:            updatedAcc.WithingsUserID,
+		WithingsAccessToken:       updatedAcc.WithingsAccessToken,
+		WithingsRefreshToken:      updatedAcc.WithingsRefreshToken,
+		WithingsAccessTokenExpiry: updatedAcc.WithingsAccessTokenExpiry,
+		WithingsScopes:            updatedAcc.WithingsScopes,
+	})
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

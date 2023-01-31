@@ -3,17 +3,20 @@ package adapter
 import (
 	"context"
 	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/pkg/errors"
 	"github.com/roessland/withoutings/pkg/repos/db"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 )
 
 type SubscriptionPgRepo struct {
+	db      *pgxpool.Pool
 	queries *db.Queries
 }
 
-func NewSubscriptionPgRepo(queries *db.Queries) SubscriptionPgRepo {
+func NewSubscriptionPgRepo(db *pgxpool.Pool, queries *db.Queries) SubscriptionPgRepo {
 	return SubscriptionPgRepo{
+		db:      db,
 		queries: queries,
 	}
 }
