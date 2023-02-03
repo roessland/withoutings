@@ -16,6 +16,7 @@ import (
 	"github.com/roessland/withoutings/pkg/withoutings/clients/withingsapi"
 	"github.com/roessland/withoutings/web/templates"
 	"github.com/sirupsen/logrus"
+	"time"
 )
 
 func NewApplication(ctx context.Context) *app.App {
@@ -38,6 +39,9 @@ func newApplication(ctx context.Context) *app.App {
 	dbQueries := db.New(pool)
 
 	sessions := scs.New()
+	sessions.Lifetime = time.Hour * 24 * 180 // 6 months
+	sessions.IdleTimeout = 20 * time.Minute
+
 	sessions.Store = pgxstore.New(pool)
 
 	accountRepo := adapter.NewAccountPgRepo(pool, dbQueries)

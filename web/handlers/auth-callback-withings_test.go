@@ -72,6 +72,8 @@ func TestCallback(t *testing.T) {
 	svc.Commands.Validate()
 
 	svc.Sessions = scs.New()
+	svc.Sessions.Lifetime = time.Hour * 3
+	svc.Sessions.IdleTimeout = time.Hour * 4
 	svc.Sessions.Store = pgxstore.New(database.Pool)
 
 	svc.Withings = withingsapi.NewClient("testclientid", "testclientsecret", "testredirecturl")
@@ -124,7 +126,7 @@ func TestCallback(t *testing.T) {
 
 	t.Run("with correct code and state creates account", func(t *testing.T) {
 		// Store state in session
-		exampleDeadline := time.Now().Add(time.Hour)
+		exampleDeadline := time.Now().Add(3 * time.Hour)
 		encodedValue, err := svc.Sessions.Codec.Encode(exampleDeadline, map[string]interface{}{
 			"state": "e0GANQxF1SG",
 		})
