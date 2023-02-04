@@ -1,16 +1,15 @@
 package handlers_test
 
 import (
-	"fmt"
 	"github.com/alexedwards/scs/pgxstore"
 	"github.com/alexedwards/scs/v2"
+	"github.com/gorilla/mux"
 	"github.com/roessland/withoutings/pkg/config"
 	"github.com/roessland/withoutings/pkg/db"
 	"github.com/roessland/withoutings/pkg/testctx"
 	"github.com/roessland/withoutings/pkg/testdb"
 	accountAdapter "github.com/roessland/withoutings/pkg/withoutings/adapter/account"
 	subscriptionAdapter "github.com/roessland/withoutings/pkg/withoutings/adapter/subscription"
-	withingsAdapter "github.com/roessland/withoutings/pkg/withoutings/adapter/withings"
 	"github.com/roessland/withoutings/pkg/withoutings/app"
 	"github.com/roessland/withoutings/pkg/withoutings/app/command"
 	"github.com/roessland/withoutings/pkg/withoutings/app/query"
@@ -19,6 +18,7 @@ import (
 	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
 	"github.com/roessland/withoutings/web"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
@@ -31,63 +31,49 @@ func TestCallback(t *testing.T) {
 	database := testdb.New(ctx)
 	defer database.Drop(ctx)
 
-	mockWithingsTokenEndpoint := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Example response from docs. Not an actual token.
-		fmt.Fprintln(w, `
-		{
-			"status": 0,
-			"body": {
-				"userid": "363",
-				"access_token": "a075f8c14fb8df40b08ebc8508533dc332a6910a",
-				"refresh_token": "f631236f02b991810feb774765b6ae8e6c6839ca",
-				"expires_in": 10800,
-				"scope": "user.info,user.metrics",
-				"csrf_token": "PACnnxwHTaBQOzF7bQqwFUUotIuvtzSM",
-				"token_type": "Bearer"
-			}
-		}`)
-	}))
-
-	defer mockWithingsTokenEndpoint.Close()
-
 	svc := &app.App{}
 	svc.Log = ctx.Logger
 	queries := db.New(database)
 
-	var accountRepo account.Repo = accountAdapter.NewAccountPgRepo(database.Pool, queries)
-	svc.AccountRepo = accountRepo
+	var router *mux.Router
 
-	var subscriptionRepo subscription.Repo = subscriptionAdapter.NewSubscriptionPgRepo(database.Pool, queries)
-	svc.SubscriptionRepo = subscriptionRepo
+	var mockWithingsRepo *withings.MockRepo
 
-	var withingsRepo withings.Repo = withingsAdapter.NewMockClient()
-	svc.WithingsRepo = withingsRepo
+	beforeEach := func(t *testing.T) {
+		var accountRepo account.Repo = accountAdapter.NewAccountPgRepo(database.Pool, queries)
+		svc.AccountRepo = accountRepo
 
-	svc.Queries = app.Queries{
-		AccountForUserID:         query.NewAccountByIDHandler(accountRepo),
-		AccountForWithingsUserID: query.NewAccountByWithingsUserIDHandler(accountRepo),
-		AllAccounts:              query.NewAllAccountsHandler(accountRepo),
+		var subscriptionRepo subscription.Repo = subscriptionAdapter.NewSubscriptionPgRepo(database.Pool, queries)
+		svc.SubscriptionRepo = subscriptionRepo
+
+		mockWithingsRepo = withings.NewMockRepo(t)
+		svc.WithingsRepo = mockWithingsRepo
+
+		svc.Queries = app.Queries{
+			AccountForUserID:         query.NewAccountByIDHandler(accountRepo),
+			AccountForWithingsUserID: query.NewAccountByWithingsUserIDHandler(accountRepo),
+			AllAccounts:              query.NewAllAccountsHandler(accountRepo),
+		}
+		svc.Queries.Validate()
+
+		cfg := &config.Config{}
+
+		svc.Commands = app.Commands{
+			// TODO replace withingsClient with interface
+			SubscribeAccount:      command.NewSubscribeAccountHandler(accountRepo, subscriptionRepo, mockWithingsRepo, cfg),
+			CreateOrUpdateAccount: command.NewCreateOrUpdateAccountHandler(accountRepo),
+		}
+
+		svc.Sessions = scs.New()
+		svc.Sessions.Lifetime = time.Hour * 3
+		svc.Sessions.IdleTimeout = time.Hour * 4
+		svc.Sessions.Store = pgxstore.New(database.Pool)
+
+		router = web.Router(svc)
 	}
-	svc.Queries.Validate()
-
-	cfg := &config.Config{}
-
-	svc.Commands = app.Commands{
-		// TODO replace withingsClient with interface
-		SubscribeAccount:      command.NewSubscribeAccountHandler(accountRepo, subscriptionRepo, withingsRepo, cfg),
-		CreateOrUpdateAccount: command.NewCreateOrUpdateAccountHandler(accountRepo),
-	}
-
-	svc.Sessions = scs.New()
-	svc.Sessions.Lifetime = time.Hour * 3
-	svc.Sessions.IdleTimeout = time.Hour * 4
-	svc.Sessions.Store = pgxstore.New(database.Pool)
-
-	svc.WithingsRepo = withingsAdapter.NewMockClient()
-
-	router := web.Router(svc)
 
 	t.Run("without code yields bad request", func(t *testing.T) {
+		beforeEach(t)
 		resp := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/auth/callback", nil)
 		router.ServeHTTP(resp, req)
@@ -95,6 +81,8 @@ func TestCallback(t *testing.T) {
 	})
 
 	t.Run("without cookie yields bad request", func(t *testing.T) {
+		beforeEach(t)
+
 		resp := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/auth/callback?code=qwerty", nil)
 
@@ -103,6 +91,8 @@ func TestCallback(t *testing.T) {
 	})
 
 	t.Run("with correct code and wrong state yields bad request", func(t *testing.T) {
+		beforeEach(t)
+
 		// Store state in session
 		exampleDeadline := time.Now().Add(time.Hour)
 		encodedValue, err := svc.Sessions.Codec.Encode(exampleDeadline, map[string]interface{}{
@@ -129,6 +119,21 @@ func TestCallback(t *testing.T) {
 	})
 
 	t.Run("with correct code and state creates account", func(t *testing.T) {
+		beforeEach(t)
+
+		mockWithingsRepo.EXPECT().
+			GetAccessToken(mock.Anything, mock.Anything).
+			Return(&withings.Token{
+				UserID:       "363",
+				AccessToken:  "a075f8c14fb8df40b08ebc8508533dc332a6910a",
+				RefreshToken: "f631236f02b991810feb774765b6ae8e6c6839ca",
+				ExpiresIn:    10800,
+				Scope:        "user.info,user.metrics",
+				CSRFToken:    "PACnnxwHTaBQOzF7bQqwFUUotIuvtzSM",
+				TokenType:    "Bearer",
+				Expiry:       time.Now().Add(10800 * time.Second),
+			}, nil)
+
 		// Store state in session
 		exampleDeadline := time.Now().Add(3 * time.Hour)
 		encodedValue, err := svc.Sessions.Codec.Encode(exampleDeadline, map[string]interface{}{
