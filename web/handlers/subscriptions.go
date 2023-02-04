@@ -30,6 +30,8 @@ func SubscriptionsPage(svc *app.App) http.HandlerFunc {
 		categories, err := svc.SubscriptionRepo.AllNotificationCategories(ctx)
 		if err != nil {
 			log.WithError(err).WithField("event", "error.AllNotificationCategories").Error()
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "Error fetching notification categories")
 			return
 		}
 

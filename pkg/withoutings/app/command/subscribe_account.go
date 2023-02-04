@@ -30,7 +30,7 @@ func (h subscribeAccountHandler) Handle(ctx context.Context, cmd SubscribeAccoun
 
 	// Subscribe
 	params := withings.NewNotifySubscribeParams()
-	params.Appli = 1
+	params.Appli = cmd.Appli
 	callbackURL := h.cfg.WebsiteURL + "withings/webhooks/" + h.cfg.WithingsWebhookSecret
 	params.Callbackurl = callbackURL
 	params.Comment = "test"
