@@ -15,23 +15,33 @@ type CreateOrUpdateAccountHandler interface {
 }
 
 func (h createOrUpdateAccountHandler) Handle(ctx context.Context, cmd CreateOrUpdateAccount) (err error) {
-	_, err = h.accountRepo.GetAccountByWithingsUserID(ctx, cmd.Account.WithingsUserID)
-	if err != nil && errors.Is(err, account.NotFoundError{}) {
+	existingAcc, err := h.accountRepo.GetAccountByWithingsUserID(ctx, cmd.Account.WithingsUserID)
+	if err != nil && !errors.As(err, &account.NotFoundError{}) {
 		return err
 	}
 	accountAlreadyExists := err == nil
 
 	if accountAlreadyExists {
-		return nil
+		return h.accountRepo.UpdateAccount(ctx, existingAcc.AccountID,
+			func(ctx context.Context, acc account.Account) (account.Account, error) {
+				if acc.WithingsUserID != cmd.Account.WithingsUserID {
+					return account.Account{}, errors.New("tried to change withings user ID in createOrUpdateAccountHandler")
+				}
+				acc.WithingsAccessToken = cmd.Account.WithingsAccessToken
+				acc.WithingsRefreshToken = cmd.Account.WithingsRefreshToken
+				acc.WithingsAccessTokenExpiry = cmd.Account.WithingsAccessTokenExpiry
+				acc.WithingsScopes = cmd.Account.WithingsScopes
+				return acc, nil
+			})
+	} else {
+		return h.accountRepo.CreateAccount(ctx, account.Account{
+			WithingsUserID:            cmd.Account.WithingsUserID,
+			WithingsAccessToken:       cmd.Account.WithingsAccessToken,
+			WithingsRefreshToken:      cmd.Account.WithingsRefreshToken,
+			WithingsAccessTokenExpiry: cmd.Account.WithingsAccessTokenExpiry,
+			WithingsScopes:            cmd.Account.WithingsScopes,
+		})
 	}
-
-	return h.accountRepo.CreateAccount(ctx, account.Account{
-		WithingsUserID:            cmd.Account.WithingsUserID,
-		WithingsAccessToken:       cmd.Account.WithingsAccessToken,
-		WithingsRefreshToken:      cmd.Account.WithingsRefreshToken,
-		WithingsAccessTokenExpiry: cmd.Account.WithingsAccessTokenExpiry,
-		WithingsScopes:            cmd.Account.WithingsScopes,
-	})
 }
 
 func NewCreateOrUpdateAccountHandler(accountRepo account.Repo) CreateOrUpdateAccountHandler {

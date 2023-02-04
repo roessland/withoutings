@@ -10,3 +10,7 @@ type Account struct {
 	WithingsAccessTokenExpiry time.Time
 	WithingsScopes            string
 }
+
+func (acc Account) CanRefreshAccessToken() bool {
+	return time.Now().After(acc.WithingsAccessTokenExpiry)
+}

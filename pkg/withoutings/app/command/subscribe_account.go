@@ -26,7 +26,7 @@ func (h subscribeAccountHandler) Handle(ctx context.Context, cmd SubscribeAccoun
 	// Make sure access token is fresh
 
 	// TODO add IP filtering for webhook requests
-	callbackURL := h.cfg.WebsiteURL + "/withings/webhooks/" + h.cfg.WithingsWebhookSecret
+	callbackURL := h.cfg.WebsiteURL + "withings/webhooks/" + h.cfg.WithingsWebhookSecret
 
 	params := withings.NewNotifySubscribeParams()
 	params.Appli = 1

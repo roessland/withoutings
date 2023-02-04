@@ -40,13 +40,13 @@ func newApplication(ctx context.Context) *app.App {
 	dbQueries := db.New(pool)
 
 	sessions := scs.New()
-	sessions.Lifetime = time.Hour * 24 * 180 // 6 months
-	sessions.IdleTimeout = 20 * time.Minute
+	sessions.Lifetime = time.Hour * 24 * 180    // 6 months
+	sessions.IdleTimeout = time.Hour * 24 * 180 // 6 months
 
 	sessions.Store = pgxstore.New(pool)
 
-	accountRepo := account.NewAccountPgRepo(pool, dbQueries)
-	subscriptionRepo := subscription.NewSubscriptionPgRepo(pool, dbQueries)
+	accountRepo := account.NewPgRepo(pool, dbQueries)
+	subscriptionRepo := subscription.NewPgRepo(pool, dbQueries)
 
 	withingsHttpClient := withingsAdapter.NewClient(cfg.WithingsClientID, cfg.WithingsClientSecret, cfg.WithingsRedirectURL)
 

@@ -5,30 +5,30 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/pkg/errors"
-	db2 "github.com/roessland/withoutings/pkg/db"
+	"github.com/roessland/withoutings/pkg/db"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 )
 
-type AccountPgRepo struct {
+type PgRepo struct {
 	db      *pgxpool.Pool
-	queries *db2.Queries
+	queries *db.Queries
 }
 
-func (r AccountPgRepo) WithTx(tx pgx.Tx) AccountPgRepo {
-	return AccountPgRepo{
+func (r PgRepo) WithTx(tx pgx.Tx) PgRepo {
+	return PgRepo{
 		db:      r.db,
 		queries: r.queries.WithTx(tx),
 	}
 }
 
-func NewAccountPgRepo(db *pgxpool.Pool, queries *db2.Queries) AccountPgRepo {
-	return AccountPgRepo{
+func NewPgRepo(db *pgxpool.Pool, queries *db.Queries) PgRepo {
+	return PgRepo{
 		db:      db,
 		queries: queries,
 	}
 }
 
-func (r AccountPgRepo) GetAccountByID(ctx context.Context, accountID int64) (account.Account, error) {
+func (r PgRepo) GetAccountByID(ctx context.Context, accountID int64) (account.Account, error) {
 	acc, err := r.queries.GetAccountByID(ctx, accountID)
 	if err == pgx.ErrNoRows {
 		return account.Account{}, account.NotFoundError{}
@@ -46,7 +46,7 @@ func (r AccountPgRepo) GetAccountByID(ctx context.Context, accountID int64) (acc
 	}, err
 }
 
-func (r AccountPgRepo) GetAccountByWithingsUserID(ctx context.Context, withingsUserID string) (account.Account, error) {
+func (r PgRepo) GetAccountByWithingsUserID(ctx context.Context, withingsUserID string) (account.Account, error) {
 	if r.queries == nil {
 		panic("queries was nil")
 	}
@@ -67,8 +67,8 @@ func (r AccountPgRepo) GetAccountByWithingsUserID(ctx context.Context, withingsU
 	}, err
 }
 
-func (r AccountPgRepo) CreateAccount(ctx context.Context, account account.Account) error {
-	return r.queries.CreateAccount(ctx, db2.CreateAccountParams{
+func (r PgRepo) CreateAccount(ctx context.Context, account account.Account) error {
+	return r.queries.CreateAccount(ctx, db.CreateAccountParams{
 		WithingsUserID:            account.WithingsUserID,
 		WithingsAccessToken:       account.WithingsAccessToken,
 		WithingsRefreshToken:      account.WithingsRefreshToken,
@@ -77,7 +77,7 @@ func (r AccountPgRepo) CreateAccount(ctx context.Context, account account.Accoun
 	})
 }
 
-func (r AccountPgRepo) ListAccounts(ctx context.Context) ([]account.Account, error) {
+func (r PgRepo) ListAccounts(ctx context.Context) ([]account.Account, error) {
 	var accounts []account.Account
 	dbAccounts, err := r.queries.ListAccounts(ctx)
 	if err != nil {
@@ -96,7 +96,7 @@ func (r AccountPgRepo) ListAccounts(ctx context.Context) ([]account.Account, err
 	return accounts, nil
 }
 
-func (r AccountPgRepo) UpdateAccount(ctx context.Context, accountID int64, updateFn func(ctx context.Context, acc account.Account) (account.Account, error)) error {
+func (r PgRepo) UpdateAccount(ctx context.Context, accountID int64, updateFn func(ctx context.Context, acc account.Account) (account.Account, error)) error {
 	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
 	defer tx.Rollback(ctx)
 
@@ -105,7 +105,7 @@ func (r AccountPgRepo) UpdateAccount(ctx context.Context, accountID int64, updat
 		return err
 	}
 	updatedAcc, err := updateFn(ctx, acc)
-	err = r.WithTx(tx).queries.UpdateAccount(ctx, db2.UpdateAccountParams{
+	err = r.WithTx(tx).queries.UpdateAccount(ctx, db.UpdateAccountParams{
 		AccountID:                 accountID,
 		WithingsUserID:            updatedAcc.WithingsUserID,
 		WithingsAccessToken:       updatedAcc.WithingsAccessToken,

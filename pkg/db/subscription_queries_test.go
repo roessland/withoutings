@@ -2,7 +2,7 @@ package db_test
 
 import (
 	_ "github.com/jackc/pgx/v4/stdlib"
-	db2 "github.com/roessland/withoutings/pkg/db"
+	"github.com/roessland/withoutings/pkg/db"
 	"github.com/roessland/withoutings/pkg/testctx"
 	"github.com/roessland/withoutings/pkg/testdb"
 	"github.com/stretchr/testify/require"
@@ -14,14 +14,14 @@ func TestSubscriptionQueries(t *testing.T) {
 	database := testdb.New(ctx)
 	defer database.Drop(ctx)
 
-	queries := db2.New(database)
+	queries := db.New(database)
 
 	// Needed for constraint
-	err := queries.CreateAccount(ctx, db2.CreateAccountParams{})
+	err := queries.CreateAccount(ctx, db.CreateAccountParams{})
 	require.NoError(t, err)
 
 	t.Run("CreateSubscription", func(t *testing.T) {
-		createSubscriptionParams := db2.CreateSubscriptionParams{
+		createSubscriptionParams := db.CreateSubscriptionParams{
 			AccountID:     1,
 			Appli:         2,
 			Callbackurl:   "https://mysite.com/w/asdf",

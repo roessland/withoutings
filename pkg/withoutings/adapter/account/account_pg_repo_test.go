@@ -14,14 +14,14 @@ import (
 	"time"
 )
 
-var _ account.Repo = account2.AccountPgRepo{}
+var _ account.Repo = account2.PgRepo{}
 
 func TestAccountPgRepo_UpdateAccount(t *testing.T) {
 	ctx := testctx.New()
 	database := testdb.New(ctx)
 	defer database.Drop(ctx)
 	queries := db.New(database)
-	repo := account2.NewAccountPgRepo(database.Pool, queries)
+	repo := account2.NewPgRepo(database.Pool, queries)
 
 	// Insert test user with default field values
 	withingsUserID := fmt.Sprintf("%d", rand.Intn(10000))

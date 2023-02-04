@@ -5,23 +5,23 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/pkg/errors"
-	db2 "github.com/roessland/withoutings/pkg/db"
+	"github.com/roessland/withoutings/pkg/db"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 )
 
-type SubscriptionPgRepo struct {
+type PgRepo struct {
 	db      *pgxpool.Pool
-	queries *db2.Queries
+	queries *db.Queries
 }
 
-func NewSubscriptionPgRepo(db *pgxpool.Pool, queries *db2.Queries) SubscriptionPgRepo {
-	return SubscriptionPgRepo{
+func NewPgRepo(db *pgxpool.Pool, queries *db.Queries) PgRepo {
+	return PgRepo{
 		db:      db,
 		queries: queries,
 	}
 }
 
-func (r SubscriptionPgRepo) GetSubscriptionByID(ctx context.Context, subscriptionID int64) (subscription.Subscription, error) {
+func (r PgRepo) GetSubscriptionByID(ctx context.Context, subscriptionID int64) (subscription.Subscription, error) {
 	dbSub, err := r.queries.GetSubscriptionByID(ctx, subscriptionID)
 	if err == pgx.ErrNoRows {
 		return subscription.Subscription{}, subscription.NotFoundError{}
@@ -32,7 +32,7 @@ func (r SubscriptionPgRepo) GetSubscriptionByID(ctx context.Context, subscriptio
 	return toDomainSubscription(dbSub), nil
 }
 
-func (r SubscriptionPgRepo) GetSubscriptionsByAccountID(ctx context.Context, accountID int64) ([]subscription.Subscription, error) {
+func (r PgRepo) GetSubscriptionsByAccountID(ctx context.Context, accountID int64) ([]subscription.Subscription, error) {
 	dbSubscriptions, err := r.queries.GetSubscriptionsByAccountID(ctx, accountID)
 	if err != nil {
 		return nil, err
@@ -40,7 +40,7 @@ func (r SubscriptionPgRepo) GetSubscriptionsByAccountID(ctx context.Context, acc
 	return toDomainSubscriptions(dbSubscriptions), nil
 }
 
-func (r SubscriptionPgRepo) GetSubscriptionByWebhookSecret(ctx context.Context, webhookSecret string) (subscription.Subscription, error) {
+func (r PgRepo) GetSubscriptionByWebhookSecret(ctx context.Context, webhookSecret string) (subscription.Subscription, error) {
 	dbSub, err := r.queries.GetSubscriptionByWebhookSecret(ctx, webhookSecret)
 	if err == pgx.ErrNoRows {
 		return subscription.Subscription{}, subscription.NotFoundError{}
@@ -51,7 +51,7 @@ func (r SubscriptionPgRepo) GetSubscriptionByWebhookSecret(ctx context.Context, 
 	return toDomainSubscription(dbSub), nil
 }
 
-func (r SubscriptionPgRepo) GetPendingSubscriptions(ctx context.Context) ([]subscription.Subscription, error) {
+func (r PgRepo) GetPendingSubscriptions(ctx context.Context) ([]subscription.Subscription, error) {
 	dbSubscriptions, err := r.queries.GetPendingSubscriptions(ctx)
 	if err != nil {
 		return nil, err
@@ -59,8 +59,8 @@ func (r SubscriptionPgRepo) GetPendingSubscriptions(ctx context.Context) ([]subs
 	return toDomainSubscriptions(dbSubscriptions), nil
 }
 
-func (r SubscriptionPgRepo) CreateSubscription(ctx context.Context, sub subscription.Subscription) error {
-	return r.queries.CreateSubscription(ctx, db2.CreateSubscriptionParams{
+func (r PgRepo) CreateSubscription(ctx context.Context, sub subscription.Subscription) error {
+	return r.queries.CreateSubscription(ctx, db.CreateSubscriptionParams{
 		AccountID:     sub.AccountID,
 		Appli:         int32(sub.Appli),
 		Callbackurl:   sub.CallbackURL,
@@ -70,7 +70,7 @@ func (r SubscriptionPgRepo) CreateSubscription(ctx context.Context, sub subscrip
 	})
 }
 
-func (r SubscriptionPgRepo) ListSubscriptions(ctx context.Context) ([]subscription.Subscription, error) {
+func (r PgRepo) ListSubscriptions(ctx context.Context) ([]subscription.Subscription, error) {
 	dbSubscriptions, err := r.queries.ListSubscriptions(ctx)
 	if err != nil {
 		return nil, err
@@ -78,7 +78,7 @@ func (r SubscriptionPgRepo) ListSubscriptions(ctx context.Context) ([]subscripti
 	return toDomainSubscriptions(dbSubscriptions), nil
 }
 
-func toDomainSubscriptions(dbSubs []db2.Subscription) []subscription.Subscription {
+func toDomainSubscriptions(dbSubs []db.Subscription) []subscription.Subscription {
 	var subscriptions []subscription.Subscription
 	for _, dbSub := range dbSubs {
 		subscriptions = append(subscriptions, toDomainSubscription(dbSub))
@@ -86,7 +86,7 @@ func toDomainSubscriptions(dbSubs []db2.Subscription) []subscription.Subscriptio
 	return subscriptions
 }
 
-func toDomainSubscription(dbSub db2.Subscription) subscription.Subscription {
+func toDomainSubscription(dbSub db.Subscription) subscription.Subscription {
 	return subscription.Subscription{
 		SubscriptionID: dbSub.SubscriptionID,
 		AccountID:      dbSub.AccountID,
@@ -97,15 +97,15 @@ func toDomainSubscription(dbSub db2.Subscription) subscription.Subscription {
 	}
 }
 
-func (r SubscriptionPgRepo) CreateRawNotification(ctx context.Context, rawNotification subscription.RawNotification) error {
-	return r.queries.CreateRawNotification(ctx, db2.CreateRawNotificationParams{
+func (r PgRepo) CreateRawNotification(ctx context.Context, rawNotification subscription.RawNotification) error {
+	return r.queries.CreateRawNotification(ctx, db.CreateRawNotificationParams{
 		Source: rawNotification.Source,
 		Status: string(rawNotification.Status),
 		Data:   rawNotification.Data,
 	})
 }
 
-func (r SubscriptionPgRepo) GetPendingRawNotifications(ctx context.Context) ([]subscription.RawNotification, error) {
+func (r PgRepo) GetPendingRawNotifications(ctx context.Context) ([]subscription.RawNotification, error) {
 	var rawNotifications []subscription.RawNotification
 	dbRawNotifications, err := r.queries.GetPendingRawNotifications(ctx)
 	if err != nil {

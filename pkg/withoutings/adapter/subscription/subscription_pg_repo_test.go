@@ -5,4 +5,4 @@ import (
 	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 )
 
-var _ subscription.Repo = subscription2.SubscriptionPgRepo{}
+var _ subscription.Repo = subscription2.PgRepo{}

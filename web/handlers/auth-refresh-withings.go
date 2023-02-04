@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/roessland/withoutings/pkg/logging"
 	"github.com/roessland/withoutings/pkg/withoutings/app"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
@@ -22,12 +21,26 @@ func RefreshWithingsAccessToken(svc *app.App) http.HandlerFunc {
 			return
 		}
 
-		// TODO don't refresh if it's not expired yet.
+		if !accInitial.CanRefreshAccessToken() {
+			w.WriteHeader(200)
+			tmplErr := svc.Templates.RenderRefreshAccessToken(w, nil,
+				"Not refreshing your access token since it not yet expired.")
+			if tmplErr != nil {
+				log.WithError(tmplErr).WithField("event", "error.render.template").Error()
+				return
+			}
+			return
+		}
 
 		newToken, err := svc.WithingsRepo.RefreshAccessToken(ctx, accInitial.WithingsRefreshToken)
 		if err != nil {
 			w.WriteHeader(500)
-			fmt.Fprintf(w, "couldn't refresh access token")
+			tmplErr := svc.Templates.RenderRefreshAccessToken(w, newToken,
+				"Could not refresh your access token since an error occurred.")
+			if tmplErr != nil {
+				log.WithError(tmplErr).WithField("event", "error.render.template").Error()
+				return
+			}
 			return
 		}
 
@@ -46,14 +59,19 @@ func RefreshWithingsAccessToken(svc *app.App) http.HandlerFunc {
 		)
 		if err != nil {
 			w.WriteHeader(500)
-			fmt.Fprintf(w, "couldn't refresh access token")
+			tmplErr := svc.Templates.RenderRefreshAccessToken(w, newToken,
+				"Could not update your access token since an error occurred.")
+			if tmplErr != nil {
+				log.WithError(tmplErr).WithField("event", "error.render.template").Error()
+				return
+			}
 			return
 		}
 
 		w.Header().Set("Content-Type", "text/html")
-		err = svc.Templates.RenderRefreshAccessToken(w, newToken)
-		if err != nil {
-			log.WithError(err).WithField("event", "error.render.template").Error()
+		tmplErr := svc.Templates.RenderRefreshAccessToken(w, newToken, "")
+		if tmplErr != nil {
+			log.WithError(tmplErr).WithField("event", "error.render.template").Error()
 			return
 		}
 	}

@@ -1,7 +1,9 @@
 package config
 
 import (
+	"errors"
 	"github.com/kelseyhightower/envconfig"
+	"strings"
 )
 
 type Config struct {
@@ -9,6 +11,7 @@ type Config struct {
 	SessionSecret []byte `envconfig:"SESSION_SECRET"`
 
 	// WebsiteURL is the public URL where the website is accessible.
+	// Use a trailing slash.
 	WebsiteURL string `envconfig:"WEBSITE_URL"`
 
 	// WithingsClientID generated in Withings Developer Dashboard.
@@ -36,11 +39,32 @@ type Config struct {
 }
 
 func LoadFromEnv() (*Config, error) {
-	c := Config{}
-	err := envconfig.Process("WOT", &c)
+	cfg := Config{}
+	err := envconfig.Process("WOT", &cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	return &c, nil
+	err = cfg.Validate()
+	if err != nil {
+		return nil, err
+	}
+
+	return &cfg, nil
+}
+
+func (cfg *Config) Validate() error {
+	if cfg.WebsiteURL == "" {
+		return errors.New("missing config parameter: WebsiteURL")
+	}
+	if !strings.HasSuffix(cfg.WebsiteURL, "/") {
+		return errors.New("invalid config parameter: WebsiteURL must have trailing slash")
+	}
+	if cfg.WithingsRedirectURL == "" {
+		return errors.New("missing config parameter: WithingsRedirectURL")
+	}
+	if cfg.WithingsWebhookSecret == "" {
+		return errors.New("missing config parameter: WithingsWebhookSecret")
+	}
+	return nil
 }

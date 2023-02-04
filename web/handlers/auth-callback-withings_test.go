@@ -40,10 +40,10 @@ func TestCallback(t *testing.T) {
 	var mockWithingsRepo *withings.MockRepo
 
 	beforeEach := func(t *testing.T) {
-		var accountRepo account.Repo = accountAdapter.NewAccountPgRepo(database.Pool, queries)
+		var accountRepo account.Repo = accountAdapter.NewPgRepo(database.Pool, queries)
 		svc.AccountRepo = accountRepo
 
-		var subscriptionRepo subscription.Repo = subscriptionAdapter.NewSubscriptionPgRepo(database.Pool, queries)
+		var subscriptionRepo subscription.Repo = subscriptionAdapter.NewPgRepo(database.Pool, queries)
 		svc.SubscriptionRepo = subscriptionRepo
 
 		mockWithingsRepo = withings.NewMockRepo(t)

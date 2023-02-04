@@ -1,9 +1,12 @@
 {{template "header" .}}
 
 
-<br>Your access token has been refreshed.
+{{if not .Error}}
+    <br>Your access token has been refreshed.
 
-<br>New token:
-<pre>{{.Token}}</pre>
+    <br>New token:
+    <pre>{{.Token}}</pre>
+{{end}}
+
 
 {{template "footer" .}}
