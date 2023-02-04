@@ -27,7 +27,6 @@ values (1, 'user.metrics', 'New weight-related data'),
        (50, 'user.metrics', 'New bed in event'),
        (51, 'user.metrics', 'New bed out event'),
        (52, 'user.metrics', 'New inflate done event'),
-       (53, 'user.metrics', 'No account associated'),
        (54, 'user.metrics', 'New ECG data'),
        (55, 'user.metrics', 'ECG measure failed event'),
        (58, 'user.metrics', 'New glucose data')

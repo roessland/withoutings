@@ -21,18 +21,31 @@
 </table>
 
 
-
 <h3>Your existing subscriptions</h3>
+
 {{if not .Subscriptions}}
     <p>You don't have any webhook subscriptions yet.</p>
 {{else}}
-    <ul>
+    <table>
+        <thead>
+        <th>Appli</th>
+        <th>Status</th>
+        <th>Comment</th>
+        </thead>
         {{ range $_, $value := .Subscriptions }}
-            <li>
-                <strong>{{ $value }}</strong>
-            </li>
+            <tr>
+                <td>
+                    <strong>{{ $value.Appli }}</strong>
+                </td>
+                <td>
+                    {{ $value.Status }}
+                </td>
+                <td>
+                    {{ $value.Comment }}
+                </td>
+            </tr>
         {{ end }}
-    </ul>
+    </table>
 {{end}}
 
 
