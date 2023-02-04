@@ -24,7 +24,7 @@ func RefreshWithingsAccessToken(svc *app.App) http.HandlerFunc {
 
 		// TODO don't refresh if it's not expired yet.
 
-		newToken, err := svc.Withings.RefreshAccessToken(ctx, accInitial.WithingsRefreshToken)
+		newToken, err := svc.WithingsRepo.RefreshAccessToken(ctx, accInitial.WithingsRefreshToken)
 		if err != nil {
 			w.WriteHeader(500)
 			fmt.Fprintf(w, "couldn't refresh access token")

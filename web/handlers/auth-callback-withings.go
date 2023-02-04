@@ -39,7 +39,7 @@ func Callback(app *app.App) http.HandlerFunc {
 			http.Error(w, "Code not found", http.StatusBadRequest)
 			return
 		}
-		token, err := app.Withings.GetAccessToken(ctx, code)
+		token, err := app.WithingsRepo.GetAccessToken(ctx, code)
 		if err != nil {
 			log.WithError(err).
 				WithField("event", "error.callback.getaccesstoken").

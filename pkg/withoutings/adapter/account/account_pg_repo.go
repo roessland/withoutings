@@ -1,17 +1,17 @@
-package adapter
+package account
 
 import (
 	"context"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/pkg/errors"
-	"github.com/roessland/withoutings/pkg/repos/db"
+	db2 "github.com/roessland/withoutings/pkg/db"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 )
 
 type AccountPgRepo struct {
 	db      *pgxpool.Pool
-	queries *db.Queries
+	queries *db2.Queries
 }
 
 func (r AccountPgRepo) WithTx(tx pgx.Tx) AccountPgRepo {
@@ -21,7 +21,7 @@ func (r AccountPgRepo) WithTx(tx pgx.Tx) AccountPgRepo {
 	}
 }
 
-func NewAccountPgRepo(db *pgxpool.Pool, queries *db.Queries) AccountPgRepo {
+func NewAccountPgRepo(db *pgxpool.Pool, queries *db2.Queries) AccountPgRepo {
 	return AccountPgRepo{
 		db:      db,
 		queries: queries,
@@ -68,7 +68,7 @@ func (r AccountPgRepo) GetAccountByWithingsUserID(ctx context.Context, withingsU
 }
 
 func (r AccountPgRepo) CreateAccount(ctx context.Context, account account.Account) error {
-	return r.queries.CreateAccount(ctx, db.CreateAccountParams{
+	return r.queries.CreateAccount(ctx, db2.CreateAccountParams{
 		WithingsUserID:            account.WithingsUserID,
 		WithingsAccessToken:       account.WithingsAccessToken,
 		WithingsRefreshToken:      account.WithingsRefreshToken,
@@ -105,7 +105,7 @@ func (r AccountPgRepo) UpdateAccount(ctx context.Context, accountID int64, updat
 		return err
 	}
 	updatedAcc, err := updateFn(ctx, acc)
-	err = r.WithTx(tx).queries.UpdateAccount(ctx, db.UpdateAccountParams{
+	err = r.WithTx(tx).queries.UpdateAccount(ctx, db2.UpdateAccountParams{
 		AccountID:                 accountID,
 		WithingsUserID:            updatedAcc.WithingsUserID,
 		WithingsAccessToken:       updatedAcc.WithingsAccessToken,

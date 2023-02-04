@@ -1,14 +1,50 @@
-package withingsapi
+package withings
 
 import (
-	"context"
 	"encoding/json"
-	"io"
-	"net/http"
 	"strings"
 )
 
 // https://developer.withings.com/api-reference#operation/sleepv2-getsummary
+
+var SleepGetSummaryAllDataFields = strings.Join([]string{
+	"nb_rem_episodes",
+	"sleep_efficiency",
+	"sleep_latency",
+	"total_sleep_time",
+	"total_timeinbed",
+	"wakeup_latency",
+	"waso",
+	"apnea_hypopnea_index",
+	"breathing_disturbances_intensity",
+	"asleepduration",
+	"deepsleepduration",
+	"durationtosleep",
+	"durationtowakeup",
+	"hr_average",
+	"hr_max",
+	"hr_min",
+	"lightsleepduration",
+	"night_events",
+	"out_of_bed_count",
+	"remsleepduration",
+	"rr_average",
+	"rr_max",
+	"rr_min",
+	"sleep_score",
+	"snoring",
+	"snoringepisodecount",
+	"wakeupcount",
+	"wakeupduration",
+}, ",")
+
+// NewSleepGetsummaryParams creates new SleepGetSummaryParams with some defaults.
+func NewSleepGetsummaryParams() SleepGetSummaryParams {
+	return SleepGetSummaryParams{
+		Action:     "getsummary",
+		DataFields: SleepGetSummaryAllDataFields,
+	}
+}
 
 // SleepGetSummaryParams
 // Don't set Lastupdate and Startdateymd or Enddateymd at the same time.
@@ -75,75 +111,4 @@ type SleepGetsummaryData struct {
 	Wakeupcount                    int             `json:"wakeupcount"`
 	Wakeupduration                 float64         `json:"wakeupduration"`
 	Waso                           float64         `json:"waso"`
-}
-
-var SleepGetSummaryAllDataFields = strings.Join([]string{
-	"nb_rem_episodes",
-	"sleep_efficiency",
-	"sleep_latency",
-	"total_sleep_time",
-	"total_timeinbed",
-	"wakeup_latency",
-	"waso",
-	"apnea_hypopnea_index",
-	"breathing_disturbances_intensity",
-	"asleepduration",
-	"deepsleepduration",
-	"durationtosleep",
-	"durationtowakeup",
-	"hr_average",
-	"hr_max",
-	"hr_min",
-	"lightsleepduration",
-	"night_events",
-	"out_of_bed_count",
-	"remsleepduration",
-	"rr_average",
-	"rr_max",
-	"rr_min",
-	"sleep_score",
-	"snoring",
-	"snoringepisodecount",
-	"wakeupcount",
-	"wakeupduration",
-}, ",")
-
-// NewSleepGetsummaryParams creates new SleepGetSummaryParams with some defaults.
-func NewSleepGetsummaryParams() SleepGetSummaryParams {
-	return SleepGetSummaryParams{
-		Action:     "getsummary",
-		DataFields: SleepGetSummaryAllDataFields,
-	}
-}
-
-// NewSleepGetsummaryRequest creates a new SleepGetsummary request.
-func (c *Client) NewSleepGetsummaryRequest(params SleepGetSummaryParams) (*http.Request, error) {
-	return c.NewRequest("/v2/sleep", params)
-}
-
-// SleepGetsummary gets a sleep summary
-func (c *AuthenticatedClient) SleepGetsummary(ctx context.Context, params SleepGetSummaryParams) (*SleepGetsummaryResponse, error) {
-	req, err := c.NewSleepGetsummaryRequest(params)
-	if err != nil {
-		return nil, err
-	}
-	httpResp, err := c.WithAccessToken(c.AccessToken).Do(req.WithContext(ctx))
-	if err != nil {
-		return nil, err
-	}
-	defer httpResp.Body.Close()
-
-	var resp SleepGetsummaryResponse
-
-	resp.Raw, err = io.ReadAll(httpResp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(resp.Raw, &resp)
-	if err != nil {
-		return nil, err
-	}
-
-	return &resp, nil
 }

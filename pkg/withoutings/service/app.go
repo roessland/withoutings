@@ -7,13 +7,14 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/roessland/withoutings/pkg/config"
-	"github.com/roessland/withoutings/pkg/repos/db"
+	"github.com/roessland/withoutings/pkg/db"
 	"github.com/roessland/withoutings/pkg/service/sleep"
-	"github.com/roessland/withoutings/pkg/withoutings/adapter"
+	"github.com/roessland/withoutings/pkg/withoutings/adapter/account"
+	"github.com/roessland/withoutings/pkg/withoutings/adapter/subscription"
+	withingsAdapter "github.com/roessland/withoutings/pkg/withoutings/adapter/withings"
 	"github.com/roessland/withoutings/pkg/withoutings/app"
 	"github.com/roessland/withoutings/pkg/withoutings/app/command"
 	"github.com/roessland/withoutings/pkg/withoutings/app/query"
-	"github.com/roessland/withoutings/pkg/withoutings/clients/withingsapi"
 	"github.com/roessland/withoutings/web/templates"
 	"github.com/sirupsen/logrus"
 	"time"
@@ -44,30 +45,30 @@ func newApplication(ctx context.Context) *app.App {
 
 	sessions.Store = pgxstore.New(pool)
 
-	accountRepo := adapter.NewAccountPgRepo(pool, dbQueries)
-	subscriptionRepo := adapter.NewSubscriptionPgRepo(pool, dbQueries)
+	accountRepo := account.NewAccountPgRepo(pool, dbQueries)
+	subscriptionRepo := subscription.NewSubscriptionPgRepo(pool, dbQueries)
 
-	withingsClient := withingsapi.NewClient(cfg.WithingsClientID, cfg.WithingsClientSecret, cfg.WithingsRedirectURL)
+	withingsHttpClient := withingsAdapter.NewClient(cfg.WithingsClientID, cfg.WithingsClientSecret, cfg.WithingsRedirectURL)
 
 	return &app.App{
 		Log:              logger,
-		Withings:         withingsClient,
+		WithingsRepo:     withingsHttpClient,
 		Sessions:         sessions,
 		Templates:        templates.LoadTemplates(),
-		Sleep:            sleep.NewSleep(withingsClient),
+		Sleep:            sleep.NewSleep(withingsHttpClient),
 		DB:               pool,
 		Config:           cfg,
 		DBQueries:        dbQueries,
 		AccountRepo:      accountRepo,
 		SubscriptionRepo: subscriptionRepo,
 		Commands: app.Commands{
-			SubscribeAccount:      command.NewSubscribeAccountHandler(accountRepo, subscriptionRepo, withingsClient),
+			SubscribeAccount:      command.NewSubscribeAccountHandler(accountRepo, subscriptionRepo, withingsHttpClient, cfg),
 			CreateOrUpdateAccount: command.NewCreateOrUpdateAccountHandler(accountRepo),
 		},
 		Queries: app.Queries{
 			AccountForWithingsUserID: query.NewAccountByWithingsUserIDHandler(accountRepo),
 			AccountForUserID:         query.NewAccountByIDHandler(accountRepo),
-			Accounts:                 query.NewAccountsHandler(accountRepo),
+			AllAccounts:              query.NewAllAccountsHandler(accountRepo),
 		},
 	}
 }

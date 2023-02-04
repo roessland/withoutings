@@ -25,7 +25,7 @@ package handlers
 //			return
 //		}
 //
-//		authClient := app.Withings.WithAccessToken(token.AccessToken)
+//		authClient := app.WithingsRepo.WithAccessToken(token.AccessToken)
 //
 //		params := withingsapi.NewSleepGetParams()
 //		params.Startdate = 1668116907

@@ -2,13 +2,13 @@ version: "2"
 sql:
 
   - queries:
-      - "db/account.sql"
-      - "db/subscription.sql"
+      - "account.sql"
+      - "subscription.sql"
     engine: "postgresql"
     schema: "../migration/"
     gen:
       go:
         sql_package: "pgx/v4"
         package: "db"
-        out: "db"
+        out: "."
 

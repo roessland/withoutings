@@ -1,42 +1,25 @@
-package withingsapi
+package withings
 
 import (
 	"context"
 	"encoding/json"
 	"github.com/roessland/withoutings/pkg/logging"
+	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
 	"io"
 	"net/http"
 )
 
-// https://developer.withings.com/api-reference#operation/notify-subscribe
-
-// NotifySubscribeParams are the parameters for Notify - Subscribe
-type NotifySubscribeParams struct {
-	Action      string `json:"action" url:"action"`
-	Callbackurl string `json:"callbackurl" url:"callbackurl"`
-	Appli       int    `json:"appli" url:"appli"`
-	Comment     string `json:"comment" url:"comment"`
-}
-
-type NotifySubscribeResponse struct {
-	Status int    `json:"status"`
-	Raw    []byte `json:"-"`
-}
-
-// NewNotifySubscribeParams creates new NewNotifySubscribeParams with some defaults.
-func NewNotifySubscribeParams() NotifySubscribeParams {
-	return NotifySubscribeParams{
-		Action: "subscribe",
-	}
+func (c *HTTPClient) NotifySubscribe(ctx context.Context, accessToken string, params withings.NotifySubscribeParams) (*withings.NotifySubscribeResponse, error) {
+	return c.WithAccessToken(accessToken).NotifySubscribe(ctx, params)
 }
 
 // NewNotifySubscribeRequest creates a new NotifySubscribeRequest request.
-func (c *Client) NewNotifySubscribeRequest(params NotifySubscribeParams) (*http.Request, error) {
+func (c *HTTPClient) NewNotifySubscribeRequest(params withings.NotifySubscribeParams) (*http.Request, error) {
 	return c.NewRequest("/notify", params)
 }
 
 // NotifySubscribe subscribes to health data events for the current user.
-func (c *AuthenticatedClient) NotifySubscribe(ctx context.Context, params NotifySubscribeParams) (*NotifySubscribeResponse, error) {
+func (c *AuthenticatedClient) NotifySubscribe(ctx context.Context, params withings.NotifySubscribeParams) (*withings.NotifySubscribeResponse, error) {
 	log := logging.MustGetLoggerFromContext(ctx)
 
 	req, err := c.NewNotifySubscribeRequest(params)
@@ -49,7 +32,7 @@ func (c *AuthenticatedClient) NotifySubscribe(ctx context.Context, params Notify
 	}
 	defer httpResp.Body.Close()
 
-	var resp NotifySubscribeResponse
+	var resp withings.NotifySubscribeResponse
 
 	resp.Raw, err = io.ReadAll(httpResp.Body)
 	if err != nil {

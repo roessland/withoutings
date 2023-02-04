@@ -63,7 +63,7 @@ func WithingsWebhook(svc *app.App) http.HandlerFunc {
 		log := logging.MustGetLoggerFromContext(ctx)
 		vars := mux.Vars(r)
 		webhookSecret := vars["webhook_secret"]
-		if webhookSecret != "supersecret" {
+		if webhookSecret != svc.Config.WithingsWebhookSecret {
 			log.Error("invalid webhook URL secret")
 			w.WriteHeader(401)
 			return

@@ -1,4 +1,4 @@
-package withingsapi
+package withings
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/roessland/withoutings/pkg/logging"
+	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
 	"golang.org/x/oauth2"
 	"io"
 	"net/http"
@@ -15,26 +16,10 @@ import (
 )
 
 var OAuth2Scopes = []string{"user.info,user.activity,user.metrics,user.sleepevents"}
-var OAuth2AuthURL string = "https://account.withings.com/oauth2_user/authorize2"
+var OAuth2AuthURL = "https://account.withings.com/oauth2_user/authorize2"
 var OAuth2TokenURL = "https://wbsapi.withings.net/v2/oauth2"
 
-type GetAccessTokenResponse struct {
-	Status int
-	Body   Token `json:"body"`
-}
-
-type Token struct {
-	UserID       string    `json:"userid,omitempty"`
-	AccessToken  string    `json:"access_token,omitempty"`
-	RefreshToken string    `json:"refresh_token,omitempty"`
-	ExpiresIn    int       `json:"expires_in,omitempty"`
-	Scope        string    `json:"scope,omitempty"`
-	CSRFToken    string    `json:"csrf_token,omitempty"`
-	TokenType    string    `json:"token_type,omitempty"`
-	Expiry       time.Time `json:"expiry,omitempty"`
-}
-
-func (c *Client) GetAccessToken(ctx context.Context, authCode string) (*Token, error) {
+func (c *HTTPClient) GetAccessToken(ctx context.Context, authCode string) (*withings.Token, error) {
 	v := url.Values{}
 	v.Set("action", "requesttoken")
 	v.Set("client_id", c.OAuth2Config.ClientID)
@@ -69,7 +54,7 @@ func (c *Client) GetAccessToken(ctx context.Context, authCode string) (*Token, e
 		}
 	}
 
-	var response *GetAccessTokenResponse
+	var response *withings.GetAccessTokenResponse
 	if err = json.Unmarshal(body, &response); err != nil {
 		return nil, err
 	}
@@ -84,7 +69,7 @@ func (c *Client) GetAccessToken(ctx context.Context, authCode string) (*Token, e
 	return &response.Body, nil
 }
 
-func (c *Client) RefreshAccessToken(ctx context.Context, refreshToken string) (*Token, error) {
+func (c *HTTPClient) RefreshAccessToken(ctx context.Context, refreshToken string) (*withings.Token, error) {
 	v := url.Values{}
 	v.Set("action", "requesttoken")
 	v.Set("grant_type", "refresh_token")
@@ -121,7 +106,7 @@ func (c *Client) RefreshAccessToken(ctx context.Context, refreshToken string) (*
 		}
 	}
 
-	var response *GetAccessTokenResponse
+	var response *withings.GetAccessTokenResponse
 	if err = json.Unmarshal(body, &response); err != nil {
 		return nil, err
 	}
@@ -135,6 +120,6 @@ func (c *Client) RefreshAccessToken(ctx context.Context, refreshToken string) (*
 	return &response.Body, nil
 }
 
-func (c *Client) AuthCodeURL(nonce string) string {
+func (c *HTTPClient) AuthCodeURL(nonce string) string {
 	return c.OAuth2Config.AuthCodeURL(nonce)
 }

@@ -1,20 +1,20 @@
-package adapter
+package subscription
 
 import (
 	"context"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/pkg/errors"
-	"github.com/roessland/withoutings/pkg/repos/db"
+	db2 "github.com/roessland/withoutings/pkg/db"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 )
 
 type SubscriptionPgRepo struct {
 	db      *pgxpool.Pool
-	queries *db.Queries
+	queries *db2.Queries
 }
 
-func NewSubscriptionPgRepo(db *pgxpool.Pool, queries *db.Queries) SubscriptionPgRepo {
+func NewSubscriptionPgRepo(db *pgxpool.Pool, queries *db2.Queries) SubscriptionPgRepo {
 	return SubscriptionPgRepo{
 		db:      db,
 		queries: queries,
@@ -60,7 +60,7 @@ func (r SubscriptionPgRepo) GetPendingSubscriptions(ctx context.Context) ([]subs
 }
 
 func (r SubscriptionPgRepo) CreateSubscription(ctx context.Context, sub subscription.Subscription) error {
-	return r.queries.CreateSubscription(ctx, db.CreateSubscriptionParams{
+	return r.queries.CreateSubscription(ctx, db2.CreateSubscriptionParams{
 		AccountID:     sub.AccountID,
 		Appli:         int32(sub.Appli),
 		Callbackurl:   sub.CallbackURL,
@@ -78,7 +78,7 @@ func (r SubscriptionPgRepo) ListSubscriptions(ctx context.Context) ([]subscripti
 	return toDomainSubscriptions(dbSubscriptions), nil
 }
 
-func toDomainSubscriptions(dbSubs []db.Subscription) []subscription.Subscription {
+func toDomainSubscriptions(dbSubs []db2.Subscription) []subscription.Subscription {
 	var subscriptions []subscription.Subscription
 	for _, dbSub := range dbSubs {
 		subscriptions = append(subscriptions, toDomainSubscription(dbSub))
@@ -86,7 +86,7 @@ func toDomainSubscriptions(dbSubs []db.Subscription) []subscription.Subscription
 	return subscriptions
 }
 
-func toDomainSubscription(dbSub db.Subscription) subscription.Subscription {
+func toDomainSubscription(dbSub db2.Subscription) subscription.Subscription {
 	return subscription.Subscription{
 		SubscriptionID: dbSub.SubscriptionID,
 		AccountID:      dbSub.AccountID,
@@ -98,7 +98,7 @@ func toDomainSubscription(dbSub db.Subscription) subscription.Subscription {
 }
 
 func (r SubscriptionPgRepo) CreateRawNotification(ctx context.Context, rawNotification subscription.RawNotification) error {
-	return r.queries.CreateRawNotification(ctx, db.CreateRawNotificationParams{
+	return r.queries.CreateRawNotification(ctx, db2.CreateRawNotificationParams{
 		Source: rawNotification.Source,
 		Status: string(rawNotification.Status),
 		Data:   rawNotification.Data,

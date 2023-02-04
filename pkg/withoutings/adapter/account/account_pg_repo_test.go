@@ -1,12 +1,12 @@
-package adapter_test
+package account_test
 
 import (
 	"context"
 	"fmt"
-	"github.com/roessland/withoutings/pkg/repos/db"
+	"github.com/roessland/withoutings/pkg/db"
 	"github.com/roessland/withoutings/pkg/testctx"
 	"github.com/roessland/withoutings/pkg/testdb"
-	"github.com/roessland/withoutings/pkg/withoutings/adapter"
+	account2 "github.com/roessland/withoutings/pkg/withoutings/adapter/account"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"github.com/stretchr/testify/require"
 	"math/rand"
@@ -14,14 +14,14 @@ import (
 	"time"
 )
 
-var _ account.Repo = adapter.AccountPgRepo{}
+var _ account.Repo = account2.AccountPgRepo{}
 
 func TestAccountPgRepo_UpdateAccount(t *testing.T) {
 	ctx := testctx.New()
 	database := testdb.New(ctx)
 	defer database.Drop(ctx)
 	queries := db.New(database)
-	repo := adapter.NewAccountPgRepo(database.Pool, queries)
+	repo := account2.NewAccountPgRepo(database.Pool, queries)
 
 	// Insert test user with default field values
 	withingsUserID := fmt.Sprintf("%d", rand.Intn(10000))

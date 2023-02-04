@@ -2,7 +2,7 @@ package db_test
 
 import (
 	_ "github.com/jackc/pgx/v4/stdlib"
-	"github.com/roessland/withoutings/pkg/repos/db"
+	db2 "github.com/roessland/withoutings/pkg/db"
 	"github.com/roessland/withoutings/pkg/testctx"
 	"github.com/roessland/withoutings/pkg/testdb"
 	"github.com/stretchr/testify/assert"
@@ -16,11 +16,11 @@ func TestAccountQueries(t *testing.T) {
 	database := testdb.New(ctx)
 	defer database.Drop(ctx)
 
-	queries := db.New(database)
+	queries := db2.New(database)
 
 	t.Run("CreateAccount", func(t *testing.T) {
 		accessTokenExpiry := time.Now().Add(time.Hour)
-		createAccountParams := db.CreateAccountParams{
+		createAccountParams := db2.CreateAccountParams{
 			WithingsUserID:            "userid1337",
 			WithingsAccessToken:       "accesstoken",
 			WithingsRefreshToken:      "refreshtoken",

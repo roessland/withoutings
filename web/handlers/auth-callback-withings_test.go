@@ -4,16 +4,19 @@ import (
 	"fmt"
 	"github.com/alexedwards/scs/pgxstore"
 	"github.com/alexedwards/scs/v2"
-	"github.com/roessland/withoutings/pkg/repos/db"
+	"github.com/roessland/withoutings/pkg/config"
+	"github.com/roessland/withoutings/pkg/db"
 	"github.com/roessland/withoutings/pkg/testctx"
 	"github.com/roessland/withoutings/pkg/testdb"
-	"github.com/roessland/withoutings/pkg/withoutings/adapter"
+	accountAdapter "github.com/roessland/withoutings/pkg/withoutings/adapter/account"
+	subscriptionAdapter "github.com/roessland/withoutings/pkg/withoutings/adapter/subscription"
+	withingsAdapter "github.com/roessland/withoutings/pkg/withoutings/adapter/withings"
 	"github.com/roessland/withoutings/pkg/withoutings/app"
 	"github.com/roessland/withoutings/pkg/withoutings/app/command"
 	"github.com/roessland/withoutings/pkg/withoutings/app/query"
-	"github.com/roessland/withoutings/pkg/withoutings/clients/withingsapi"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
+	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
 	"github.com/roessland/withoutings/web"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -51,35 +54,36 @@ func TestCallback(t *testing.T) {
 	svc.Log = ctx.Logger
 	queries := db.New(database)
 
-	var accountRepo account.Repo = adapter.NewAccountPgRepo(database.Pool, queries)
+	var accountRepo account.Repo = accountAdapter.NewAccountPgRepo(database.Pool, queries)
 	svc.AccountRepo = accountRepo
 
-	var subscriptionRepo subscription.Repo = adapter.NewSubscriptionPgRepo(database.Pool, queries)
+	var subscriptionRepo subscription.Repo = subscriptionAdapter.NewSubscriptionPgRepo(database.Pool, queries)
 	svc.SubscriptionRepo = subscriptionRepo
+
+	var withingsRepo withings.Repo = withingsAdapter.NewMockClient()
+	svc.WithingsRepo = withingsRepo
 
 	svc.Queries = app.Queries{
 		AccountForUserID:         query.NewAccountByIDHandler(accountRepo),
 		AccountForWithingsUserID: query.NewAccountByWithingsUserIDHandler(accountRepo),
-		Accounts:                 query.NewAccountsHandler(accountRepo),
+		AllAccounts:              query.NewAllAccountsHandler(accountRepo),
 	}
 	svc.Queries.Validate()
 
+	cfg := &config.Config{}
+
 	svc.Commands = app.Commands{
 		// TODO replace withingsClient with interface
-		SubscribeAccount:      command.NewSubscribeAccountHandler(accountRepo, subscriptionRepo, nil),
+		SubscribeAccount:      command.NewSubscribeAccountHandler(accountRepo, subscriptionRepo, withingsRepo, cfg),
 		CreateOrUpdateAccount: command.NewCreateOrUpdateAccountHandler(accountRepo),
 	}
-	svc.Commands.Validate()
 
 	svc.Sessions = scs.New()
 	svc.Sessions.Lifetime = time.Hour * 3
 	svc.Sessions.IdleTimeout = time.Hour * 4
 	svc.Sessions.Store = pgxstore.New(database.Pool)
 
-	svc.Withings = withingsapi.NewClient("testclientid", "testclientsecret", "testredirecturl")
-	svc.Withings.APIBase = mockWithingsTokenEndpoint.URL
-	svc.Withings.OAuth2Config.Endpoint.TokenURL = mockWithingsTokenEndpoint.URL
-	svc.Withings.OAuth2Config.Endpoint.AuthURL = mockWithingsTokenEndpoint.URL
+	svc.WithingsRepo = withingsAdapter.NewMockClient()
 
 	router := web.Router(svc)
 
@@ -119,7 +123,7 @@ func TestCallback(t *testing.T) {
 		router.ServeHTTP(resp, req)
 		assert.Equal(t, 400, resp.Code)
 
-		accounts, err := svc.Queries.Accounts.Handle(ctx, query.Accounts{})
+		accounts, err := svc.Queries.AllAccounts.Handle(ctx, query.AllAccounts{})
 		require.NoError(t, err)
 		require.Len(t, accounts, 0)
 	})

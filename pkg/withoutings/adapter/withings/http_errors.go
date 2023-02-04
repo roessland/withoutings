@@ -1,4 +1,4 @@
-package withingsapi
+package withings
 
 import "fmt"
 

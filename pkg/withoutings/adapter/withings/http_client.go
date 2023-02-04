@@ -1,4 +1,4 @@
-package withingsapi
+package withings
 
 import (
 	"bytes"
@@ -15,8 +15,8 @@ import (
 // DefaultAPIBase is the base URL to the Withings API.
 const DefaultAPIBase = "https://wbsapi.withings.net"
 
-// Client sends requests to the Withings API.
-type Client struct {
+// HTTPClient sends requests to the Withings API.
+type HTTPClient struct {
 	HTTPClient   *http.Client
 	OAuth2Config *oauth2.Config
 	APIBase      string
@@ -24,13 +24,13 @@ type Client struct {
 
 // AuthenticatedClient is a client with an access token.
 type AuthenticatedClient struct {
-	Client
+	HTTPClient
 	AccessToken string
 }
 
 // NewClient returns a client.
-func NewClient(clientID, clientSecret, redirectURL string) *Client {
-	c := Client{}
+func NewClient(clientID, clientSecret, redirectURL string) *HTTPClient {
+	c := HTTPClient{}
 
 	c.HTTPClient = &http.Client{
 		Transport: &http.Transport{
@@ -60,15 +60,15 @@ func NewClient(clientID, clientSecret, redirectURL string) *Client {
 }
 
 // WithAccessToken returns an authenticated version of a client
-func (c *Client) WithAccessToken(accessToken string) *AuthenticatedClient {
+func (c *HTTPClient) WithAccessToken(accessToken string) *AuthenticatedClient {
 	var ac AuthenticatedClient
-	ac.Client = *c
+	ac.HTTPClient = *c
 	ac.AccessToken = accessToken
 	return &ac
 }
 
 // NewRequest creates a standard request to the Withings API.
-func (c *Client) NewRequest(endpoint string, params any) (*http.Request, error) {
+func (c *HTTPClient) NewRequest(endpoint string, params any) (*http.Request, error) {
 	q, err := query.Values(params)
 	if err != nil {
 		return nil, err
@@ -84,7 +84,7 @@ func (c *Client) NewRequest(endpoint string, params any) (*http.Request, error) 
 }
 
 // Do sends a request
-func (c *Client) Do(req *http.Request) (*http.Response, error) {
+func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 	var err error
 	logger := logging.MustGetLoggerFromContext(req.Context())
 
@@ -129,5 +129,5 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 // Do sends a request with an authorization header.
 func (c *AuthenticatedClient) Do(req *http.Request) (*http.Response, error) {
 	req.Header.Set("Authorization", "Bearer "+c.AccessToken)
-	return c.Client.Do(req)
+	return c.HTTPClient.Do(req)
 }

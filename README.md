@@ -66,3 +66,9 @@ brew install sqlc
 # or
 go install github.com/kyleconroy/sqlc/cmd/sqlc@latest
 ```
+
+
+### Install [mockery](https://github.com/vektra/mockery)
+```sh
+brew install mockery
+```
