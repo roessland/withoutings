@@ -54,7 +54,14 @@ func TestRenderTemplates(t *testing.T) {
 
 	t.Run("RenderSubscriptionsPage handles nil vars", func(t *testing.T) {
 		beforeEach(t)
-		err := tmpls.RenderSubscriptionsPage(buf, nil)
+		err := tmpls.RenderSubscriptionsPage(buf, nil, nil, "")
+		require.NoError(t, err)
+		require.Contains(t, buf.String(), "don't have")
+	})
+
+	t.Run("RenderSubscriptionsWithingsPage handles nil vars", func(t *testing.T) {
+		beforeEach(t)
+		err := tmpls.RenderSubscriptionsWithingsPage(buf, nil, "")
 		require.NoError(t, err)
 		require.Contains(t, buf.String(), "don't have")
 	})

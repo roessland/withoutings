@@ -121,3 +121,19 @@ func (r PgRepo) GetPendingRawNotifications(ctx context.Context) ([]subscription.
 	}
 	return rawNotifications, nil
 }
+
+func (r PgRepo) AllNotificationCategories(ctx context.Context) ([]subscription.NotificationCategory, error) {
+	var notificationCategories []subscription.NotificationCategory
+	dbNotificationCategories, err := r.queries.AllNotificationCategories(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, dbNotificationCategory := range dbNotificationCategories {
+		notificationCategories = append(notificationCategories, subscription.NotificationCategory{
+			Appli:       int(dbNotificationCategory.Appli),
+			Scope:       dbNotificationCategory.Scope,
+			Description: dbNotificationCategory.Description,
+		})
+	}
+	return notificationCategories, nil
+}

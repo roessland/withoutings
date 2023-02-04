@@ -20,13 +20,13 @@ func Router(svc *app.App) *mux.Router {
 	r.HandleFunc("/auth/logout", handlers.Logout(svc))
 	r.HandleFunc("/auth/callback", handlers.Callback(svc))
 	r.HandleFunc("/auth/refresh", handlers.RefreshWithingsAccessToken(svc))
-	//
+
 	r.HandleFunc("/sleepsummaries", handlers.SleepSummaries(svc))
 	//r.HandleFunc("/sleepget.json", handlers.SleepGetJSON(svc))
-
 	r.Path("/subscriptions").Methods("GET").Handler(handlers.SubscriptionsPage(svc))
-	r.Path("/subscriptions/subscribe").Methods("POST").Handler(handlers.Subscribe(svc))
+	r.Path("/subscriptions/withings").Methods("GET").Handler(handlers.SubscriptionsWithingsPage(svc))
 
+	r.Path("/subscriptions/subscribe/{appli}").Methods("POST").Handler(handlers.Subscribe(svc))
 	r.Path("/withings/webhooks/{webhook_secret}").Methods("POST").Handler(handlers.WithingsWebhook(svc))
 
 	r.Use(

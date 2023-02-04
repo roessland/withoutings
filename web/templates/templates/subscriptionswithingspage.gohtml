@@ -1,0 +1,16 @@
+{{template "header" .}}
+
+<h3>Withings subscriptions</h3>
+{{if not .WithingsSubscriptions}}
+    <p>You don't have any subscriptions with Withings yet.</p>
+{{else}}
+    <ul>
+        {{ range $_, $value := .WithingsSubscriptions }}
+            <li>
+                <strong>{{ $value }}</strong>
+            </li>
+        {{ end }}
+    </ul>
+{{end}}
+
+{{template "footer" .}}

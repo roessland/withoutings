@@ -22,4 +22,5 @@ type Repo interface {
 	ListSubscriptions(ctx context.Context) ([]Subscription, error)
 	CreateRawNotification(ctx context.Context, rawNotification RawNotification) error
 	GetPendingRawNotifications(ctx context.Context) ([]RawNotification, error)
+	AllNotificationCategories(ctx context.Context) ([]NotificationCategory, error)
 }

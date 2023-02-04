@@ -10,6 +10,7 @@ import (
 
 type SubscribeAccount struct {
 	Account account.Account
+	Appli   int
 }
 
 type SubscribeAccountHandler interface {
@@ -23,19 +24,22 @@ func (h subscribeAccountHandler) Handle(ctx context.Context, cmd SubscribeAccoun
 		return err
 	}
 
-	// Make sure access token is fresh
+	// TODO: Make sure access token is fresh
 
-	// TODO add IP filtering for webhook requests
-	callbackURL := h.cfg.WebsiteURL + "withings/webhooks/" + h.cfg.WithingsWebhookSecret
+	// TODO: add IP filtering for webhook requests
 
+	// Subscribe
 	params := withings.NewNotifySubscribeParams()
 	params.Appli = 1
+	callbackURL := h.cfg.WebsiteURL + "withings/webhooks/" + h.cfg.WithingsWebhookSecret
 	params.Callbackurl = callbackURL
 	params.Comment = "test"
 	_, err = h.withingsRepo.NotifySubscribe(ctx, acc.WithingsAccessToken, params)
 	if err != nil {
 		return err
 	}
+
+	// Save subscription
 	err = h.subscriptionRepo.CreateSubscription(ctx, subscription.NewSubscription(
 		acc.AccountID,
 		params.Appli,

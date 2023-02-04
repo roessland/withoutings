@@ -1,10 +1,17 @@
 {{template "header" .}}
 
-<form action="/subscriptions/subscribe" method="post">
-    <input type="submit" value="Subscribe to Withings webhook notifications"/>
-</form>
+<h3>Available subscriptions</h3>
+{{ range $_, $value := .Categories }}
+    <li>
+        <form action="/subscriptions/subscribe/{{ $value.Appli }}" method="post">
+            <input type="submit" value="Subscribe"/>
+        </form>
+        <strong>{{ $value }}</strong>
+    </li>
+{{ end }}
 
-<h3>Subscriptions</h3>
+
+<h3>Your existing subscriptions</h3>
 {{if not .Subscriptions}}
     <p>You don't have any webhook subscriptions yet.</p>
 {{else}}
@@ -16,6 +23,8 @@
         {{ end }}
     </ul>
 {{end}}
+
+
 
 
 
