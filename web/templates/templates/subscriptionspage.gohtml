@@ -1,14 +1,25 @@
 {{template "header" .}}
 
 <h3>Available subscriptions</h3>
-{{ range $_, $value := .Categories }}
-    <li>
-        <form action="/subscriptions/subscribe/{{ $value.Appli }}" method="post">
-            <input type="submit" value="Subscribe"/>
-        </form>
-        <strong>{{ $value }}</strong>
-    </li>
-{{ end }}
+<table>
+    <thead>
+    <th>Appli</th>
+    <th>Description</th>
+    <th>Subscribe</th>
+    </thead>
+    {{ range $_, $value := .Categories }}
+        <tr>
+            <td>{{ $value.Appli }}</td>
+            <td>{{ $value.Description }}</td>
+            <td>
+                <form action="/subscriptions/subscribe/{{ $value.Appli }}" method="post">
+                    <input type="submit" value="Subscribe"/>
+                </form>
+            </td>
+        </tr>
+    {{ end }}
+</table>
+
 
 
 <h3>Your existing subscriptions</h3>
