@@ -10,7 +10,7 @@ import (
 	"io"
 )
 
-//go:embed templates
+//go:embed templates/*.gohtml
 var fs embed.FS
 
 type Templates struct {
@@ -23,6 +23,7 @@ func LoadTemplates() Templates {
 	if err != nil {
 		panic(err)
 	}
+	t.Option("missingkey=error")
 	templates.template = t
 	return templates
 }
@@ -35,6 +36,18 @@ type HomePageVars struct {
 func (t Templates) RenderHomePage(w io.Writer, account_ *account.Account) error {
 	return t.template.ExecuteTemplate(w, "homepage.gohtml", HomePageVars{
 		Account: account_,
+	})
+}
+
+type RefreshAccessTokenVars struct {
+	Token *withings.Token
+	Error string
+}
+
+func (t Templates) RenderRefreshAccessToken(w io.Writer, token *withings.Token, err string) error {
+	return t.template.ExecuteTemplate(w, "refreshaccesstoken.gohtml", RefreshAccessTokenVars{
+		Token: token,
+		Error: err,
 	})
 }
 
@@ -51,24 +64,13 @@ func (t Templates) RenderSleepSummaries(w io.Writer, sleepData *sleep.GetSleepSu
 	})
 }
 
-type RefreshAccessTokenVars struct {
-	Error string
-	Token *withings.Token
-}
-
-func (t Templates) RenderRefreshAccessToken(w io.Writer, token *withings.Token) error {
-	return t.template.ExecuteTemplate(w, "refreshaccesstoken.gohtml", RefreshAccessTokenVars{
-		Token: token,
-	})
-}
-
 type SubscriptionsPageVars struct {
 	Error         string
 	Subscriptions []subscription.Subscription
 }
 
 func (t Templates) RenderSubscriptionsPage(w io.Writer, subscriptions []subscription.Subscription) error {
-	return t.template.ExecuteTemplate(w, "subscriptions.gohtml", SubscriptionsPageVars{
+	return t.template.ExecuteTemplate(w, "subscriptionspage.gohtml", SubscriptionsPageVars{
 		Subscriptions: subscriptions,
 	})
 }

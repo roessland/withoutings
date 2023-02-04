@@ -3,22 +3,33 @@
 
 <br>Sleep data:
 
-{{ range $_, $value := .SleepData.Summaries }}
-    <li>
-        <strong>{{ $value.Date }}</strong>: {{ $value.SleepScore }}
-        <div class="sleepscore-hbar"
-             style="width: {{ $value.SleepScore }}px;">
-        </div>
-        {{ $value.TotalSleepTime }}
-    </li>
-{{ end }}
+
+{{if not .SleepData}}
+    <p>No data</p>
+{{else}}
+    <ul>
+        {{ range $_, $value := .SleepData.Summaries }}
+            <li>
+                <strong>{{ $value.Date }}</strong>: {{ $value.SleepScore }}
+                <div class="sleepscore-hbar"
+                     style="width: {{ $value.SleepScore }}px;">
+                </div>
+                {{ $value.TotalSleepTime }}
+            </li>
+        {{ end }}
+    </ul>
+
+    <pre>
+        <code>
+        {{ printf "%s" .SleepData.Raw}}
+        </code>
+    </pre>
+
+{{end}}
 
 
-<pre>
-    <code>
-    {{ printf "%s" .SleepData.Raw}}
-    </code>
-</pre>
+
+
 
 
 {{template "footer" .}}
