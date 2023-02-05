@@ -18,6 +18,11 @@ SELECT *
 FROM subscription
 WHERE account_id = $1;
 
+-- name: GetSubscriptionByAccountIDAndAppli :one
+SELECT *
+FROM subscription
+WHERE account_id = $1 AND appli = $2;
+
 -- name: GetPendingSubscriptions :many
 SELECT *
 FROM subscription

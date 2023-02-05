@@ -153,6 +153,32 @@ func (q *Queries) GetPendingSubscriptions(ctx context.Context) ([]Subscription, 
 	return items, nil
 }
 
+const getSubscriptionByAccountIDAndAppli = `-- name: GetSubscriptionByAccountIDAndAppli :one
+SELECT subscription_id, account_id, appli, callbackurl, webhook_secret, status, comment
+FROM subscription
+WHERE account_id = $1 AND appli = $2
+`
+
+type GetSubscriptionByAccountIDAndAppliParams struct {
+	AccountID int64
+	Appli     int32
+}
+
+func (q *Queries) GetSubscriptionByAccountIDAndAppli(ctx context.Context, arg GetSubscriptionByAccountIDAndAppliParams) (Subscription, error) {
+	row := q.db.QueryRow(ctx, getSubscriptionByAccountIDAndAppli, arg.AccountID, arg.Appli)
+	var i Subscription
+	err := row.Scan(
+		&i.SubscriptionID,
+		&i.AccountID,
+		&i.Appli,
+		&i.Callbackurl,
+		&i.WebhookSecret,
+		&i.Status,
+		&i.Comment,
+	)
+	return i, err
+}
+
 const getSubscriptionByID = `-- name: GetSubscriptionByID :one
 SELECT subscription_id, account_id, appli, callbackurl, webhook_secret, status, comment
 FROM subscription

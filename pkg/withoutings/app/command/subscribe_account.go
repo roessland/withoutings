@@ -40,7 +40,7 @@ func (h subscribeAccountHandler) Handle(ctx context.Context, cmd SubscribeAccoun
 	}
 
 	// Save subscription
-	err = h.subscriptionRepo.CreateSubscription(ctx, subscription.NewSubscription(
+	err = h.subscriptionRepo.CreateSubscriptionIfNotExists(ctx, subscription.NewSubscription(
 		acc.AccountID,
 		params.Appli,
 		callbackURL,

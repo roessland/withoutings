@@ -14,17 +14,17 @@ type PgRepo struct {
 	queries *db.Queries
 }
 
-func (r PgRepo) WithTx(tx pgx.Tx) PgRepo {
-	return PgRepo{
-		db:      r.db,
-		queries: r.queries.WithTx(tx),
-	}
-}
-
 func NewPgRepo(db *pgxpool.Pool, queries *db.Queries) PgRepo {
 	return PgRepo{
 		db:      db,
 		queries: queries,
+	}
+}
+
+func (r PgRepo) WithTx(tx pgx.Tx) PgRepo {
+	return PgRepo{
+		db:      r.db,
+		queries: r.queries.WithTx(tx),
 	}
 }
 
@@ -100,12 +100,14 @@ func (r PgRepo) UpdateAccount(ctx context.Context, accountID int64, updateFn fun
 	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
 	defer tx.Rollback(ctx)
 
-	acc, err := r.WithTx(tx).GetAccountByID(ctx, accountID)
+	inTransaction := r.WithTx(tx)
+
+	acc, err := inTransaction.GetAccountByID(ctx, accountID)
 	if err != nil {
 		return err
 	}
 	updatedAcc, err := updateFn(ctx, acc)
-	err = r.WithTx(tx).queries.UpdateAccount(ctx, db.UpdateAccountParams{
+	err = inTransaction.queries.UpdateAccount(ctx, db.UpdateAccountParams{
 		AccountID:                 accountID,
 		WithingsUserID:            updatedAcc.WithingsUserID,
 		WithingsAccessToken:       updatedAcc.WithingsAccessToken,

@@ -21,6 +21,13 @@ func NewPgRepo(db *pgxpool.Pool, queries *db.Queries) PgRepo {
 	}
 }
 
+func (r PgRepo) WithTx(tx pgx.Tx) PgRepo {
+	return PgRepo{
+		db:      r.db,
+		queries: r.queries.WithTx(tx),
+	}
+}
+
 func (r PgRepo) GetSubscriptionByID(ctx context.Context, subscriptionID int64) (subscription.Subscription, error) {
 	dbSub, err := r.queries.GetSubscriptionByID(ctx, subscriptionID)
 	if err == pgx.ErrNoRows {
@@ -59,8 +66,31 @@ func (r PgRepo) GetPendingSubscriptions(ctx context.Context) ([]subscription.Sub
 	return toDomainSubscriptions(dbSubscriptions), nil
 }
 
-func (r PgRepo) CreateSubscription(ctx context.Context, sub subscription.Subscription) error {
-	return r.queries.CreateSubscription(ctx, db.CreateSubscriptionParams{
+func (r PgRepo) CreateSubscriptionIfNotExists(ctx context.Context, sub subscription.Subscription) error {
+	return r.createSubscriptionIfNotExists(ctx, sub)
+}
+
+func (r PgRepo) createSubscriptionIfNotExists(ctx context.Context, sub subscription.Subscription) error {
+	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
+	defer tx.Rollback(ctx)
+
+	inTransaction := r.queries.WithTx(tx)
+
+	// Check if exists
+	_, err = inTransaction.GetSubscriptionByAccountIDAndAppli(ctx,
+		db.GetSubscriptionByAccountIDAndAppliParams{
+			AccountID: sub.AccountID,
+			Appli:     int32(sub.Appli),
+		})
+	if err == nil {
+		return subscription.ErrSubscriptionAlreadyExists
+	}
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return err
+	}
+
+	// Doesn't exist; create one.
+	err = inTransaction.CreateSubscription(ctx, db.CreateSubscriptionParams{
 		AccountID:     sub.AccountID,
 		Appli:         int32(sub.Appli),
 		Callbackurl:   sub.CallbackURL,
@@ -68,6 +98,11 @@ func (r PgRepo) CreateSubscription(ctx context.Context, sub subscription.Subscri
 		Comment:       sub.Comment,
 		Status:        string(sub.Status),
 	})
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
 }
 
 func (r PgRepo) ListSubscriptions(ctx context.Context) ([]subscription.Subscription, error) {

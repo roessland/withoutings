@@ -1,6 +1,7 @@
 package db_test
 
 import (
+	"github.com/google/uuid"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/roessland/withoutings/pkg/db"
 	"github.com/roessland/withoutings/pkg/testctx"
@@ -16,11 +17,13 @@ func TestSubscriptionQueries(t *testing.T) {
 
 	queries := db.New(database)
 
-	// Needed for constraint
-	err := queries.CreateAccount(ctx, db.CreateAccountParams{})
+	// Subscription has mandatory foreign key to account.
+	err := queries.CreateAccount(ctx, db.CreateAccountParams{
+		WithingsUserID: uuid.NewString(),
+	})
 	require.NoError(t, err)
 
-	t.Run("CreateSubscription", func(t *testing.T) {
+	t.Run("CreateSubscriptions creates subscription", func(t *testing.T) {
 		createSubscriptionParams := db.CreateSubscriptionParams{
 			AccountID:     1,
 			Appli:         2,
