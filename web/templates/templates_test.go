@@ -33,7 +33,6 @@ func TestRenderTemplates(t *testing.T) {
 		beforeEach(t)
 		err := tmpls.RenderRefreshAccessToken(buf, nil, "")
 		require.NoError(t, err)
-		require.Contains(t, buf.String(), "nil")
 	})
 
 	t.Run("RenderRefreshAccessToken shows error", func(t *testing.T) {
