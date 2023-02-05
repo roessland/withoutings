@@ -35,7 +35,7 @@ func Account(svc *app.App) mux.MiddlewareFunc {
 			acc, err := svc.Queries.AccountForUserID.Handle(ctx, query.AccountByID{
 				AccountID: accountID,
 			})
-			if err != nil && !errors.Is(err, account.NotFoundError{}) {
+			if err != nil && !errors.As(err, &account.NotFoundError{}) {
 				log.WithError(err).WithField("event", "error.getaccount").Error()
 				http.Error(w, "Internal server error", http.StatusInternalServerError)
 				return

@@ -114,7 +114,7 @@ func (c *HTTPClient) RefreshAccessToken(ctx context.Context, refreshToken string
 	response.Body.Expiry = time.Now().UTC().Add(time.Second * time.Duration(response.Body.ExpiresIn))
 
 	if response.Body.AccessToken == "" {
-		fmt.Println("body", string(body))
+		log.WithField("body", string(body)).Error()
 		return nil, errors.New("oauth2: server response missing access_token")
 	}
 	return &response.Body, nil

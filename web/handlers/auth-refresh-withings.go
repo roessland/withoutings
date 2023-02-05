@@ -1,11 +1,9 @@
 package handlers
 
 import (
-	"context"
-	"errors"
 	"github.com/roessland/withoutings/pkg/logging"
 	"github.com/roessland/withoutings/pkg/withoutings/app"
-	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
+	"github.com/roessland/withoutings/pkg/withoutings/app/command"
 	"github.com/roessland/withoutings/web/middleware"
 	"net/http"
 )
@@ -32,10 +30,13 @@ func RefreshWithingsAccessToken(svc *app.App) http.HandlerFunc {
 			return
 		}
 
-		newToken, err := svc.WithingsRepo.RefreshAccessToken(ctx, accInitial.WithingsRefreshToken)
+		err := svc.Commands.RefreshAccessToken.Handle(ctx, command.RefreshAccessToken{Account: *accInitial})
 		if err != nil {
+			log.WithError(err).
+				WithField("event", "event.handlers.RefreshWithingsAccessToken.failed").
+				Error()
 			w.WriteHeader(500)
-			tmplErr := svc.Templates.RenderRefreshAccessToken(w, newToken,
+			tmplErr := svc.Templates.RenderRefreshAccessToken(w, nil,
 				"Could not refresh your access token since an error occurred.")
 			if tmplErr != nil {
 				log.WithError(tmplErr).WithField("event", "error.render.template").Error()
@@ -44,32 +45,8 @@ func RefreshWithingsAccessToken(svc *app.App) http.HandlerFunc {
 			return
 		}
 
-		err = svc.AccountRepo.UpdateAccount(
-			ctx,
-			accInitial.AccountID,
-			func(ctx context.Context, accNext account.Account) (account.Account, error) {
-				if accNext.WithingsRefreshToken != accInitial.WithingsRefreshToken {
-					return account.Account{}, errors.New("refresh token updated by someone else")
-				}
-				accNext.WithingsAccessToken = newToken.AccessToken
-				accNext.WithingsRefreshToken = newToken.RefreshToken
-				accNext.WithingsAccessTokenExpiry = newToken.Expiry
-				return accNext, nil
-			},
-		)
-		if err != nil {
-			w.WriteHeader(500)
-			tmplErr := svc.Templates.RenderRefreshAccessToken(w, newToken,
-				"Could not update your access token since an error occurred.")
-			if tmplErr != nil {
-				log.WithError(tmplErr).WithField("event", "error.render.template").Error()
-				return
-			}
-			return
-		}
-
 		w.Header().Set("Content-Type", "text/html")
-		tmplErr := svc.Templates.RenderRefreshAccessToken(w, newToken, "")
+		tmplErr := svc.Templates.RenderRefreshAccessToken(w, nil, "")
 		if tmplErr != nil {
 			log.WithError(tmplErr).WithField("event", "error.render.template").Error()
 			return
