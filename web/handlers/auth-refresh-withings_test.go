@@ -41,7 +41,7 @@ func TestRefreshWithingsAccessToken(t *testing.T) {
 
 	var mockWithingsRepo *withings.MockRepo
 
-	var accountID int64
+	var accountUUID uuid.UUID
 	var withingsUserID string
 	var accountRepo account.Repo
 
@@ -49,22 +49,25 @@ func TestRefreshWithingsAccessToken(t *testing.T) {
 		accountRepo = accountAdapter.NewPgRepo(database.Pool, queries)
 		svc.AccountRepo = accountRepo
 		withingsUserID = uuid.NewString()
-		require.NoError(t, accountRepo.CreateAccount(ctx, account.Account{
-			WithingsUserID:       withingsUserID,
-			WithingsAccessToken:  "bob",
-			WithingsRefreshToken: "kåre",
-		}))
-		acc, err := accountRepo.GetAccountByWithingsUserID(ctx, withingsUserID)
+		acc, err := account.NewAccount(
+			uuid.New(),
+			withingsUserID,
+			"bob",
+			"kåre",
+			time.Now().Add(-time.Hour),
+			"whatever",
+		)
 		require.NoError(t, err)
-		accountID = acc.AccountID
+		require.NoError(t, accountRepo.CreateAccount(ctx, acc))
+		accountUUID = acc.UUID()
 
 		mockWithingsRepo = withings.NewMockRepo(t)
 		svc.WithingsRepo = mockWithingsRepo
 
 		svc.Queries = app.Queries{
-			AccountForUserID:         query.NewAccountByIDHandler(accountRepo),
-			AccountForWithingsUserID: query.NewAccountByWithingsUserIDHandler(accountRepo),
-			AllAccounts:              query.NewAllAccountsHandler(accountRepo),
+			AccountByAccountUUID:    query.NewAccountByUUIDHandler(accountRepo),
+			AccountByWithingsUserID: query.NewAccountByWithingsUserIDHandler(accountRepo),
+			AllAccounts:             query.NewAllAccountsHandler(accountRepo),
 		}
 
 		svc.Commands = app.Commands{
@@ -96,12 +99,16 @@ func TestRefreshWithingsAccessToken(t *testing.T) {
 			}, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/auth/refresh", nil)
-		req = req.WithContext(middleware.AddAccountToContext(ctx, account.Account{
-			AccountID:            accountID,
-			WithingsUserID:       withingsUserID,
-			WithingsAccessToken:  "bob",
-			WithingsRefreshToken: "kåre",
-		}))
+		req = req.WithContext(middleware.AddAccountToContext(ctx,
+			account.NewAccountOrPanic(
+				accountUUID,
+				withingsUserID,
+				"bob",
+				"kåre",
+				time.Now().Add(-time.Hour),
+				"whatever",
+			),
+		))
 
 		// Should be success
 		resp := httptest.NewRecorder()
@@ -111,7 +118,7 @@ func TestRefreshWithingsAccessToken(t *testing.T) {
 
 		accUpdated, err := accountRepo.GetAccountByWithingsUserID(ctx, withingsUserID)
 		require.NoError(t, err)
-		require.Equal(t, "a075f8c14fb8df40b08ebc8508533dc332a6910a", accUpdated.WithingsAccessToken)
+		require.Equal(t, "a075f8c14fb8df40b08ebc8508533dc332a6910a", accUpdated.WithingsAccessToken())
 	})
 
 }

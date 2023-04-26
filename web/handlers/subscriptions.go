@@ -36,7 +36,7 @@ func SubscriptionsPage(svc *app.App) http.HandlerFunc {
 		}
 
 		// Get persisted subscriptions.
-		subscriptions, err := svc.SubscriptionRepo.GetSubscriptionsByAccountID(ctx, account.AccountID)
+		subscriptions, err := svc.SubscriptionRepo.GetSubscriptionsByAccountUUID(ctx, account.UUID())
 		if err != nil {
 			log.WithError(err).WithField("event", "error.AllNotificationCategories").Error()
 			tmplErr := svc.Templates.RenderSubscriptionsPage(w, nil,
@@ -79,7 +79,7 @@ func SubscriptionsWithingsPage(svc *app.App) http.HandlerFunc {
 
 		var withingsResponses []string
 		for _, cat := range categories {
-			notifyListResponse, err := svc.WithingsRepo.NotifyList(ctx, account.WithingsAccessToken,
+			notifyListResponse, err := svc.WithingsRepo.NotifyList(ctx, account.WithingsAccessToken(),
 				withings.NewNotifyListParams(cat.Appli))
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
@@ -113,7 +113,7 @@ func Subscribe(svc *app.App) http.HandlerFunc {
 				WithField("event", "warn.illegal_parameter").
 				Warn()
 			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprintf(w, "Appli parameter must be an integer")
+			fmt.Fprintf(w, "appli parameter must be an integer")
 			return
 		}
 

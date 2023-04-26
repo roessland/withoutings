@@ -3,32 +3,33 @@ package account
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
 )
 
 type NotFoundError struct {
 	WithingsUserID string
-	AccountID      string
+	AccountUUID    uuid.UUID
 }
 
 func (e NotFoundError) Error() string {
 	if e.WithingsUserID != "" {
 		return fmt.Sprintf("account with Withings user ID '%s' not found", e.WithingsUserID)
 	}
-	if e.AccountID != "" {
-		return fmt.Sprintf("account with ID '%s' not found", e.AccountID)
+	if e.AccountUUID != uuid.Nil {
+		return fmt.Sprintf("account with UUID '%s' not found", e.AccountUUID)
 	}
 	return fmt.Sprintf("account not found")
 
 }
 
 type Repo interface {
-	GetAccountByID(ctx context.Context, accountID int64) (Account, error)
-	GetAccountByWithingsUserID(ctx context.Context, withingsUserID string) (Account, error)
-	CreateAccount(ctx context.Context, account Account) error
-	ListAccounts(ctx context.Context) ([]Account, error)
+	GetAccountByWithingsUserID(ctx context.Context, withingsUserID string) (*Account, error)
+	GetAccountByUUID(ctx context.Context, accountUUID uuid.UUID) (*Account, error)
+	CreateAccount(ctx context.Context, account *Account) error
+	ListAccounts(ctx context.Context) ([]*Account, error)
 	UpdateAccount(
 		ctx context.Context,
-		accountID int64,
-		updateFn func(ctx context.Context, acc Account) (Account, error),
+		withingsUserID string,
+		updateFn func(ctx context.Context, acc *Account) (*Account, error),
 	) error
 }

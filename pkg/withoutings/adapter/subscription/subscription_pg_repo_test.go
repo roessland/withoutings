@@ -22,40 +22,42 @@ func TestSubscriptionPgRepo_CreateSubscriptionIfNotExists(t *testing.T) {
 
 	// Subscription has mandatory foreign key to account.
 	withingsUserID := uuid.NewString()
+	accountUUID := uuid.New()
 	err := queries.CreateAccount(ctx, db.CreateAccountParams{
+		AccountUuid:    accountUUID,
 		WithingsUserID: withingsUserID,
 	})
 	require.NoError(t, err)
-	acc, err := queries.GetAccountByWithingsUserID(ctx, withingsUserID)
-	accountID := acc.AccountID
 
 	t.Run("CreateSubscriptionIfNotExists creates subscription", func(t *testing.T) {
-		err := repo.CreateSubscriptionIfNotExists(ctx, subscription.Subscription{
-			AccountID:   accountID,
-			Appli:       2,
-			CallbackURL: "https://yolo.com/",
-			Comment:     "comment",
-			Status:      subscription.StatusActive,
-		})
+		// domain object
+		sub := subscription.NewSubscription(
+			uuid.New(),
+			accountUUID,
+			2,
+			"https://yolo.com/",
+			"comment",
+			"webhooksecret",
+			subscription.StatusActive,
+		)
+
+		// create in DB
+		err = repo.CreateSubscriptionIfNotExists(ctx, sub)
 		require.NoError(t, err)
 
-		insertedSub, err := queries.GetSubscriptionByAccountIDAndAppli(ctx,
-			db.GetSubscriptionByAccountIDAndAppliParams{
-				AccountID: accountID,
-				Appli:     2,
+		// retrieve inserted object
+		insertedSub, err := queries.GetSubscriptionByAccountUUIDAndAppli(ctx,
+			db.GetSubscriptionByAccountUUIDAndAppliParams{
+				AccountUuid: accountUUID,
+				Appli:       2,
 			})
 		require.NoError(t, err)
 		require.EqualValues(t, "https://yolo.com/", insertedSub.Callbackurl)
 		require.EqualValues(t, "comment", insertedSub.Comment)
 		require.EqualValues(t, subscription.StatusActive, insertedSub.Status)
 
-		err = repo.CreateSubscriptionIfNotExists(ctx, subscription.Subscription{
-			AccountID:   accountID,
-			Appli:       2,
-			CallbackURL: "https://yolo.com/",
-			Comment:     "comment",
-			Status:      subscription.StatusActive,
-		})
+		// insert same object again, should be error
+		err = repo.CreateSubscriptionIfNotExists(ctx, sub)
 		require.Error(t, err)
 		require.ErrorIs(t, err, subscription.ErrSubscriptionAlreadyExists)
 	})

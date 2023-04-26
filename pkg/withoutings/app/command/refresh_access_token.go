@@ -2,6 +2,7 @@ package command
 
 import (
 	"context"
+	"fmt"
 	"github.com/roessland/withoutings/pkg/logging"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
@@ -19,26 +20,27 @@ type RefreshAccessTokenHandler interface {
 func (h refreshAccessTokenHandler) Handle(ctx context.Context, cmd RefreshAccessToken) (err error) {
 	log := logging.MustGetLoggerFromContext(ctx)
 	acc := cmd.Account
-	if acc.WithingsAccessTokenExpiry.After(time.Now()) {
+	if acc.WithingsAccessTokenExpiry().After(time.Now()) {
 		return
 	}
 
-	newToken, err := h.withingsRepo.RefreshAccessToken(ctx, acc.WithingsRefreshToken)
+	newToken, err := h.withingsRepo.RefreshAccessToken(ctx, acc.WithingsRefreshToken())
 	if err != nil {
 		return err
 	}
 
 	return h.accountRepo.UpdateAccount(
 		ctx,
-		acc.AccountID,
-		func(ctx context.Context, accNext account.Account) (account.Account, error) {
-			if accNext.WithingsRefreshToken != acc.WithingsRefreshToken {
-				log.Warn("someone else updated WithingsRefreshToken already")
+		acc.WithingsUserID(),
+		func(ctx context.Context, accNext *account.Account) (*account.Account, error) {
+			if accNext.WithingsRefreshToken() != acc.WithingsRefreshToken() {
+				log.Warn("someone else updated withingsRefreshToken already")
 				return accNext, nil
 			}
-			accNext.WithingsAccessToken = newToken.AccessToken
-			accNext.WithingsRefreshToken = newToken.RefreshToken
-			accNext.WithingsAccessTokenExpiry = newToken.Expiry
+			err = accNext.UpdateWithingsToken(newToken.AccessToken, newToken.RefreshToken, newToken.Expiry, newToken.Scope)
+			if err != nil {
+				return nil, fmt.Errorf("failed to update withings token: %w", err)
+			}
 			return accNext, nil
 		},
 	)

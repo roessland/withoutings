@@ -1,7 +1,7 @@
 create table if not exists account
 (
     account_id                   bigserial primary key,
-    withings_user_id             varchar                  not null,
+    withings_user_id             varchar                  not null unique,
     withings_access_token        varchar                  not null,
     withings_refresh_token       varchar                  not null,
     withings_access_token_expiry timestamp with time zone not null,

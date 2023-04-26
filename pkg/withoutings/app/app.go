@@ -52,18 +52,18 @@ func (cs Commands) Validate() {
 }
 
 type Queries struct {
-	AccountForWithingsUserID query.AccountByWithingsUserIDHandler
-	AccountForUserID         query.AccountByIDHandler
-	AllAccounts              query.AllAccountsHandler
+	AccountByWithingsUserID query.AccountByWithingsUserIDHandler
+	AccountByAccountUUID    query.AccountByUUIDHandler
+	AllAccounts             query.AllAccountsHandler
 }
 
 func (qs Queries) Validate() {
-	if qs.AccountForWithingsUserID == nil {
-		panic("Queries.AccountForWithingsUserID was nil")
+	if qs.AccountByWithingsUserID == nil {
+		panic("Queries.AccountByWithingsUserID was nil")
 	}
 
-	if qs.AccountForUserID == nil {
-		panic("Queries.AccountForUserID was nil")
+	if qs.AccountByAccountUUID == nil {
+		panic("Queries.AccountByAccountUUID was nil")
 	}
 
 	if qs.AllAccounts == nil {

@@ -9,7 +9,7 @@ type AllAccounts struct {
 }
 
 type AllAccountsHandler interface {
-	Handle(ctx context.Context, query AllAccounts) ([]account.Account, error)
+	Handle(ctx context.Context, query AllAccounts) ([]*account.Account, error)
 }
 
 type accountsHandler struct {
@@ -27,9 +27,9 @@ func NewAllAccountsHandler(
 }
 
 type allAccountsReadModel interface {
-	ListAccounts(ctx context.Context) ([]account.Account, error)
+	ListAccounts(ctx context.Context) ([]*account.Account, error)
 }
 
-func (h accountsHandler) Handle(ctx context.Context, query AllAccounts) (accounts []account.Account, err error) {
+func (h accountsHandler) Handle(ctx context.Context, query AllAccounts) (accounts []*account.Account, err error) {
 	return h.readModel.ListAccounts(ctx)
 }

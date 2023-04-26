@@ -10,7 +10,7 @@ type AccountByWithingsUserID struct {
 }
 
 type AccountByWithingsUserIDHandler interface {
-	Handle(ctx context.Context, query AccountByWithingsUserID) (account.Account, error)
+	Handle(ctx context.Context, query AccountByWithingsUserID) (*account.Account, error)
 }
 
 type accountByWithingsUserIDHandler struct {
@@ -28,9 +28,9 @@ func NewAccountByWithingsUserIDHandler(
 }
 
 type accountByWithingsUserIDReadModel interface {
-	GetAccountByWithingsUserID(ctx context.Context, withingsUserID string) (account.Account, error)
+	GetAccountByWithingsUserID(ctx context.Context, withingsUserID string) (*account.Account, error)
 }
 
-func (h accountByWithingsUserIDHandler) Handle(ctx context.Context, query AccountByWithingsUserID) (account account.Account, err error) {
+func (h accountByWithingsUserIDHandler) Handle(ctx context.Context, query AccountByWithingsUserID) (account *account.Account, err error) {
 	return h.readModel.GetAccountByWithingsUserID(ctx, query.WithingsUserID)
 }

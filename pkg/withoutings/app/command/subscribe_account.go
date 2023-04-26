@@ -2,6 +2,7 @@ package command
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"github.com/roessland/withoutings/pkg/config"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
@@ -19,7 +20,7 @@ type SubscribeAccountHandler interface {
 
 func (h subscribeAccountHandler) Handle(ctx context.Context, cmd SubscribeAccount) (err error) {
 	// Ensure account exists
-	acc, err := h.accountRepo.GetAccountByWithingsUserID(ctx, cmd.Account.WithingsUserID)
+	acc, err := h.accountRepo.GetAccountByWithingsUserID(ctx, cmd.Account.WithingsUserID())
 	if err != nil {
 		return err
 	}
@@ -34,14 +35,15 @@ func (h subscribeAccountHandler) Handle(ctx context.Context, cmd SubscribeAccoun
 	callbackURL := h.cfg.WebsiteURL + "withings/webhooks/" + h.cfg.WithingsWebhookSecret
 	params.Callbackurl = callbackURL
 	params.Comment = "test"
-	_, err = h.withingsRepo.NotifySubscribe(ctx, acc.WithingsAccessToken, params)
+	_, err = h.withingsRepo.NotifySubscribe(ctx, acc.WithingsAccessToken(), params)
 	if err != nil {
 		return err
 	}
 
 	// Save subscription
 	err = h.subscriptionRepo.CreateSubscriptionIfNotExists(ctx, subscription.NewSubscription(
-		acc.AccountID,
+		uuid.New(),
+		acc.UUID(),
 		params.Appli,
 		callbackURL,
 		"test",

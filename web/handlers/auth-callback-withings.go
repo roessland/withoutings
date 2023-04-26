@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/google/uuid"
 	"github.com/roessland/withoutings/pkg/logging"
 	"github.com/roessland/withoutings/pkg/withoutings/app"
 	"github.com/roessland/withoutings/pkg/withoutings/app/command"
@@ -51,15 +52,27 @@ func Callback(app *app.App) http.HandlerFunc {
 		// Clear nonce
 		app.Sessions.Remove(ctx, "state")
 
-		// Create or update account
+		// Create domain object with placeholder UUID
+		acc, err := account.NewAccount(
+			uuid.New(),
+			token.UserID,
+			token.AccessToken,
+			token.RefreshToken,
+			token.Expiry,
+			token.Scope,
+		)
+		if err != nil {
+			log.WithError(err).
+				WithField("event", "error.callback.newaccount").
+				Error()
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// If another account with same Withings user ID exists, replace it. UUID in DB will be preserved.
+		// Otherwise create new account with UUID chosen above.
 		err = app.Commands.CreateOrUpdateAccount.Handle(ctx, command.CreateOrUpdateAccount{
-			Account: account.Account{
-				WithingsUserID:            token.UserID,
-				WithingsAccessToken:       token.AccessToken,
-				WithingsRefreshToken:      token.RefreshToken,
-				WithingsAccessTokenExpiry: token.Expiry,
-				WithingsScopes:            token.Scope,
-			},
+			Account: acc,
 		})
 		if err != nil {
 			log.WithError(err).
@@ -70,7 +83,7 @@ func Callback(app *app.App) http.HandlerFunc {
 		}
 
 		// Find account ID
-		acc, err := app.Queries.AccountForWithingsUserID.Handle(ctx, query.AccountByWithingsUserID{WithingsUserID: token.UserID})
+		acc, err = app.Queries.AccountByWithingsUserID.Handle(ctx, query.AccountByWithingsUserID{WithingsUserID: token.UserID})
 		if err != nil {
 			log.WithError(err).
 				WithField("event", "error.callback.getaccount").
@@ -80,7 +93,7 @@ func Callback(app *app.App) http.HandlerFunc {
 		}
 
 		// Login user by saving account ID to session.
-		app.Sessions.Put(ctx, "account_id", acc.AccountID)
+		app.Sessions.Put(ctx, "account_uuid", acc.UUID().String())
 
 		// Redirect to homepage
 		http.Redirect(w, r, "/", http.StatusFound)

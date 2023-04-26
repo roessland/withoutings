@@ -50,9 +50,9 @@ func TestCallback(t *testing.T) {
 		svc.WithingsRepo = mockWithingsRepo
 
 		svc.Queries = app.Queries{
-			AccountForUserID:         query.NewAccountByIDHandler(accountRepo),
-			AccountForWithingsUserID: query.NewAccountByWithingsUserIDHandler(accountRepo),
-			AllAccounts:              query.NewAllAccountsHandler(accountRepo),
+			AccountByAccountUUID:    query.NewAccountByUUIDHandler(accountRepo),
+			AccountByWithingsUserID: query.NewAccountByWithingsUserIDHandler(accountRepo),
+			AllAccounts:             query.NewAllAccountsHandler(accountRepo),
 		}
 		svc.Queries.Validate()
 
@@ -158,11 +158,11 @@ func TestCallback(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, accounts, 1)
 		acc := accounts[0]
-		assert.Equal(t, "363", acc.WithingsUserID)
-		assert.Equal(t, "a075f8c14fb8df40b08ebc8508533dc332a6910a", acc.WithingsAccessToken)
-		assert.Equal(t, "f631236f02b991810feb774765b6ae8e6c6839ca", acc.WithingsRefreshToken)
-		assert.WithinDuration(t, time.Now().Add(10800*time.Second), acc.WithingsAccessTokenExpiry, time.Minute)
-		assert.Equal(t, "user.info,user.metrics", acc.WithingsScopes)
+		assert.Equal(t, "363", acc.WithingsUserID())
+		assert.Equal(t, "a075f8c14fb8df40b08ebc8508533dc332a6910a", acc.WithingsAccessToken())
+		assert.Equal(t, "f631236f02b991810feb774765b6ae8e6c6839ca", acc.WithingsRefreshToken())
+		assert.WithinDuration(t, time.Now().Add(10800*time.Second), acc.WithingsAccessTokenExpiry(), time.Minute)
+		assert.Equal(t, "user.info,user.metrics", acc.WithingsScopes())
 	})
 
 }

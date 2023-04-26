@@ -3,39 +3,41 @@ SELECT *
 FROM notification_category
 ORDER BY appli;
 
--- name: GetSubscriptionByID :one
+-- name: GetSubscriptionByUUID :one
 SELECT *
 FROM subscription
-WHERE subscription_id = $1;
+WHERE subscription_uuid = $1;
 
 -- name: GetSubscriptionByWebhookSecret :one
 SELECT *
 FROM subscription
 WHERE webhook_secret = $1;
 
--- name: GetSubscriptionsByAccountID :many
+-- name: GetSubscriptionsByAccountUUID :many
 SELECT *
 FROM subscription
-WHERE account_id = $1;
+WHERE account_uuid = $1
+ORDER BY appli;
 
--- name: GetSubscriptionByAccountIDAndAppli :one
+-- name: GetSubscriptionByAccountUUIDAndAppli :one
 SELECT *
 FROM subscription
-WHERE account_id = $1 AND appli = $2;
+WHERE account_uuid = $1 AND appli = $2;
 
 -- name: GetPendingSubscriptions :many
 SELECT *
 FROM subscription
-WHERE status = 'pending';
+WHERE status = 'pending'
+ORDER BY subscription.account_uuid;
 
 -- name: ListSubscriptions :many
 SELECT *
 FROM subscription
-ORDER BY account_id;
+ORDER BY account_uuid;
 
 -- name: CreateSubscription :exec
-INSERT INTO subscription (account_id, appli, callbackurl, webhook_secret, status, comment)
-VALUES ($1, $2, $3, $4, $5, $6);
+INSERT INTO subscription (subscription_uuid, account_uuid, appli, callbackurl, webhook_secret, status, comment)
+VALUES ($1, $2, $3, $4, $5, $6, $7);
 
 -- name: DeleteSubscription :exec
 DELETE
@@ -49,5 +51,6 @@ VALUES ($1, $2, $3);
 -- name: GetPendingRawNotifications :many
 SELECT *
 FROM raw_notification
-WHERE status == 'pending';
+WHERE status == 'pending'
+ORDER BY raw_notification_id;
 

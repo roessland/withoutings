@@ -2,35 +2,36 @@ package query
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 )
 
-type AccountByID struct {
-	AccountID int64
+type AccountByUUID struct {
+	AccountUUID uuid.UUID
 }
 
-type AccountByIDHandler interface {
-	Handle(ctx context.Context, query AccountByID) (account.Account, error)
+type AccountByUUIDHandler interface {
+	Handle(ctx context.Context, query AccountByUUID) (*account.Account, error)
 }
 
-type accountByIDHandler struct {
-	readModel accountByIDReadModel
+type accountByUUIDHandler struct {
+	readModel accountByUUIDReadModel
 }
 
-func NewAccountByIDHandler(
-	readModel accountByIDReadModel,
-) AccountByIDHandler {
+func NewAccountByUUIDHandler(
+	readModel accountByUUIDReadModel,
+) AccountByUUIDHandler {
 	if readModel == nil {
 		panic("nil readModel")
 	}
 
-	return accountByIDHandler{readModel: readModel}
+	return accountByUUIDHandler{readModel: readModel}
 }
 
-type accountByIDReadModel interface {
-	GetAccountByID(ctx context.Context, accountID int64) (account.Account, error)
+type accountByUUIDReadModel interface {
+	GetAccountByUUID(ctx context.Context, accountUUID uuid.UUID) (*account.Account, error)
 }
 
-func (h accountByIDHandler) Handle(ctx context.Context, query AccountByID) (account account.Account, err error) {
-	return h.readModel.GetAccountByID(ctx, query.AccountID)
+func (h accountByUUIDHandler) Handle(ctx context.Context, query AccountByUUID) (account *account.Account, err error) {
+	return h.readModel.GetAccountByUUID(ctx, query.AccountUUID)
 }

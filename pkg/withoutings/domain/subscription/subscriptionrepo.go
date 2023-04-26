@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
 )
 
 type NotFoundError struct {
@@ -17,8 +18,8 @@ func (e NotFoundError) Error() string {
 var ErrSubscriptionAlreadyExists error = errors.New("subscription for given account and appli already exists")
 
 type Repo interface {
-	GetSubscriptionByID(ctx context.Context, subscriptionID int64) (Subscription, error)
-	GetSubscriptionsByAccountID(ctx context.Context, accountID int64) ([]Subscription, error)
+	GetSubscriptionByUUID(ctx context.Context, subscriptionUUID uuid.UUID) (Subscription, error)
+	GetSubscriptionsByAccountUUID(ctx context.Context, accountID uuid.UUID) ([]Subscription, error)
 	GetSubscriptionByWebhookSecret(ctx context.Context, webhookSecret string) (Subscription, error)
 	GetPendingSubscriptions(ctx context.Context) ([]Subscription, error)
 	CreateSubscriptionIfNotExists(ctx context.Context, subscription Subscription) error

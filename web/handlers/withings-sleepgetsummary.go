@@ -21,7 +21,7 @@ func SleepSummaries(app *app.App) http.HandlerFunc {
 		}
 
 		var sleepData sleep.GetSleepSummaryOutput
-		if time.Now().After(account.WithingsAccessTokenExpiry) {
+		if time.Now().After(account.WithingsAccessTokenExpiry()) {
 			w.Header().Set("Content-Type", "text/html")
 			w.WriteHeader(200)
 			err := app.Templates.RenderSleepSummaries(w, nil, "Your token is expired. ")
@@ -33,7 +33,7 @@ func SleepSummaries(app *app.App) http.HandlerFunc {
 			return
 		}
 
-		sleepData, err := app.Sleep.GetSleepSummaries(ctx, account.WithingsAccessToken, sleep.GetSleepSummaryInput{
+		sleepData, err := app.Sleep.GetSleepSummaries(ctx, account.WithingsAccessToken(), sleep.GetSleepSummaryInput{
 			Year:  0,
 			Month: 0,
 		})

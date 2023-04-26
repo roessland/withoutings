@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"errors"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/roessland/withoutings/pkg/logging"
 	"github.com/roessland/withoutings/pkg/withoutings/app"
@@ -11,17 +12,17 @@ import (
 	"net/http"
 )
 
-var contextKeyAccount contextKey = "requestID"
+var contextKeyAccount contextKey = "account_uuid"
 
 func GetAccountFromContext(ctx context.Context) *account.Account {
-	acc, ok := ctx.Value(contextKeyAccount).(account.Account)
+	acc, ok := ctx.Value(contextKeyAccount).(*account.Account)
 	if !ok {
 		return nil
 	}
-	return &acc
+	return acc
 }
 
-func AddAccountToContext(ctx context.Context, account account.Account) context.Context {
+func AddAccountToContext(ctx context.Context, account *account.Account) context.Context {
 	return context.WithValue(ctx, contextKeyAccount, account)
 }
 
@@ -31,19 +32,24 @@ func Account(svc *app.App) mux.MiddlewareFunc {
 			ctx := r.Context()
 			log := logging.MustGetLoggerFromContext(ctx)
 
-			accountID := svc.Sessions.GetInt64(ctx, "account_id")
-			acc, err := svc.Queries.AccountForUserID.Handle(ctx, query.AccountByID{
-				AccountID: accountID,
+			accountUUID, err := uuid.Parse(svc.Sessions.GetString(ctx, "account_uuid"))
+			if err != nil {
+				log.WithError(err).WithField("event", "error.parseaccountuuid").Warn()
+				accountUUID = uuid.Nil
+			}
+
+			acc, err := svc.Queries.AccountByAccountUUID.Handle(ctx, query.AccountByUUID{
+				AccountUUID: accountUUID,
 			})
 			if err != nil && !errors.As(err, &account.NotFoundError{}) {
 				log.WithError(err).WithField("event", "error.getaccount").Error()
 				http.Error(w, "Internal server error", http.StatusInternalServerError)
 				return
 			}
-			if acc.AccountID != 0 {
+			if acc != nil && acc.UUID() != uuid.Nil {
 				ctx = AddAccountToContext(ctx, acc)
+				ctx = logging.AddLoggerToContext(ctx, log.WithField("account_uuid", acc.UUID()))
 			}
-			ctx = logging.AddLoggerToContext(ctx, log.WithField("account_id", acc.AccountID))
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

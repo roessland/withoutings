@@ -2,6 +2,7 @@ package subscription
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/pkg/errors"
@@ -28,8 +29,8 @@ func (r PgRepo) WithTx(tx pgx.Tx) PgRepo {
 	}
 }
 
-func (r PgRepo) GetSubscriptionByID(ctx context.Context, subscriptionID int64) (subscription.Subscription, error) {
-	dbSub, err := r.queries.GetSubscriptionByID(ctx, subscriptionID)
+func (r PgRepo) GetSubscriptionByUUID(ctx context.Context, subscriptionUUID uuid.UUID) (subscription.Subscription, error) {
+	dbSub, err := r.queries.GetSubscriptionByUUID(ctx, subscriptionUUID)
 	if err == pgx.ErrNoRows {
 		return subscription.Subscription{}, subscription.NotFoundError{}
 	}
@@ -39,8 +40,8 @@ func (r PgRepo) GetSubscriptionByID(ctx context.Context, subscriptionID int64) (
 	return toDomainSubscription(dbSub), nil
 }
 
-func (r PgRepo) GetSubscriptionsByAccountID(ctx context.Context, accountID int64) ([]subscription.Subscription, error) {
-	dbSubscriptions, err := r.queries.GetSubscriptionsByAccountID(ctx, accountID)
+func (r PgRepo) GetSubscriptionsByAccountUUID(ctx context.Context, accountUUID uuid.UUID) ([]subscription.Subscription, error) {
+	dbSubscriptions, err := r.queries.GetSubscriptionsByAccountUUID(ctx, accountUUID)
 	if err != nil {
 		return nil, err
 	}
@@ -77,10 +78,10 @@ func (r PgRepo) createSubscriptionIfNotExists(ctx context.Context, sub subscript
 	inTransaction := r.queries.WithTx(tx)
 
 	// Check if exists
-	_, err = inTransaction.GetSubscriptionByAccountIDAndAppli(ctx,
-		db.GetSubscriptionByAccountIDAndAppliParams{
-			AccountID: sub.AccountID,
-			Appli:     int32(sub.Appli),
+	_, err = inTransaction.GetSubscriptionByAccountUUIDAndAppli(ctx,
+		db.GetSubscriptionByAccountUUIDAndAppliParams{
+			AccountUuid: sub.AccountUUID(),
+			Appli:       int32(sub.Appli()),
 		})
 	if err == nil {
 		return subscription.ErrSubscriptionAlreadyExists
@@ -91,12 +92,13 @@ func (r PgRepo) createSubscriptionIfNotExists(ctx context.Context, sub subscript
 
 	// Doesn't exist; create one.
 	err = inTransaction.CreateSubscription(ctx, db.CreateSubscriptionParams{
-		AccountID:     sub.AccountID,
-		Appli:         int32(sub.Appli),
-		Callbackurl:   sub.CallbackURL,
-		WebhookSecret: sub.WebhookSecret,
-		Comment:       sub.Comment,
-		Status:        string(sub.Status),
+		SubscriptionUuid: sub.SubscriptionUUID(),
+		AccountUuid:      sub.AccountUUID(),
+		Appli:            int32(sub.Appli()),
+		Callbackurl:      sub.CallbackURL(),
+		WebhookSecret:    sub.WebhookSecret(),
+		Comment:          sub.Comment(),
+		Status:           string(sub.Status()),
 	})
 	if err != nil {
 		return err
@@ -122,14 +124,15 @@ func toDomainSubscriptions(dbSubs []db.Subscription) []subscription.Subscription
 }
 
 func toDomainSubscription(dbSub db.Subscription) subscription.Subscription {
-	return subscription.Subscription{
-		SubscriptionID: dbSub.SubscriptionID,
-		AccountID:      dbSub.AccountID,
-		Appli:          int(dbSub.Appli),
-		CallbackURL:    dbSub.Callbackurl,
-		Comment:        dbSub.Comment,
-		Status:         subscription.Status(dbSub.Status),
-	}
+	return subscription.NewSubscription(
+		dbSub.SubscriptionUuid,
+		dbSub.AccountUuid,
+		int(dbSub.Appli),
+		dbSub.Callbackurl,
+		dbSub.Comment,
+		dbSub.WebhookSecret,
+		subscription.Status(dbSub.Status),
+	)
 }
 
 func (r PgRepo) CreateRawNotification(ctx context.Context, rawNotification subscription.RawNotification) error {

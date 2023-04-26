@@ -66,9 +66,9 @@ func newApplication(ctx context.Context) *app.App {
 			CreateOrUpdateAccount: command.NewCreateOrUpdateAccountHandler(accountRepo),
 		},
 		Queries: app.Queries{
-			AccountForWithingsUserID: query.NewAccountByWithingsUserIDHandler(accountRepo),
-			AccountForUserID:         query.NewAccountByIDHandler(accountRepo),
-			AllAccounts:              query.NewAllAccountsHandler(accountRepo),
+			AccountByWithingsUserID: query.NewAccountByWithingsUserIDHandler(accountRepo),
+			AccountByAccountUUID:    query.NewAccountByUUIDHandler(accountRepo),
+			AllAccounts:             query.NewAllAccountsHandler(accountRepo),
 		},
 	}
 }
