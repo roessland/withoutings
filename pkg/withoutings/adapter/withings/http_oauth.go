@@ -164,7 +164,7 @@ func (c *HTTPClient) RefreshAccessToken(ctx context.Context, refreshToken string
 		}
 	}
 
-	var response getAccessTokenResponse
+	var response getRefreshTokenResponse
 	if err = json.Unmarshal(body, &response); err != nil {
 		return nil, fmt.Errorf("RefreshAccessToken: cannot unmarshal refresh token response: %w", err)
 	}
