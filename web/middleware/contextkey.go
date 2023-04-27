@@ -1,3 +1,3 @@
 package middleware
 
-type contextKey string
+type contextKey struct{}

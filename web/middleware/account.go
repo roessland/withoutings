@@ -12,7 +12,7 @@ import (
 	"net/http"
 )
 
-var contextKeyAccount contextKey = "account_uuid"
+var contextKeyAccount contextKey = struct{}{}
 
 func GetAccountFromContext(ctx context.Context) *account.Account {
 	acc, ok := ctx.Value(contextKeyAccount).(*account.Account)

@@ -100,7 +100,7 @@ func (acc *Account) WithingsScopes() string {
 }
 
 func (acc *Account) CanRefreshAccessToken() bool {
-	return time.Now().After(acc.withingsAccessTokenExpiry)
+	return acc != nil && time.Now().After(acc.withingsAccessTokenExpiry)
 }
 
 func (acc *Account) UpdateWithingsToken(accessToken string, refreshToken string, expiry time.Time, scopes string) error {

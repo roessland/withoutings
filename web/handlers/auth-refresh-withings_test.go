@@ -121,4 +121,15 @@ func TestRefreshWithingsAccessToken(t *testing.T) {
 		require.Equal(t, "a075f8c14fb8df40b08ebc8508533dc332a6910a", accUpdated.WithingsAccessToken())
 	})
 
+	t.Run("without account on context returns bad request", func(t *testing.T) {
+		beforeEach(t)
+
+		req := httptest.NewRequest(http.MethodGet, "/auth/refresh", nil)
+
+		// Should return bad request
+		resp := httptest.NewRecorder()
+		router.ServeHTTP(resp, req)
+		respBody, _ := io.ReadAll(resp.Body)
+		assert.Equal(t, 401, resp.Code, string(respBody), "should return bad request")
+	})
 }

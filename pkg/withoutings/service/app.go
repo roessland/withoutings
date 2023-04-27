@@ -64,6 +64,7 @@ func newApplication(ctx context.Context) *app.App {
 		Commands: app.Commands{
 			SubscribeAccount:      command.NewSubscribeAccountHandler(accountRepo, subscriptionRepo, withingsHttpClient, cfg),
 			CreateOrUpdateAccount: command.NewCreateOrUpdateAccountHandler(accountRepo),
+			RefreshAccessToken:    command.NewRefreshAccessTokenHandler(accountRepo, withingsHttpClient),
 		},
 		Queries: app.Queries{
 			AccountByWithingsUserID: query.NewAccountByWithingsUserIDHandler(accountRepo),

@@ -30,7 +30,7 @@ func RefreshWithingsAccessToken(svc *app.App) http.HandlerFunc {
 			return
 		}
 
-		err := svc.Commands.RefreshAccessToken.Handle(ctx, command.RefreshAccessToken{Account: *accInitial})
+		err := svc.Commands.RefreshAccessToken.Handle(ctx, command.RefreshAccessToken{Account: accInitial})
 		if err != nil {
 			log.WithError(err).
 				WithField("event", "event.handlers.RefreshWithingsAccessToken.failed").

@@ -10,7 +10,7 @@ import (
 )
 
 type RefreshAccessToken struct {
-	Account account.Account
+	Account *account.Account
 }
 
 type RefreshAccessTokenHandler interface {
@@ -20,6 +20,9 @@ type RefreshAccessTokenHandler interface {
 func (h refreshAccessTokenHandler) Handle(ctx context.Context, cmd RefreshAccessToken) (err error) {
 	log := logging.MustGetLoggerFromContext(ctx)
 	acc := cmd.Account
+	if acc == nil {
+		return fmt.Errorf("account is nil")
+	}
 	if acc.WithingsAccessTokenExpiry().After(time.Now()) {
 		return
 	}
