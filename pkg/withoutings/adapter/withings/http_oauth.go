@@ -78,7 +78,11 @@ func (c *HTTPClient) RefreshAccessToken(ctx context.Context, refreshToken string
 	v.Set("refresh_token", refreshToken)
 
 	log := logging.MustGetLoggerFromContext(ctx)
-	log.WithField("Post body", v.Encode()).Info()
+	log.WithField("event", "RefreshAccessToken-prepared-request").
+		WithField("request_url", c.OAuth2Config.Endpoint.TokenURL).
+		WithField("request_method", "POST").
+		WithField("request_body", v.Encode()).
+		Info()
 
 	req, err := http.NewRequestWithContext(ctx,
 		http.MethodPost,
@@ -99,6 +103,10 @@ func (c *HTTPClient) RefreshAccessToken(ctx context.Context, refreshToken string
 	if err != nil {
 		return nil, fmt.Errorf("oauth2: cannot refresh token: %w", err)
 	}
+	log.WithField("event", "RefreshAccessToken-got-response").
+		WithField("response_body", string(body)).
+		WithField("response_status", resp.StatusCode).
+		Info()
 	if code := resp.StatusCode; code < 200 || code > 299 {
 		return nil, &oauth2.RetrieveError{
 			Response: resp,
@@ -108,7 +116,7 @@ func (c *HTTPClient) RefreshAccessToken(ctx context.Context, refreshToken string
 
 	var response *withings.GetAccessTokenResponse
 	if err = json.Unmarshal(body, &response); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("RefreshAccessToken: cannot unmarshal refresh token response: %w", err)
 	}
 
 	response.Body.Expiry = time.Now().UTC().Add(time.Second * time.Duration(response.Body.ExpiresIn))
