@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -18,6 +19,57 @@ import (
 var OAuth2Scopes = []string{"user.info,user.activity,user.metrics,user.sleepevents"}
 var OAuth2AuthURL = "https://account.withings.com/oauth2_user/authorize2"
 var OAuth2TokenURL = "https://wbsapi.withings.net/v2/oauth2"
+
+type commonTokenFields struct {
+	AccessToken  string `json:"access_token,omitempty"`
+	RefreshToken string `json:"refresh_token,omitempty"`
+	ExpiresIn    int    `json:"expires_in,omitempty"`
+	Scope        string `json:"scope,omitempty"`
+	CSRFToken    string `json:"csrf_token,omitempty"`
+	TokenType    string `json:"token_type,omitempty"`
+}
+
+type getAccessTokenResponse struct {
+	Status int
+	Body   struct {
+		UserID string `json:"userid,omitempty"`
+		commonTokenFields
+	} `json:"body"`
+}
+
+func (accessTokenResponse getAccessTokenResponse) Token() *withings.Token {
+	return &withings.Token{
+		UserID:       accessTokenResponse.Body.UserID,
+		AccessToken:  accessTokenResponse.Body.AccessToken,
+		RefreshToken: accessTokenResponse.Body.RefreshToken,
+		ExpiresIn:    accessTokenResponse.Body.ExpiresIn,
+		Scope:        accessTokenResponse.Body.Scope,
+		CSRFToken:    accessTokenResponse.Body.CSRFToken,
+		TokenType:    accessTokenResponse.Body.TokenType,
+		Expiry:       time.Now().UTC().Add(time.Second * time.Duration(accessTokenResponse.Body.ExpiresIn)),
+	}
+}
+
+type getRefreshTokenResponse struct {
+	Status int
+	Body   struct {
+		UserID int `json:"userid,omitempty"`
+		commonTokenFields
+	} `json:"body"`
+}
+
+func (refreshTokenResponse getRefreshTokenResponse) Token() *withings.Token {
+	return &withings.Token{
+		UserID:       strconv.Itoa(refreshTokenResponse.Body.UserID),
+		AccessToken:  refreshTokenResponse.Body.AccessToken,
+		RefreshToken: refreshTokenResponse.Body.RefreshToken,
+		ExpiresIn:    refreshTokenResponse.Body.ExpiresIn,
+		Scope:        refreshTokenResponse.Body.Scope,
+		CSRFToken:    refreshTokenResponse.Body.CSRFToken,
+		TokenType:    refreshTokenResponse.Body.TokenType,
+		Expiry:       time.Now().UTC().Add(time.Second * time.Duration(refreshTokenResponse.Body.ExpiresIn)),
+	}
+}
 
 func (c *HTTPClient) GetAccessToken(ctx context.Context, authCode string) (*withings.Token, error) {
 	v := url.Values{}
@@ -54,19 +106,17 @@ func (c *HTTPClient) GetAccessToken(ctx context.Context, authCode string) (*with
 		}
 	}
 
-	var response *withings.GetAccessTokenResponse
+	var response getAccessTokenResponse
 	if err = json.Unmarshal(body, &response); err != nil {
 		return nil, err
 	}
-
-	response.Body.Expiry = time.Now().UTC().Add(time.Second * time.Duration(response.Body.ExpiresIn))
 
 	if response.Body.AccessToken == "" {
 		fmt.Println("body", string(body))
 		// {"status":503,"body":{},"error":"Invalid Params: invalid code"}
 		return nil, errors.New("oauth2: server response missing access_token")
 	}
-	return &response.Body, nil
+	return response.Token(), nil
 }
 
 func (c *HTTPClient) RefreshAccessToken(ctx context.Context, refreshToken string) (*withings.Token, error) {
@@ -114,18 +164,16 @@ func (c *HTTPClient) RefreshAccessToken(ctx context.Context, refreshToken string
 		}
 	}
 
-	var response *withings.GetAccessTokenResponse
+	var response getAccessTokenResponse
 	if err = json.Unmarshal(body, &response); err != nil {
 		return nil, fmt.Errorf("RefreshAccessToken: cannot unmarshal refresh token response: %w", err)
 	}
-
-	response.Body.Expiry = time.Now().UTC().Add(time.Second * time.Duration(response.Body.ExpiresIn))
 
 	if response.Body.AccessToken == "" {
 		log.WithField("body", string(body)).Error()
 		return nil, errors.New("oauth2: server response missing access_token")
 	}
-	return &response.Body, nil
+	return response.Token(), nil
 }
 
 func (c *HTTPClient) AuthCodeURL(nonce string) string {
