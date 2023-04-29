@@ -17,6 +17,7 @@ func (e NotFoundError) Error() string {
 
 var ErrSubscriptionAlreadyExists error = errors.New("subscription for given account and appli already exists")
 
+//go:generate mockery --name Repo --filename subscriptionrepo_mock.go
 type Repo interface {
 	GetSubscriptionByUUID(ctx context.Context, subscriptionUUID uuid.UUID) (Subscription, error)
 	GetSubscriptionsByAccountUUID(ctx context.Context, accountID uuid.UUID) ([]Subscription, error)

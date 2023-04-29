@@ -7,6 +7,9 @@ import (
 )
 
 type Config struct {
+	// ListenAddr is the address where the web server listens for HTTP requests.
+	ListenAddr string `envconfig:"LISTEN_ADDR" default:"127.0.0.1:3628"`
+
 	// SessionSecret is used to encrypt cookies.
 	SessionSecret []byte `envconfig:"SESSION_SECRET"`
 

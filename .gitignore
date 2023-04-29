@@ -1,3 +1,5 @@
 env.sh
+env.dev.sh
+env.prod.sh
 .idea
 .DS_Store

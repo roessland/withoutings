@@ -1,22 +1,11 @@
 package handlers_test
 
 import (
-	"github.com/alexedwards/scs/pgxstore"
-	"github.com/alexedwards/scs/v2"
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
-	"github.com/roessland/withoutings/pkg/db"
-	"github.com/roessland/withoutings/pkg/testctx"
-	"github.com/roessland/withoutings/pkg/testdb"
-	accountAdapter "github.com/roessland/withoutings/pkg/withoutings/adapter/account"
-	"github.com/roessland/withoutings/pkg/withoutings/app"
-	"github.com/roessland/withoutings/pkg/withoutings/app/command"
-	"github.com/roessland/withoutings/pkg/withoutings/app/query"
+	"github.com/roessland/withoutings/pkg/integrationtest"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
-	"github.com/roessland/withoutings/web"
 	"github.com/roessland/withoutings/web/middleware"
-	"github.com/roessland/withoutings/web/templates"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -29,28 +18,19 @@ import (
 
 // TODO simplify handler tests. extract shared code.
 func TestRefreshWithingsAccessToken(t *testing.T) {
-	ctx := testctx.New()
-	database := testdb.New(ctx)
-	defer database.Drop(ctx)
-
-	svc := &app.App{}
-	svc.Log = ctx.Logger
-	queries := db.New(database)
-
-	var router *mux.Router
-
-	var mockWithingsRepo *withings.MockRepo
+	it := integrationtest.WithFreshDatabase(t)
 
 	var accountUUID uuid.UUID
 	var withingsUserID string
-	var accountRepo account.Repo
 
 	beforeEach := func(t *testing.T) {
-		accountRepo = accountAdapter.NewPgRepo(database.Pool, queries)
-		svc.AccountRepo = accountRepo
+		it.ResetMocks(t)
+
+		// Insert a user with an expired access token.
+		accountUUID = uuid.New()
 		withingsUserID = uuid.NewString()
 		acc, err := account.NewAccount(
-			uuid.New(),
+			accountUUID,
 			withingsUserID,
 			"bob",
 			"kåre",
@@ -58,48 +38,27 @@ func TestRefreshWithingsAccessToken(t *testing.T) {
 			"whatever",
 		)
 		require.NoError(t, err)
-		require.NoError(t, accountRepo.CreateAccount(ctx, acc))
-		accountUUID = acc.UUID()
-
-		mockWithingsRepo = withings.NewMockRepo(t)
-		svc.WithingsRepo = mockWithingsRepo
-
-		svc.Queries = app.Queries{
-			AccountByAccountUUID:    query.NewAccountByUUIDHandler(accountRepo),
-			AccountByWithingsUserID: query.NewAccountByWithingsUserIDHandler(accountRepo),
-			AllAccounts:             query.NewAllAccountsHandler(accountRepo),
-		}
-
-		svc.Commands = app.Commands{
-			RefreshAccessToken: command.NewRefreshAccessTokenHandler(accountRepo, mockWithingsRepo),
-		}
-
-		svc.Templates = templates.LoadTemplates()
-
-		svc.Sessions = scs.New()
-		svc.Sessions.Store = pgxstore.New(database.Pool)
-
-		router = web.Router(svc)
+		require.NoError(t, it.App.AccountRepo.CreateAccount(it.Ctx, acc))
 	}
 
 	t.Run("with expired token refreshes token", func(t *testing.T) {
 		beforeEach(t)
 
-		mockWithingsRepo.EXPECT().
+		it.Mocks.MockWithingsRepo.EXPECT().
 			RefreshAccessToken(mock.Anything, mock.Anything).
-			Return(&withings.Token{
-				UserID:       withingsUserID,
-				AccessToken:  "a075f8c14fb8df40b08ebc8508533dc332a6910a",
-				RefreshToken: "f631236f02b991810feb774765b6ae8e6c6839ca",
-				ExpiresIn:    10800,
-				Scope:        "user.info,user.metrics",
-				CSRFToken:    "PACnnxwHTaBQOzF7bQqwFUUotIuvtzSM",
-				TokenType:    "Bearer",
-				Expiry:       time.Now().Add(10800 * time.Second),
-			}, nil)
+			Once().Return(&withings.Token{
+			UserID:       withingsUserID,
+			AccessToken:  "a075f8c14fb8df40b08ebc8508533dc332a6910a",
+			RefreshToken: "f631236f02b991810feb774765b6ae8e6c6839ca",
+			ExpiresIn:    10800,
+			Scope:        "user.info,user.metrics",
+			CSRFToken:    "PACnnxwHTaBQOzF7bQqwFUUotIuvtzSM",
+			TokenType:    "Bearer",
+			Expiry:       time.Now().Add(10800 * time.Second),
+		}, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/auth/refresh", nil)
-		req = req.WithContext(middleware.AddAccountToContext(ctx,
+		req = req.WithContext(middleware.AddAccountToContext(it.Ctx,
 			account.NewAccountOrPanic(
 				accountUUID,
 				withingsUserID,
@@ -112,11 +71,11 @@ func TestRefreshWithingsAccessToken(t *testing.T) {
 
 		// Should be success
 		resp := httptest.NewRecorder()
-		router.ServeHTTP(resp, req)
+		it.Router.ServeHTTP(resp, req)
 		respBody, _ := io.ReadAll(resp.Body)
 		assert.Equal(t, 200, resp.Code, string(respBody))
 
-		accUpdated, err := accountRepo.GetAccountByWithingsUserID(ctx, withingsUserID)
+		accUpdated, err := it.App.AccountRepo.GetAccountByWithingsUserID(it.Ctx, withingsUserID)
 		require.NoError(t, err)
 		require.Equal(t, "a075f8c14fb8df40b08ebc8508533dc332a6910a", accUpdated.WithingsAccessToken())
 	})
@@ -128,7 +87,7 @@ func TestRefreshWithingsAccessToken(t *testing.T) {
 
 		// Should return bad request
 		resp := httptest.NewRecorder()
-		router.ServeHTTP(resp, req)
+		it.Router.ServeHTTP(resp, req)
 		respBody, _ := io.ReadAll(resp.Body)
 		assert.Equal(t, 401, resp.Code, string(respBody), "should return bad request")
 	})

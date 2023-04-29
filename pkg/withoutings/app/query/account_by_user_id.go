@@ -32,6 +32,9 @@ type accountByUUIDReadModel interface {
 	GetAccountByUUID(ctx context.Context, accountUUID uuid.UUID) (*account.Account, error)
 }
 
-func (h accountByUUIDHandler) Handle(ctx context.Context, query AccountByUUID) (account *account.Account, err error) {
+func (h accountByUUIDHandler) Handle(ctx context.Context, query AccountByUUID) (*account.Account, error) {
+	if query.AccountUUID == uuid.Nil {
+		return nil, account.NotFoundError{}
+	}
 	return h.readModel.GetAccountByUUID(ctx, query.AccountUUID)
 }

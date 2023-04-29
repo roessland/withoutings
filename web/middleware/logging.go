@@ -7,16 +7,23 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/roessland/withoutings/pkg/logging"
 	"github.com/roessland/withoutings/pkg/withoutings/app"
+	"github.com/sirupsen/logrus"
 	"net/http"
 )
 
 var ContextKeyRequestID = "requestID"
 
-func Logging(app *app.App) mux.MiddlewareFunc {
+func Logging(svc *app.App) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
-			log := app.Log
+
+			var log logrus.FieldLogger
+			if svc != nil && svc.Log != nil {
+				log = svc.Log
+			} else {
+				log = logrus.New().WithField("WARNING", "No logger configured")
+			}
 
 			requestID := uuid.New()
 			ctx = context.WithValue(ctx, ContextKeyRequestID, requestID.String())
@@ -28,6 +35,7 @@ func Logging(app *app.App) mux.MiddlewareFunc {
 
 			log.WithField("event", "request.start").
 				WithField("headers", r.Header).
+				WithField("real_ip", r.RemoteAddr).
 				Info("")
 
 			responseRecorder := NewRecordingResponseWriter(w)

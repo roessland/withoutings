@@ -15,6 +15,8 @@ See [env.example.sh](env.example.sh).
 source env.sh && go run cmd/main.go
 ```
 
+The webhook secret must be added in the registered callback path in the Withings Developer Dashboard. See `env.example.sh`.
+
 ## Forward remote port to local port
 
 To make callback to a remote server call your development app you can
@@ -67,8 +69,13 @@ brew install sqlc
 go install github.com/kyleconroy/sqlc/cmd/sqlc@latest
 ```
 
-
+## Generate mocks
 ### Install [mockery](https://github.com/vektra/mockery)
 ```sh
 brew install mockery
+```
+
+### Generate mocks
+```sh
+make mockery
 ```

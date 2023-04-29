@@ -22,6 +22,7 @@ func (e NotFoundError) Error() string {
 
 }
 
+//go:generate mockery --name Repo --filename accountrepo_mock.go
 type Repo interface {
 	GetAccountByWithingsUserID(ctx context.Context, withingsUserID string) (*Account, error)
 	GetAccountByUUID(ctx context.Context, accountUUID uuid.UUID) (*Account, error)

@@ -7,6 +7,8 @@ import (
 )
 
 // Logout logs users out via Withings OAuth2.
+//
+// Methods: *
 func Logout(svc *app.App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()

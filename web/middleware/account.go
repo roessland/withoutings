@@ -32,11 +32,7 @@ func Account(svc *app.App) mux.MiddlewareFunc {
 			ctx := r.Context()
 			log := logging.MustGetLoggerFromContext(ctx)
 
-			accountUUID, err := uuid.Parse(svc.Sessions.GetString(ctx, "account_uuid"))
-			if err != nil {
-				log.WithError(err).WithField("event", "error.parseaccountuuid").Warn()
-				accountUUID = uuid.Nil
-			}
+			accountUUID, _ := uuid.Parse(svc.Sessions.GetString(ctx, "account_uuid"))
 
 			acc, err := svc.Queries.AccountByAccountUUID.Handle(ctx, query.AccountByUUID{
 				AccountUUID: accountUUID,

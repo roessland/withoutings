@@ -13,8 +13,8 @@ import (
 
 // TestDatabase contains an empty database with all migrations applied.
 type TestDatabase struct {
-	*pgxpool.Pool // wotrw
-	postgresPool  *pgxpool.Pool
+	*pgxpool.Pool               // Connection with wotrw user (read/write)
+	postgresPool  *pgxpool.Pool // Connection with postgres user (superuser)
 	dbName        string
 }
 

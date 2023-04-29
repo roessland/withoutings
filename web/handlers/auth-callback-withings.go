@@ -10,9 +10,10 @@ import (
 	"net/http"
 )
 
-// Callback is used for OAuth2 callbacks,
-// but also for event notifications.
-func Callback(app *app.App) http.HandlerFunc {
+// Callback is used for OAuth2 callbacks. It is called by Withings after the user has logged in.
+//
+// Methods: *
+func Callback(svc *app.App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		log := logging.MustGetLoggerFromContext(ctx)
@@ -25,7 +26,7 @@ func Callback(app *app.App) http.HandlerFunc {
 		}
 
 		// Validate state
-		storedState := app.Sessions.GetString(ctx, "state")
+		storedState := svc.Sessions.GetString(ctx, "state")
 		callbackState := r.Form.Get("state")
 		if callbackState != storedState || callbackState == "" {
 			log.Infof("invalid state, had %s, expected %s", storedState, callbackState)
@@ -40,7 +41,7 @@ func Callback(app *app.App) http.HandlerFunc {
 			http.Error(w, "Code not found", http.StatusBadRequest)
 			return
 		}
-		token, err := app.WithingsRepo.GetAccessToken(ctx, code)
+		token, err := svc.WithingsRepo.GetAccessToken(ctx, code)
 		if err != nil {
 			log.WithError(err).
 				WithField("event", "error.callback.getaccesstoken").
@@ -50,7 +51,7 @@ func Callback(app *app.App) http.HandlerFunc {
 		}
 
 		// Clear nonce
-		app.Sessions.Remove(ctx, "state")
+		svc.Sessions.Remove(ctx, "state")
 
 		// Create domain object with placeholder UUID
 		acc, err := account.NewAccount(
@@ -71,7 +72,7 @@ func Callback(app *app.App) http.HandlerFunc {
 
 		// If another account with same Withings user ID exists, replace it. UUID in DB will be preserved.
 		// Otherwise create new account with UUID chosen above.
-		err = app.Commands.CreateOrUpdateAccount.Handle(ctx, command.CreateOrUpdateAccount{
+		err = svc.Commands.CreateOrUpdateAccount.Handle(ctx, command.CreateOrUpdateAccount{
 			Account: acc,
 		})
 		if err != nil {
@@ -83,7 +84,7 @@ func Callback(app *app.App) http.HandlerFunc {
 		}
 
 		// Find account ID
-		acc, err = app.Queries.AccountByWithingsUserID.Handle(ctx, query.AccountByWithingsUserID{WithingsUserID: token.UserID})
+		acc, err = svc.Queries.AccountByWithingsUserID.Handle(ctx, query.AccountByWithingsUserID{WithingsUserID: token.UserID})
 		if err != nil {
 			log.WithError(err).
 				WithField("event", "error.callback.getaccount").
@@ -93,7 +94,7 @@ func Callback(app *app.App) http.HandlerFunc {
 		}
 
 		// Login user by saving account ID to session.
-		app.Sessions.Put(ctx, "account_uuid", acc.UUID().String())
+		svc.Sessions.Put(ctx, "account_uuid", acc.UUID().String())
 
 		// Redirect to homepage
 		http.Redirect(w, r, "/", http.StatusFound)

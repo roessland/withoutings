@@ -17,6 +17,10 @@ type Templates struct {
 	template *template.Template
 }
 
+func (t Templates) IsNil() bool {
+	return t.template == nil
+}
+
 func LoadTemplates() Templates {
 	templates := Templates{}
 	t, err := template.ParseFS(fs, "*/**")

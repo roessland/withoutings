@@ -13,6 +13,7 @@ func (e TodoError) Error() string {
 	return fmt.Sprintf("todo with ID %d not found", e.TodoProperty)
 }
 
+//go:generate mockery --name Repo --filename withingsrepo_mock.go
 type Repo interface {
 	AuthCodeURL(nonce string) string
 	GetAccessToken(ctx context.Context, authCode string) (*Token, error)

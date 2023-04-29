@@ -13,8 +13,8 @@ type Worker struct {
 
 // const redisAddr = "127.0.0.1:6379"
 
-func NewWorker(app *app.App) *Worker {
-	return &Worker{app}
+func NewWorker(svc *app.App) *Worker {
+	return &Worker{svc}
 }
 
 func (app *Worker) close() {

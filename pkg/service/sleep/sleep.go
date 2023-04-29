@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+// TODO: convert to query.
+
 type Sleep struct {
 	Withings *withingsAdapter.HTTPClient
 }

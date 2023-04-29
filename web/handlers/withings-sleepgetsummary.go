@@ -9,7 +9,8 @@ import (
 	"time"
 )
 
-func SleepSummaries(app *app.App) http.HandlerFunc {
+// SleepSummaries renders the sleep summaries page, showing the user's sleep for the last N days.
+func SleepSummaries(svc *app.App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		log := logging.MustGetLoggerFromContext(ctx)
@@ -24,7 +25,7 @@ func SleepSummaries(app *app.App) http.HandlerFunc {
 		if time.Now().After(account.WithingsAccessTokenExpiry()) {
 			w.Header().Set("Content-Type", "text/html")
 			w.WriteHeader(200)
-			err := app.Templates.RenderSleepSummaries(w, nil, "Your token is expired. ")
+			err := svc.Templates.RenderSleepSummaries(w, nil, "Your token is expired. ")
 			if err != nil {
 				log.WithError(err).WithField("event", "error.render.template").Error()
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -33,7 +34,7 @@ func SleepSummaries(app *app.App) http.HandlerFunc {
 			return
 		}
 
-		sleepData, err := app.Sleep.GetSleepSummaries(ctx, account.WithingsAccessToken(), sleep.GetSleepSummaryInput{
+		sleepData, err := svc.Sleep.GetSleepSummaries(ctx, account.WithingsAccessToken(), sleep.GetSleepSummaryInput{
 			Year:  0,
 			Month: 0,
 		})
@@ -45,7 +46,7 @@ func SleepSummaries(app *app.App) http.HandlerFunc {
 
 		w.Header().Set("Content-Type", "text/html")
 		w.WriteHeader(200)
-		err = app.Templates.RenderSleepSummaries(w, &sleepData, "")
+		err = svc.Templates.RenderSleepSummaries(w, &sleepData, "")
 		if err != nil {
 			log.WithError(err).WithField("event", "error.render.template").Error()
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

@@ -4,13 +4,14 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/roessland/withoutings/pkg/withoutings/app"
 	"github.com/roessland/withoutings/web/handlers"
-	"github.com/roessland/withoutings/web/middleware"
 	"github.com/roessland/withoutings/web/static"
 	"net/http"
 	"time"
 )
 
 func Router(svc *app.App) *mux.Router {
+	svc.Validate()
+
 	r := mux.NewRouter()
 	r.HandleFunc("/api/health", handlers.Health(svc))
 	r.HandleFunc("/", handlers.Homepage(svc))
@@ -27,20 +28,16 @@ func Router(svc *app.App) *mux.Router {
 	r.Path("/subscriptions/withings").Methods("GET").Handler(handlers.SubscriptionsWithingsPage(svc))
 
 	r.Path("/subscriptions/subscribe/{appli}").Methods("POST").Handler(handlers.Subscribe(svc))
-	r.Path("/withings/webhooks/{webhook_secret}").Methods("POST").Handler(handlers.WithingsWebhook(svc))
+	r.Path("/withings/webhooks/{webhook_secret}").Methods("HEAD", "POST").Handler(handlers.WithingsWebhook(svc))
 
-	r.Use(
-		middleware.Logging(svc),
-		svc.Sessions.LoadAndSave,
-		middleware.Account(svc),
-	)
+	r.Use(Middleware(svc)...)
 	return r
 }
 
 func Server(svc *app.App) *http.Server {
 	return &http.Server{
 		Handler:      Router(svc),
-		Addr:         "127.0.0.1:3628",
+		Addr:         svc.Config.ListenAddr,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}

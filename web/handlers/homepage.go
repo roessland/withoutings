@@ -7,6 +7,9 @@ import (
 	"net/http"
 )
 
+// Homepage renders the homepage.
+//
+// Methods: *
 func Homepage(svc *app.App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()

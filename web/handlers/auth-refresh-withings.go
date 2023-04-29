@@ -8,6 +8,11 @@ import (
 	"net/http"
 )
 
+// RefreshWithingsAccessToken refreshes the access token for the current user.
+// TODO: Before refreshing, account must be marked as "refreshing" in the database,
+// so that we don't lose access to the account if the refresh fails, since
+// the current access token will be invalidated after some time.
+// A batch job must keep retrying to refresh the access token until it succeeds.
 func RefreshWithingsAccessToken(svc *app.App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()

@@ -3,11 +3,17 @@ package app
 // Inspiration: https://github.com/ThreeDotsLabs/wild-workouts-go-ddd-example/blob/master/internal/trainings/app/app.go
 
 import (
+	"context"
+	"fmt"
+	"github.com/alexedwards/scs/pgxstore"
 	"github.com/alexedwards/scs/v2"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/roessland/withoutings/pkg/config"
 	"github.com/roessland/withoutings/pkg/db"
 	"github.com/roessland/withoutings/pkg/service/sleep"
+	accountAdapter "github.com/roessland/withoutings/pkg/withoutings/adapter/account"
+	subscriptionAdapter "github.com/roessland/withoutings/pkg/withoutings/adapter/subscription"
+	withingsAdapter "github.com/roessland/withoutings/pkg/withoutings/adapter/withings"
 	"github.com/roessland/withoutings/pkg/withoutings/app/command"
 	"github.com/roessland/withoutings/pkg/withoutings/app/query"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
@@ -15,6 +21,7 @@ import (
 	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
 	"github.com/roessland/withoutings/web/templates"
 	"github.com/sirupsen/logrus"
+	"time"
 )
 
 // App holds all application resources.
@@ -25,12 +32,89 @@ type App struct {
 	Sleep            *sleep.Sleep
 	DB               *pgxpool.Pool
 	Config           *config.Config
-	DBQueries        *db.Queries
 	WithingsRepo     withings.Repo
 	AccountRepo      account.Repo
 	SubscriptionRepo subscription.Repo
 	Commands         Commands
 	Queries          Queries
+}
+
+type MockApp struct {
+	*App
+	MockWithingsRepo *withings.MockRepo
+}
+
+func NewApplication(ctx context.Context, cfg *config.Config) *App {
+	logger := logrus.New()
+
+	pool, err := pgxpool.Connect(ctx, cfg.DatabaseURL)
+	if err != nil {
+		panic(fmt.Sprintf("create connection pool: %s", err))
+	}
+
+	dbQueries := db.New(pool)
+
+	sessions := scs.New()
+	sessions.Lifetime = time.Hour * 24 * 180    // 6 months
+	sessions.IdleTimeout = time.Hour * 24 * 180 // 6 months
+
+	sessions.Store = pgxstore.New(pool)
+
+	accountRepo := accountAdapter.NewPgRepo(pool, dbQueries)
+	subscriptionRepo := subscriptionAdapter.NewPgRepo(pool, dbQueries)
+
+	withingsHttpClient := withingsAdapter.NewClient(cfg.WithingsClientID, cfg.WithingsClientSecret, cfg.WithingsRedirectURL)
+
+	return &App{
+		Log:              logger,
+		WithingsRepo:     withingsHttpClient,
+		Sessions:         sessions,
+		Templates:        templates.LoadTemplates(),
+		Sleep:            sleep.NewSleep(withingsHttpClient),
+		DB:               pool,
+		Config:           cfg,
+		AccountRepo:      accountRepo,
+		SubscriptionRepo: subscriptionRepo,
+		Commands: Commands{
+			SubscribeAccount:      command.NewSubscribeAccountHandler(accountRepo, subscriptionRepo, withingsHttpClient, cfg),
+			CreateOrUpdateAccount: command.NewCreateOrUpdateAccountHandler(accountRepo),
+			RefreshAccessToken:    command.NewRefreshAccessTokenHandler(accountRepo, withingsHttpClient),
+		},
+		Queries: Queries{
+			AccountByWithingsUserID: query.NewAccountByWithingsUserIDHandler(accountRepo),
+			AccountByAccountUUID:    query.NewAccountByUUIDHandler(accountRepo),
+			AllAccounts:             query.NewAllAccountsHandler(accountRepo),
+		},
+	}
+}
+
+func (svc *App) Validate() {
+	if svc.Log == nil {
+		panic("App.Log was nil")
+	}
+	if svc.Sessions == nil {
+		panic("App.Sessions was nil")
+	}
+	if svc.Templates.IsNil() {
+		panic("App.Templates was nil")
+	}
+	if svc.Sleep == nil {
+		panic("App.Sleep was nil")
+	}
+	if svc.Config == nil {
+		panic("App.Config was nil")
+	}
+	if svc.WithingsRepo == nil {
+		panic("App.WithingsRepo was nil")
+	}
+	if svc.AccountRepo == nil {
+		panic("App.AccountRepo was nil")
+	}
+	if svc.SubscriptionRepo == nil {
+		panic("App.SubscriptionRepo was nil")
+	}
+	svc.Commands.Validate()
+	svc.Queries.Validate()
 }
 
 type Commands struct {

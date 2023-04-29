@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
-	"github.com/roessland/withoutings/pkg/withoutings/service"
+	"fmt"
+	"github.com/roessland/withoutings/pkg/config"
+	"github.com/roessland/withoutings/pkg/withoutings/app"
 	"github.com/roessland/withoutings/web"
 	"github.com/roessland/withoutings/worker"
 	"os"
@@ -13,7 +15,12 @@ import (
 func withoutingsServer() {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	svc := service.NewApplication(ctx)
+	cfg, err := config.LoadFromEnv()
+	if err != nil {
+		panic(fmt.Sprintf("load config: %s", err))
+	}
+
+	svc := app.NewApplication(ctx, cfg)
 
 	webserver := web.Server(svc)
 

@@ -1,5 +1,6 @@
 package handlers
 
+// SleepGetJSON renders the sleep as JSON
 //func SleepGetJSON(app *withoutings.App) http.HandlerFunc {
 //	return func(w http.ResponseWriter, r *http.Request) {
 //		ctx := r.Context()
