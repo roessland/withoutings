@@ -38,18 +38,24 @@ func (q *Queries) AllNotificationCategories(ctx context.Context) ([]Notification
 }
 
 const createRawNotification = `-- name: CreateRawNotification :exec
-INSERT INTO raw_notification (source, status, data)
-VALUES ($1, $2, $3)
+INSERT INTO raw_notification (raw_notification_uuid, source, status, data)
+VALUES ($1, $2, $3, $4)
 `
 
 type CreateRawNotificationParams struct {
-	Source string
-	Status string
-	Data   string
+	RawNotificationUuid uuid.UUID
+	Source              string
+	Status              string
+	Data                string
 }
 
 func (q *Queries) CreateRawNotification(ctx context.Context, arg CreateRawNotificationParams) error {
-	_, err := q.db.Exec(ctx, createRawNotification, arg.Source, arg.Status, arg.Data)
+	_, err := q.db.Exec(ctx, createRawNotification,
+		arg.RawNotificationUuid,
+		arg.Source,
+		arg.Status,
+		arg.Data,
+	)
 	return err
 }
 
@@ -81,21 +87,32 @@ func (q *Queries) CreateSubscription(ctx context.Context, arg CreateSubscription
 	return err
 }
 
+const deleteRawNotification = `-- name: DeleteRawNotification :exec
+DELETE
+FROM raw_notification
+WHERE raw_notification_uuid = $1
+`
+
+func (q *Queries) DeleteRawNotification(ctx context.Context, rawNotificationUuid uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteRawNotification, rawNotificationUuid)
+	return err
+}
+
 const deleteSubscription = `-- name: DeleteSubscription :exec
 DELETE
 FROM subscription
-WHERE subscription_id = $1
+WHERE subscription_uuid = $1
 `
 
-func (q *Queries) DeleteSubscription(ctx context.Context, subscriptionID int64) error {
-	_, err := q.db.Exec(ctx, deleteSubscription, subscriptionID)
+func (q *Queries) DeleteSubscription(ctx context.Context, subscriptionUuid uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteSubscription, subscriptionUuid)
 	return err
 }
 
 const getPendingRawNotifications = `-- name: GetPendingRawNotifications :many
 SELECT raw_notification_id, source, status, data, raw_notification_uuid
 FROM raw_notification
-WHERE status == 'pending'
+WHERE status = 'pending'
 ORDER BY raw_notification_id
 `
 
@@ -159,6 +176,25 @@ func (q *Queries) GetPendingSubscriptions(ctx context.Context) ([]Subscription, 
 		return nil, err
 	}
 	return items, nil
+}
+
+const getRawNotification = `-- name: GetRawNotification :one
+SELECT raw_notification_id, source, status, data, raw_notification_uuid
+FROM raw_notification
+WHERE raw_notification_uuid = $1
+`
+
+func (q *Queries) GetRawNotification(ctx context.Context, rawNotificationUuid uuid.UUID) (RawNotification, error) {
+	row := q.db.QueryRow(ctx, getRawNotification, rawNotificationUuid)
+	var i RawNotification
+	err := row.Scan(
+		&i.RawNotificationID,
+		&i.Source,
+		&i.Status,
+		&i.Data,
+		&i.RawNotificationUuid,
+	)
+	return i, err
 }
 
 const getSubscriptionByAccountUUIDAndAppli = `-- name: GetSubscriptionByAccountUUIDAndAppli :one

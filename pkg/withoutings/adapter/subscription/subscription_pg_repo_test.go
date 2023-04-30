@@ -13,7 +13,7 @@ import (
 
 var _ subscription.Repo = subscriptionAdapter.PgRepo{}
 
-func TestSubscriptionPgRepo_CreateSubscriptionIfNotExists(t *testing.T) {
+func TestSubscriptionPgRepo(t *testing.T) {
 	ctx := testctx.New()
 	database := testdb.New(ctx)
 	defer database.Drop(ctx)
@@ -29,8 +29,7 @@ func TestSubscriptionPgRepo_CreateSubscriptionIfNotExists(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	t.Run("CreateSubscriptionIfNotExists creates subscription", func(t *testing.T) {
-		// domain object
+	t.Run("create works, get works, create duplicate fails", func(t *testing.T) {
 		sub := subscription.NewSubscription(
 			uuid.New(),
 			accountUUID,
@@ -41,24 +40,49 @@ func TestSubscriptionPgRepo_CreateSubscriptionIfNotExists(t *testing.T) {
 			subscription.StatusActive,
 		)
 
-		// create in DB
+		// Create it
 		err = repo.CreateSubscriptionIfNotExists(ctx, sub)
 		require.NoError(t, err)
 
-		// retrieve inserted object
-		insertedSub, err := queries.GetSubscriptionByAccountUUIDAndAppli(ctx,
-			db.GetSubscriptionByAccountUUIDAndAppliParams{
-				AccountUuid: accountUUID,
-				Appli:       2,
-			})
+		// Retrieve it and ensure it's the same
+		insertedSub, err := repo.GetSubscriptionByUUID(ctx, sub.UUID())
 		require.NoError(t, err)
-		require.EqualValues(t, "https://yolo.com/", insertedSub.Callbackurl)
-		require.EqualValues(t, "comment", insertedSub.Comment)
-		require.EqualValues(t, subscription.StatusActive, insertedSub.Status)
+		require.EqualValues(t, "https://yolo.com/", insertedSub.CallbackURL())
+		require.EqualValues(t, "comment", insertedSub.Comment())
+		require.EqualValues(t, "webhooksecret", insertedSub.WebhookSecret())
+		require.EqualValues(t, subscription.StatusActive, insertedSub.Status())
 
-		// insert same object again, should be error
+		// Insert the same object again, ensure it fails
 		err = repo.CreateSubscriptionIfNotExists(ctx, sub)
 		require.Error(t, err)
 		require.ErrorIs(t, err, subscription.ErrSubscriptionAlreadyExists)
+	})
+
+	t.Run("CreateRawNotification creates and DeleteRawNotification deletes", func(t *testing.T) {
+		rawNotification := subscription.NewRawNotification(
+			uuid.New(),
+			"ip=123.123.123.123",
+			"appli=1337&foo=bar",
+			subscription.RawNotificationStatusPending,
+		)
+
+		// Create it
+		err = repo.CreateRawNotification(ctx, rawNotification)
+		require.NoError(t, err)
+
+		// Retrieve it and ensure it's the same
+		insertedRawNotification, err := repo.GetRawNotificationByUUID(ctx, rawNotification.UUID())
+		require.NoError(t, err)
+		require.EqualValues(t, rawNotification.UUID(), insertedRawNotification.UUID())
+		require.EqualValues(t, rawNotification.Source(), insertedRawNotification.Source())
+		require.EqualValues(t, rawNotification.Status(), insertedRawNotification.Status())
+		require.EqualValues(t, rawNotification.Data(), insertedRawNotification.Data())
+
+		// Delete it
+		err = repo.DeleteRawNotification(ctx, rawNotification)
+
+		// Ensure it was deleted
+		_, err = repo.GetRawNotificationByUUID(ctx, rawNotification.UUID())
+		require.Error(t, err)
 	})
 }

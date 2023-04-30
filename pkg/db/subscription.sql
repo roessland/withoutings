@@ -42,15 +42,26 @@ VALUES ($1, $2, $3, $4, $5, $6, $7);
 -- name: DeleteSubscription :exec
 DELETE
 FROM subscription
-WHERE subscription_id = $1;
+WHERE subscription_uuid = $1;
 
 -- name: CreateRawNotification :exec
-INSERT INTO raw_notification (source, status, data)
-VALUES ($1, $2, $3);
+INSERT INTO raw_notification (raw_notification_uuid, source, status, data)
+VALUES ($1, $2, $3, $4);
+
+-- name: DeleteRawNotification :exec
+DELETE
+FROM raw_notification
+WHERE raw_notification_uuid = $1;
 
 -- name: GetPendingRawNotifications :many
 SELECT *
 FROM raw_notification
-WHERE status == 'pending'
+WHERE status = 'pending'
 ORDER BY raw_notification_id;
+
+-- name: GetRawNotification :one
+SELECT *
+FROM raw_notification
+WHERE raw_notification_uuid = $1;
+
 

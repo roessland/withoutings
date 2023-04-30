@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/roessland/withoutings/pkg/logging"
 	"github.com/roessland/withoutings/pkg/withoutings/app"
@@ -36,8 +37,16 @@ func WithingsWebhook(svc *app.App) http.HandlerFunc {
 
 		// TODO add IP filtering
 		// TODO log more headers
+		// TODO use a command instead of directly calling the repo
 		source := fmt.Sprintf("ip=%s", r.Header.Get("X-Forwarded-For"))
-		err = svc.SubscriptionRepo.CreateRawNotification(ctx, subscription.NewRawNotification(source, string(data)))
+		err = svc.SubscriptionRepo.CreateRawNotification(ctx,
+			subscription.NewRawNotification(
+				uuid.New(),
+				source,
+				string(data),
+				subscription.RawNotificationStatusPending,
+			),
+		)
 		if err != nil {
 			log.WithError(err).Error()
 			w.WriteHeader(500)

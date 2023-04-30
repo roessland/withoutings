@@ -60,6 +60,5 @@ func TestAccountPgRepo_UpdateAccount(t *testing.T) {
 		require.EqualValues(t, "whatever-updated", accUpdated.WithingsRefreshToken())
 		require.True(t, accUpdated.WithingsAccessTokenExpiry().After(time.Now()))
 		require.EqualValues(t, "some_scope-updated", accUpdated.WithingsScopes())
-
 	})
 }

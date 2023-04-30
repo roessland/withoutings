@@ -24,6 +24,7 @@ const StatusActive Status = "active"
 const StatusUnlinked Status = "unlinked"
 const StatusUserDeleted Status = "user-deleted"
 
+// NewSubscription returns a new subscription.
 // TODO should return (sub, error)
 func NewSubscription(
 	subscriptionUUID uuid.UUID,
@@ -45,7 +46,7 @@ func NewSubscription(
 	}
 }
 
-func (s Subscription) SubscriptionUUID() uuid.UUID {
+func (s Subscription) UUID() uuid.UUID {
 	return s.subscriptionUUID
 }
 

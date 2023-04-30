@@ -32,7 +32,7 @@ func (r PgRepo) WithTx(tx pgx.Tx) PgRepo {
 func (r PgRepo) GetSubscriptionByUUID(ctx context.Context, subscriptionUUID uuid.UUID) (subscription.Subscription, error) {
 	dbSub, err := r.queries.GetSubscriptionByUUID(ctx, subscriptionUUID)
 	if err == pgx.ErrNoRows {
-		return subscription.Subscription{}, subscription.NotFoundError{}
+		return subscription.Subscription{}, subscription.ErrSubscriptionNotFound
 	}
 	if err != nil {
 		return subscription.Subscription{}, errors.Wrap(err, "unable to retrieve subscription")
@@ -51,7 +51,7 @@ func (r PgRepo) GetSubscriptionsByAccountUUID(ctx context.Context, accountUUID u
 func (r PgRepo) GetSubscriptionByWebhookSecret(ctx context.Context, webhookSecret string) (subscription.Subscription, error) {
 	dbSub, err := r.queries.GetSubscriptionByWebhookSecret(ctx, webhookSecret)
 	if err == pgx.ErrNoRows {
-		return subscription.Subscription{}, subscription.NotFoundError{}
+		return subscription.Subscription{}, subscription.ErrSubscriptionNotFound
 	}
 	if err != nil {
 		return subscription.Subscription{}, errors.Wrap(err, "unable to retrieve subscription")
@@ -92,7 +92,7 @@ func (r PgRepo) createSubscriptionIfNotExists(ctx context.Context, sub subscript
 
 	// Doesn't exist; create one.
 	err = inTransaction.CreateSubscription(ctx, db.CreateSubscriptionParams{
-		SubscriptionUuid: sub.SubscriptionUUID(),
+		SubscriptionUuid: sub.UUID(),
 		AccountUuid:      sub.AccountUUID(),
 		Appli:            int32(sub.Appli()),
 		Callbackurl:      sub.CallbackURL(),
@@ -137,10 +137,22 @@ func toDomainSubscription(dbSub db.Subscription) subscription.Subscription {
 
 func (r PgRepo) CreateRawNotification(ctx context.Context, rawNotification subscription.RawNotification) error {
 	return r.queries.CreateRawNotification(ctx, db.CreateRawNotificationParams{
-		Source: rawNotification.Source,
-		Status: string(rawNotification.Status),
-		Data:   rawNotification.Data,
+		RawNotificationUuid: rawNotification.UUID(),
+		Source:              rawNotification.Source(),
+		Status:              string(rawNotification.Status()),
+		Data:                rawNotification.Data(),
 	})
+}
+
+func (r PgRepo) GetRawNotificationByUUID(ctx context.Context, rawNotificationUUID uuid.UUID) (subscription.RawNotification, error) {
+	dbRawNotification, err := r.queries.GetRawNotification(ctx, rawNotificationUUID)
+	if err == pgx.ErrNoRows {
+		return subscription.RawNotification{}, subscription.ErrRawNotificationNotFound
+	}
+	if err != nil {
+		return subscription.RawNotification{}, errors.Wrap(err, "unable to retrieve raw notification")
+	}
+	return toDomainRawNotification(dbRawNotification), nil
 }
 
 func (r PgRepo) GetPendingRawNotifications(ctx context.Context) ([]subscription.RawNotification, error) {
@@ -150,14 +162,27 @@ func (r PgRepo) GetPendingRawNotifications(ctx context.Context) ([]subscription.
 		return nil, err
 	}
 	for _, dbRawNotification := range dbRawNotifications {
-		rawNotifications = append(rawNotifications, subscription.RawNotification{
-			RawNotificationID: dbRawNotification.RawNotificationID,
-			Source:            dbRawNotification.Source,
-			Data:              dbRawNotification.Data,
-			Status:            subscription.RawNotificationStatus(dbRawNotification.Status),
-		})
+		rawNotifications = append(rawNotifications, subscription.NewRawNotification(
+			dbRawNotification.RawNotificationUuid,
+			dbRawNotification.Source,
+			dbRawNotification.Data,
+			subscription.RawNotificationStatus(dbRawNotification.Status),
+		))
 	}
 	return rawNotifications, nil
+}
+
+func (r PgRepo) DeleteRawNotification(ctx context.Context, rawNotification subscription.RawNotification) error {
+	return r.queries.DeleteRawNotification(ctx, rawNotification.UUID())
+}
+
+func toDomainRawNotification(dbRawNotification db.RawNotification) subscription.RawNotification {
+	return subscription.NewRawNotification(
+		dbRawNotification.RawNotificationUuid,
+		dbRawNotification.Source,
+		dbRawNotification.Data,
+		subscription.MustRawNotificationStatusFromString(dbRawNotification.Status),
+	)
 }
 
 func (r PgRepo) AllNotificationCategories(ctx context.Context) ([]subscription.NotificationCategory, error) {
