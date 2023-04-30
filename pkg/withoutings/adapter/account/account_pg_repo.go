@@ -35,7 +35,7 @@ func (r PgRepo) GetAccountByWithingsUserID(ctx context.Context, withingsUserID s
 	}
 	acc, err := r.queries.GetAccountByWithingsUserID(ctx, withingsUserID)
 	if err == pgx.ErrNoRows {
-		return nil, account.NotFoundError{WithingsUserID: withingsUserID}
+		return nil, account.ErrAccountNotFound
 	}
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to retrieve account")
@@ -56,7 +56,7 @@ func (r PgRepo) GetAccountByUUID(ctx context.Context, accountUUID uuid.UUID) (*a
 	}
 	acc, err := r.queries.GetAccountByAccountUUID(ctx, accountUUID)
 	if err == pgx.ErrNoRows {
-		return nil, account.NotFoundError{AccountUUID: accountUUID}
+		return nil, account.ErrAccountNotFound
 	}
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to retrieve account")

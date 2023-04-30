@@ -22,5 +22,5 @@ func TestAccountByUUIDHandler_NilUUIDNotFound(t *testing.T) {
 		AccountUUID: uuid.Nil,
 	})
 	require.Nil(t, acc)
-	require.Equal(t, account.NotFoundError{}, err)
+	require.Equal(t, account.ErrAccountNotFound, err)
 }

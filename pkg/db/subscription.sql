@@ -22,7 +22,8 @@ ORDER BY appli;
 -- name: GetSubscriptionByAccountUUIDAndAppli :one
 SELECT *
 FROM subscription
-WHERE account_uuid = $1 AND appli = $2;
+WHERE account_uuid = $1
+  AND appli = $2;
 
 -- name: GetPendingSubscriptions :many
 SELECT *
@@ -36,8 +37,26 @@ FROM subscription
 ORDER BY account_uuid;
 
 -- name: CreateSubscription :exec
-INSERT INTO subscription (subscription_uuid, account_uuid, appli, callbackurl, webhook_secret, status, comment)
-VALUES ($1, $2, $3, $4, $5, $6, $7);
+INSERT INTO subscription(subscription_uuid,
+                         account_uuid,
+                         appli,
+                         callbackurl,
+                         webhook_secret,
+                         status,
+                         comment,
+                         status_last_checked_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
+
+-- name: UpdateSubscription :exec
+UPDATE subscription
+SET account_uuid           = $1,
+    appli                  = $2,
+    callbackurl            = $3,
+    webhook_secret         = $4,
+    status                 = $5,
+    comment                = $6,
+    status_last_checked_at = $7
+WHERE subscription_uuid = $8;
 
 -- name: DeleteSubscription :exec
 DELETE

@@ -120,11 +120,11 @@ func (_c *MockRepo_CreateRawNotification_Call) RunAndReturn(run func(context.Con
 }
 
 // CreateSubscriptionIfNotExists provides a mock function with given fields: ctx, subscription
-func (_m *MockRepo) CreateSubscriptionIfNotExists(ctx context.Context, subscription Subscription) error {
+func (_m *MockRepo) CreateSubscriptionIfNotExists(ctx context.Context, subscription *Subscription) error {
 	ret := _m.Called(ctx, subscription)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, Subscription) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *Subscription) error); ok {
 		r0 = rf(ctx, subscription)
 	} else {
 		r0 = ret.Error(0)
@@ -140,14 +140,14 @@ type MockRepo_CreateSubscriptionIfNotExists_Call struct {
 
 // CreateSubscriptionIfNotExists is a helper method to define mock.On call
 //   - ctx context.Context
-//   - subscription Subscription
+//   - subscription *Subscription
 func (_e *MockRepo_Expecter) CreateSubscriptionIfNotExists(ctx interface{}, subscription interface{}) *MockRepo_CreateSubscriptionIfNotExists_Call {
 	return &MockRepo_CreateSubscriptionIfNotExists_Call{Call: _e.mock.On("CreateSubscriptionIfNotExists", ctx, subscription)}
 }
 
-func (_c *MockRepo_CreateSubscriptionIfNotExists_Call) Run(run func(ctx context.Context, subscription Subscription)) *MockRepo_CreateSubscriptionIfNotExists_Call {
+func (_c *MockRepo_CreateSubscriptionIfNotExists_Call) Run(run func(ctx context.Context, subscription *Subscription)) *MockRepo_CreateSubscriptionIfNotExists_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(Subscription))
+		run(args[0].(context.Context), args[1].(*Subscription))
 	})
 	return _c
 }
@@ -157,7 +157,7 @@ func (_c *MockRepo_CreateSubscriptionIfNotExists_Call) Return(_a0 error) *MockRe
 	return _c
 }
 
-func (_c *MockRepo_CreateSubscriptionIfNotExists_Call) RunAndReturn(run func(context.Context, Subscription) error) *MockRepo_CreateSubscriptionIfNotExists_Call {
+func (_c *MockRepo_CreateSubscriptionIfNotExists_Call) RunAndReturn(run func(context.Context, *Subscription) error) *MockRepo_CreateSubscriptionIfNotExists_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -260,19 +260,19 @@ func (_c *MockRepo_GetPendingRawNotifications_Call) RunAndReturn(run func(contex
 }
 
 // GetPendingSubscriptions provides a mock function with given fields: ctx
-func (_m *MockRepo) GetPendingSubscriptions(ctx context.Context) ([]Subscription, error) {
+func (_m *MockRepo) GetPendingSubscriptions(ctx context.Context) ([]*Subscription, error) {
 	ret := _m.Called(ctx)
 
-	var r0 []Subscription
+	var r0 []*Subscription
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) ([]Subscription, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context) ([]*Subscription, error)); ok {
 		return rf(ctx)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) []Subscription); ok {
+	if rf, ok := ret.Get(0).(func(context.Context) []*Subscription); ok {
 		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]Subscription)
+			r0 = ret.Get(0).([]*Subscription)
 		}
 	}
 
@@ -303,12 +303,12 @@ func (_c *MockRepo_GetPendingSubscriptions_Call) Run(run func(ctx context.Contex
 	return _c
 }
 
-func (_c *MockRepo_GetPendingSubscriptions_Call) Return(_a0 []Subscription, _a1 error) *MockRepo_GetPendingSubscriptions_Call {
+func (_c *MockRepo_GetPendingSubscriptions_Call) Return(_a0 []*Subscription, _a1 error) *MockRepo_GetPendingSubscriptions_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockRepo_GetPendingSubscriptions_Call) RunAndReturn(run func(context.Context) ([]Subscription, error)) *MockRepo_GetPendingSubscriptions_Call {
+func (_c *MockRepo_GetPendingSubscriptions_Call) RunAndReturn(run func(context.Context) ([]*Subscription, error)) *MockRepo_GetPendingSubscriptions_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -367,18 +367,20 @@ func (_c *MockRepo_GetRawNotificationByUUID_Call) RunAndReturn(run func(context.
 }
 
 // GetSubscriptionByUUID provides a mock function with given fields: ctx, subscriptionUUID
-func (_m *MockRepo) GetSubscriptionByUUID(ctx context.Context, subscriptionUUID uuid.UUID) (Subscription, error) {
+func (_m *MockRepo) GetSubscriptionByUUID(ctx context.Context, subscriptionUUID uuid.UUID) (*Subscription, error) {
 	ret := _m.Called(ctx, subscriptionUUID)
 
-	var r0 Subscription
+	var r0 *Subscription
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (Subscription, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (*Subscription, error)); ok {
 		return rf(ctx, subscriptionUUID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) Subscription); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) *Subscription); ok {
 		r0 = rf(ctx, subscriptionUUID)
 	} else {
-		r0 = ret.Get(0).(Subscription)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*Subscription)
+		}
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
@@ -409,29 +411,31 @@ func (_c *MockRepo_GetSubscriptionByUUID_Call) Run(run func(ctx context.Context,
 	return _c
 }
 
-func (_c *MockRepo_GetSubscriptionByUUID_Call) Return(_a0 Subscription, _a1 error) *MockRepo_GetSubscriptionByUUID_Call {
+func (_c *MockRepo_GetSubscriptionByUUID_Call) Return(_a0 *Subscription, _a1 error) *MockRepo_GetSubscriptionByUUID_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockRepo_GetSubscriptionByUUID_Call) RunAndReturn(run func(context.Context, uuid.UUID) (Subscription, error)) *MockRepo_GetSubscriptionByUUID_Call {
+func (_c *MockRepo_GetSubscriptionByUUID_Call) RunAndReturn(run func(context.Context, uuid.UUID) (*Subscription, error)) *MockRepo_GetSubscriptionByUUID_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetSubscriptionByWebhookSecret provides a mock function with given fields: ctx, webhookSecret
-func (_m *MockRepo) GetSubscriptionByWebhookSecret(ctx context.Context, webhookSecret string) (Subscription, error) {
+func (_m *MockRepo) GetSubscriptionByWebhookSecret(ctx context.Context, webhookSecret string) (*Subscription, error) {
 	ret := _m.Called(ctx, webhookSecret)
 
-	var r0 Subscription
+	var r0 *Subscription
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (Subscription, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*Subscription, error)); ok {
 		return rf(ctx, webhookSecret)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) Subscription); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) *Subscription); ok {
 		r0 = rf(ctx, webhookSecret)
 	} else {
-		r0 = ret.Get(0).(Subscription)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*Subscription)
+		}
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
@@ -462,35 +466,35 @@ func (_c *MockRepo_GetSubscriptionByWebhookSecret_Call) Run(run func(ctx context
 	return _c
 }
 
-func (_c *MockRepo_GetSubscriptionByWebhookSecret_Call) Return(_a0 Subscription, _a1 error) *MockRepo_GetSubscriptionByWebhookSecret_Call {
+func (_c *MockRepo_GetSubscriptionByWebhookSecret_Call) Return(_a0 *Subscription, _a1 error) *MockRepo_GetSubscriptionByWebhookSecret_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockRepo_GetSubscriptionByWebhookSecret_Call) RunAndReturn(run func(context.Context, string) (Subscription, error)) *MockRepo_GetSubscriptionByWebhookSecret_Call {
+func (_c *MockRepo_GetSubscriptionByWebhookSecret_Call) RunAndReturn(run func(context.Context, string) (*Subscription, error)) *MockRepo_GetSubscriptionByWebhookSecret_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// GetSubscriptionsByAccountUUID provides a mock function with given fields: ctx, accountID
-func (_m *MockRepo) GetSubscriptionsByAccountUUID(ctx context.Context, accountID uuid.UUID) ([]Subscription, error) {
-	ret := _m.Called(ctx, accountID)
+// GetSubscriptionsByAccountUUID provides a mock function with given fields: ctx, accountUUID
+func (_m *MockRepo) GetSubscriptionsByAccountUUID(ctx context.Context, accountUUID uuid.UUID) ([]*Subscription, error) {
+	ret := _m.Called(ctx, accountUUID)
 
-	var r0 []Subscription
+	var r0 []*Subscription
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) ([]Subscription, error)); ok {
-		return rf(ctx, accountID)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) ([]*Subscription, error)); ok {
+		return rf(ctx, accountUUID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) []Subscription); ok {
-		r0 = rf(ctx, accountID)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) []*Subscription); ok {
+		r0 = rf(ctx, accountUUID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]Subscription)
+			r0 = ret.Get(0).([]*Subscription)
 		}
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
-		r1 = rf(ctx, accountID)
+		r1 = rf(ctx, accountUUID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -505,42 +509,42 @@ type MockRepo_GetSubscriptionsByAccountUUID_Call struct {
 
 // GetSubscriptionsByAccountUUID is a helper method to define mock.On call
 //   - ctx context.Context
-//   - accountID uuid.UUID
-func (_e *MockRepo_Expecter) GetSubscriptionsByAccountUUID(ctx interface{}, accountID interface{}) *MockRepo_GetSubscriptionsByAccountUUID_Call {
-	return &MockRepo_GetSubscriptionsByAccountUUID_Call{Call: _e.mock.On("GetSubscriptionsByAccountUUID", ctx, accountID)}
+//   - accountUUID uuid.UUID
+func (_e *MockRepo_Expecter) GetSubscriptionsByAccountUUID(ctx interface{}, accountUUID interface{}) *MockRepo_GetSubscriptionsByAccountUUID_Call {
+	return &MockRepo_GetSubscriptionsByAccountUUID_Call{Call: _e.mock.On("GetSubscriptionsByAccountUUID", ctx, accountUUID)}
 }
 
-func (_c *MockRepo_GetSubscriptionsByAccountUUID_Call) Run(run func(ctx context.Context, accountID uuid.UUID)) *MockRepo_GetSubscriptionsByAccountUUID_Call {
+func (_c *MockRepo_GetSubscriptionsByAccountUUID_Call) Run(run func(ctx context.Context, accountUUID uuid.UUID)) *MockRepo_GetSubscriptionsByAccountUUID_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(uuid.UUID))
 	})
 	return _c
 }
 
-func (_c *MockRepo_GetSubscriptionsByAccountUUID_Call) Return(_a0 []Subscription, _a1 error) *MockRepo_GetSubscriptionsByAccountUUID_Call {
+func (_c *MockRepo_GetSubscriptionsByAccountUUID_Call) Return(_a0 []*Subscription, _a1 error) *MockRepo_GetSubscriptionsByAccountUUID_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockRepo_GetSubscriptionsByAccountUUID_Call) RunAndReturn(run func(context.Context, uuid.UUID) ([]Subscription, error)) *MockRepo_GetSubscriptionsByAccountUUID_Call {
+func (_c *MockRepo_GetSubscriptionsByAccountUUID_Call) RunAndReturn(run func(context.Context, uuid.UUID) ([]*Subscription, error)) *MockRepo_GetSubscriptionsByAccountUUID_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ListSubscriptions provides a mock function with given fields: ctx
-func (_m *MockRepo) ListSubscriptions(ctx context.Context) ([]Subscription, error) {
+func (_m *MockRepo) ListSubscriptions(ctx context.Context) ([]*Subscription, error) {
 	ret := _m.Called(ctx)
 
-	var r0 []Subscription
+	var r0 []*Subscription
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) ([]Subscription, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context) ([]*Subscription, error)); ok {
 		return rf(ctx)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) []Subscription); ok {
+	if rf, ok := ret.Get(0).(func(context.Context) []*Subscription); ok {
 		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]Subscription)
+			r0 = ret.Get(0).([]*Subscription)
 		}
 	}
 
@@ -571,12 +575,55 @@ func (_c *MockRepo_ListSubscriptions_Call) Run(run func(ctx context.Context)) *M
 	return _c
 }
 
-func (_c *MockRepo_ListSubscriptions_Call) Return(_a0 []Subscription, _a1 error) *MockRepo_ListSubscriptions_Call {
+func (_c *MockRepo_ListSubscriptions_Call) Return(_a0 []*Subscription, _a1 error) *MockRepo_ListSubscriptions_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockRepo_ListSubscriptions_Call) RunAndReturn(run func(context.Context) ([]Subscription, error)) *MockRepo_ListSubscriptions_Call {
+func (_c *MockRepo_ListSubscriptions_Call) RunAndReturn(run func(context.Context) ([]*Subscription, error)) *MockRepo_ListSubscriptions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// MarkAsCheckedAndActive provides a mock function with given fields: ctx, subscription
+func (_m *MockRepo) MarkSubscriptionAsCheckedAndActive(ctx context.Context, subscription *Subscription) error {
+	ret := _m.Called(ctx, subscription)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *Subscription) error); ok {
+		r0 = rf(ctx, subscription)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockRepo_MarkAsCheckedAndActive_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MarkSubscriptionAsCheckedAndActive'
+type MockRepo_MarkAsCheckedAndActive_Call struct {
+	*mock.Call
+}
+
+// MarkAsCheckedAndActive is a helper method to define mock.On call
+//   - ctx context.Context
+//   - subscription *Subscription
+func (_e *MockRepo_Expecter) MarkAsCheckedAndActive(ctx interface{}, subscription interface{}) *MockRepo_MarkAsCheckedAndActive_Call {
+	return &MockRepo_MarkAsCheckedAndActive_Call{Call: _e.mock.On("MarkSubscriptionAsCheckedAndActive", ctx, subscription)}
+}
+
+func (_c *MockRepo_MarkAsCheckedAndActive_Call) Run(run func(ctx context.Context, subscription *Subscription)) *MockRepo_MarkAsCheckedAndActive_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*Subscription))
+	})
+	return _c
+}
+
+func (_c *MockRepo_MarkAsCheckedAndActive_Call) Return(_a0 error) *MockRepo_MarkAsCheckedAndActive_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockRepo_MarkAsCheckedAndActive_Call) RunAndReturn(run func(context.Context, *Subscription) error) *MockRepo_MarkAsCheckedAndActive_Call {
 	_c.Call.Return(run)
 	return _c
 }

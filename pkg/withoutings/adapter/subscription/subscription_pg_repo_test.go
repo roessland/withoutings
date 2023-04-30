@@ -44,13 +44,14 @@ func TestSubscriptionPgRepo(t *testing.T) {
 		err = repo.CreateSubscriptionIfNotExists(ctx, sub)
 		require.NoError(t, err)
 
-		// Retrieve it and ensure it's the same
+		// Retrieve it and ensure it's the same, and has default values from Postgres.
 		insertedSub, err := repo.GetSubscriptionByUUID(ctx, sub.UUID())
 		require.NoError(t, err)
 		require.EqualValues(t, "https://yolo.com/", insertedSub.CallbackURL())
 		require.EqualValues(t, "comment", insertedSub.Comment())
 		require.EqualValues(t, "webhooksecret", insertedSub.WebhookSecret())
 		require.EqualValues(t, subscription.StatusActive, insertedSub.Status())
+		require.True(t, insertedSub.StatusShouldBeChecked())
 
 		// Insert the same object again, ensure it fails
 		err = repo.CreateSubscriptionIfNotExists(ctx, sub)

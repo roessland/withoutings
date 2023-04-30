@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -60,18 +61,26 @@ func (q *Queries) CreateRawNotification(ctx context.Context, arg CreateRawNotifi
 }
 
 const createSubscription = `-- name: CreateSubscription :exec
-INSERT INTO subscription (subscription_uuid, account_uuid, appli, callbackurl, webhook_secret, status, comment)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+INSERT INTO subscription(subscription_uuid,
+                         account_uuid,
+                         appli,
+                         callbackurl,
+                         webhook_secret,
+                         status,
+                         comment,
+                         status_last_checked_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 `
 
 type CreateSubscriptionParams struct {
-	SubscriptionUuid uuid.UUID
-	AccountUuid      uuid.UUID
-	Appli            int32
-	Callbackurl      string
-	WebhookSecret    string
-	Status           string
-	Comment          string
+	SubscriptionUuid    uuid.UUID
+	AccountUuid         uuid.UUID
+	Appli               int32
+	Callbackurl         string
+	WebhookSecret       string
+	Status              string
+	Comment             string
+	StatusLastCheckedAt time.Time
 }
 
 func (q *Queries) CreateSubscription(ctx context.Context, arg CreateSubscriptionParams) error {
@@ -83,6 +92,7 @@ func (q *Queries) CreateSubscription(ctx context.Context, arg CreateSubscription
 		arg.WebhookSecret,
 		arg.Status,
 		arg.Comment,
+		arg.StatusLastCheckedAt,
 	)
 	return err
 }
@@ -143,7 +153,7 @@ func (q *Queries) GetPendingRawNotifications(ctx context.Context) ([]RawNotifica
 }
 
 const getPendingSubscriptions = `-- name: GetPendingSubscriptions :many
-SELECT subscription_id, appli, callbackurl, webhook_secret, status, comment, subscription_uuid, account_uuid
+SELECT subscription_id, appli, callbackurl, webhook_secret, status, comment, subscription_uuid, account_uuid, status_last_checked_at
 FROM subscription
 WHERE status = 'pending'
 ORDER BY subscription.account_uuid
@@ -167,6 +177,7 @@ func (q *Queries) GetPendingSubscriptions(ctx context.Context) ([]Subscription, 
 			&i.Comment,
 			&i.SubscriptionUuid,
 			&i.AccountUuid,
+			&i.StatusLastCheckedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -198,9 +209,10 @@ func (q *Queries) GetRawNotification(ctx context.Context, rawNotificationUuid uu
 }
 
 const getSubscriptionByAccountUUIDAndAppli = `-- name: GetSubscriptionByAccountUUIDAndAppli :one
-SELECT subscription_id, appli, callbackurl, webhook_secret, status, comment, subscription_uuid, account_uuid
+SELECT subscription_id, appli, callbackurl, webhook_secret, status, comment, subscription_uuid, account_uuid, status_last_checked_at
 FROM subscription
-WHERE account_uuid = $1 AND appli = $2
+WHERE account_uuid = $1
+  AND appli = $2
 `
 
 type GetSubscriptionByAccountUUIDAndAppliParams struct {
@@ -220,12 +232,13 @@ func (q *Queries) GetSubscriptionByAccountUUIDAndAppli(ctx context.Context, arg 
 		&i.Comment,
 		&i.SubscriptionUuid,
 		&i.AccountUuid,
+		&i.StatusLastCheckedAt,
 	)
 	return i, err
 }
 
 const getSubscriptionByUUID = `-- name: GetSubscriptionByUUID :one
-SELECT subscription_id, appli, callbackurl, webhook_secret, status, comment, subscription_uuid, account_uuid
+SELECT subscription_id, appli, callbackurl, webhook_secret, status, comment, subscription_uuid, account_uuid, status_last_checked_at
 FROM subscription
 WHERE subscription_uuid = $1
 `
@@ -242,12 +255,13 @@ func (q *Queries) GetSubscriptionByUUID(ctx context.Context, subscriptionUuid uu
 		&i.Comment,
 		&i.SubscriptionUuid,
 		&i.AccountUuid,
+		&i.StatusLastCheckedAt,
 	)
 	return i, err
 }
 
 const getSubscriptionByWebhookSecret = `-- name: GetSubscriptionByWebhookSecret :one
-SELECT subscription_id, appli, callbackurl, webhook_secret, status, comment, subscription_uuid, account_uuid
+SELECT subscription_id, appli, callbackurl, webhook_secret, status, comment, subscription_uuid, account_uuid, status_last_checked_at
 FROM subscription
 WHERE webhook_secret = $1
 `
@@ -264,12 +278,13 @@ func (q *Queries) GetSubscriptionByWebhookSecret(ctx context.Context, webhookSec
 		&i.Comment,
 		&i.SubscriptionUuid,
 		&i.AccountUuid,
+		&i.StatusLastCheckedAt,
 	)
 	return i, err
 }
 
 const getSubscriptionsByAccountUUID = `-- name: GetSubscriptionsByAccountUUID :many
-SELECT subscription_id, appli, callbackurl, webhook_secret, status, comment, subscription_uuid, account_uuid
+SELECT subscription_id, appli, callbackurl, webhook_secret, status, comment, subscription_uuid, account_uuid, status_last_checked_at
 FROM subscription
 WHERE account_uuid = $1
 ORDER BY appli
@@ -293,6 +308,7 @@ func (q *Queries) GetSubscriptionsByAccountUUID(ctx context.Context, accountUuid
 			&i.Comment,
 			&i.SubscriptionUuid,
 			&i.AccountUuid,
+			&i.StatusLastCheckedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -305,7 +321,7 @@ func (q *Queries) GetSubscriptionsByAccountUUID(ctx context.Context, accountUuid
 }
 
 const listSubscriptions = `-- name: ListSubscriptions :many
-SELECT subscription_id, appli, callbackurl, webhook_secret, status, comment, subscription_uuid, account_uuid
+SELECT subscription_id, appli, callbackurl, webhook_secret, status, comment, subscription_uuid, account_uuid, status_last_checked_at
 FROM subscription
 ORDER BY account_uuid
 `
@@ -328,6 +344,7 @@ func (q *Queries) ListSubscriptions(ctx context.Context) ([]Subscription, error)
 			&i.Comment,
 			&i.SubscriptionUuid,
 			&i.AccountUuid,
+			&i.StatusLastCheckedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -337,4 +354,41 @@ func (q *Queries) ListSubscriptions(ctx context.Context) ([]Subscription, error)
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateSubscription = `-- name: UpdateSubscription :exec
+UPDATE subscription
+SET account_uuid           = $1,
+    appli                  = $2,
+    callbackurl            = $3,
+    webhook_secret         = $4,
+    status                 = $5,
+    comment                = $6,
+    status_last_checked_at = $7
+WHERE subscription_uuid = $8
+`
+
+type UpdateSubscriptionParams struct {
+	AccountUuid         uuid.UUID
+	Appli               int32
+	Callbackurl         string
+	WebhookSecret       string
+	Status              string
+	Comment             string
+	StatusLastCheckedAt time.Time
+	SubscriptionUuid    uuid.UUID
+}
+
+func (q *Queries) UpdateSubscription(ctx context.Context, arg UpdateSubscriptionParams) error {
+	_, err := q.db.Exec(ctx, updateSubscription,
+		arg.AccountUuid,
+		arg.Appli,
+		arg.Callbackurl,
+		arg.WebhookSecret,
+		arg.Status,
+		arg.Comment,
+		arg.StatusLastCheckedAt,
+		arg.SubscriptionUuid,
+	)
+	return err
 }

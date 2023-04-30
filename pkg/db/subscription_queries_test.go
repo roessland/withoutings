@@ -9,6 +9,7 @@ import (
 	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 	"github.com/stretchr/testify/require"
 	"testing"
+	"time"
 )
 
 func TestSubscriptionQueries(t *testing.T) {
@@ -50,5 +51,6 @@ func TestSubscriptionQueries(t *testing.T) {
 		require.EqualValues(t, "yolo", sub.WebhookSecret)
 		require.EqualValues(t, subscription.StatusPending, sub.Status)
 		require.EqualValues(t, "", sub.Comment)
+		require.True(t, sub.StatusLastCheckedAt.Before(time.Now()), "StatusLastCheckedAt should be set to a time in the past")
 	})
 }

@@ -5,58 +5,6 @@
 ```mermaid
 flowchart LR;
 
-
-subgraph withingsapidomain
-    WithingsAPIClient
-end
-
-subgraph infrastructure
-    PostgreSQL
-    WithingsAPI
-end
-
-subgraph accountdomain
-    account.Account
-    account.Repo
-end
-
-subgraph subscriptionsdomain
-    subscription.Subscription
-    subscription.RawNotification
-    subscription.Repo
-end
-
-subgraph adapters
-    AccountPgRepo-->account.Repo
-    AccountPgRepo-->PostgreSQL
-    SubscriptionPgRepo-->subscription.Repo
-    SubscriptionPgRepo-->PostgreSQL
-    WithingsAPIDefaultClient-->WithingsAPI
-    WithingsAPIDefaultClient-->WithingsAPIClient
-end
-
-subgraph commands
-    CreateOrUpdateAccount-->account.Repo
-    CreateOrUpdateAccount-->account.Account
-    SubscribeAccount-->account.Account
-    SubscribeAccount-->WithingsAPIClient
-end
-
-subgraph queries
-    AccountByWithingsUserID-->account.Account
-    AccountByWithingsUserID-->account.Repo
-end
-
-subgraph services
-    App-->AccountByWithingsUserID
-    App-->SubscribeAccount
-    App-->CreateOrUpdateAccount
-    App-->account.Repo
-    App-->AccountPgRepo
-    App-->WithingsAPIClient
-    App-->WithingsAPIDefaultClient
-end
-
 subgraph handlers
     direction LR
     Homepage
@@ -64,10 +12,100 @@ subgraph handlers
     Callback
     Logout
     Login
+    RefreshWithingsAccessToken
     SleepSummaries
-   
+    Webhook
+    Subscribe
+    SubscriptionsWithingsPage
+    SubscriptionsPage
 end
 handlers-->App
+
+subgraph middleware
+    direction LR
+    Account
+    Logging
+    RealIP
+end
+middleware-->App
+
+
+App-->commands
+App-->queries
+App-->adapters
+
+
+
+subgraph infrastructure
+    direction LR
+    PostgreSQL
+    WithingsAPI
+end
+
+
+subgraph adapters
+    direction LR
+    AccountPgRepo
+    AccountPgRepo
+    SubscriptionPgRepo
+    SubscriptionPgRepo
+    WithingsAPIDefaultClient
+    WithingsAPIDefaultClient
+end
+adapters-->infrastructure
+adapters-->domain
+
+
+subgraph commands
+    direction LR
+    CreateOrUpdateAccount
+    CreateOrUpdateAccount
+    SubscribeAccount
+    SubscribeAccount
+    RefreshAccessTokenHandler
+    RefreshAccessTokenHandler
+    SubscribeAccount
+end
+commands-->domain
+
+subgraph queries
+    direction LR
+    AccountByWithingsUserID
+    AccountByUUID
+    AllAccounts
+end
+queries-->domain
+
+subgraph domain
+    direction LR
+    accountdomain
+    subscriptiondomain
+    withingsapidomain
+end
+
+
+subgraph withingsapidomain
+    direction LR
+    WithingsAPIClient
+    Token
+    WithingsResponses
+    WithingsParams
+end
+
+subgraph accountdomain
+    direction LR
+    account.Account
+    account.Repo
+end
+
+subgraph subscriptiondomain
+    direction LR
+    subscription.Subscription
+    subscription.RawNotification
+    subscription.Repo
+end
+
+
 
 
 ```

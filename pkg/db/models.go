@@ -41,12 +41,13 @@ type Session struct {
 }
 
 type Subscription struct {
-	SubscriptionID   int64
-	Appli            int32
-	Callbackurl      string
-	WebhookSecret    string
-	Status           string
-	Comment          string
-	SubscriptionUuid uuid.UUID
-	AccountUuid      uuid.UUID
+	SubscriptionID      int64
+	Appli               int32
+	Callbackurl         string
+	WebhookSecret       string
+	Status              string
+	Comment             string
+	SubscriptionUuid    uuid.UUID
+	AccountUuid         uuid.UUID
+	StatusLastCheckedAt time.Time
 }

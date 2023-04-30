@@ -29,18 +29,18 @@ func (r PgRepo) WithTx(tx pgx.Tx) PgRepo {
 	}
 }
 
-func (r PgRepo) GetSubscriptionByUUID(ctx context.Context, subscriptionUUID uuid.UUID) (subscription.Subscription, error) {
+func (r PgRepo) GetSubscriptionByUUID(ctx context.Context, subscriptionUUID uuid.UUID) (*subscription.Subscription, error) {
 	dbSub, err := r.queries.GetSubscriptionByUUID(ctx, subscriptionUUID)
 	if err == pgx.ErrNoRows {
-		return subscription.Subscription{}, subscription.ErrSubscriptionNotFound
+		return nil, subscription.ErrSubscriptionNotFound
 	}
 	if err != nil {
-		return subscription.Subscription{}, errors.Wrap(err, "unable to retrieve subscription")
+		return nil, errors.Wrap(err, "unable to retrieve subscription")
 	}
 	return toDomainSubscription(dbSub), nil
 }
 
-func (r PgRepo) GetSubscriptionsByAccountUUID(ctx context.Context, accountUUID uuid.UUID) ([]subscription.Subscription, error) {
+func (r PgRepo) GetSubscriptionsByAccountUUID(ctx context.Context, accountUUID uuid.UUID) ([]*subscription.Subscription, error) {
 	dbSubscriptions, err := r.queries.GetSubscriptionsByAccountUUID(ctx, accountUUID)
 	if err != nil {
 		return nil, err
@@ -48,18 +48,18 @@ func (r PgRepo) GetSubscriptionsByAccountUUID(ctx context.Context, accountUUID u
 	return toDomainSubscriptions(dbSubscriptions), nil
 }
 
-func (r PgRepo) GetSubscriptionByWebhookSecret(ctx context.Context, webhookSecret string) (subscription.Subscription, error) {
+func (r PgRepo) GetSubscriptionByWebhookSecret(ctx context.Context, webhookSecret string) (*subscription.Subscription, error) {
 	dbSub, err := r.queries.GetSubscriptionByWebhookSecret(ctx, webhookSecret)
 	if err == pgx.ErrNoRows {
-		return subscription.Subscription{}, subscription.ErrSubscriptionNotFound
+		return nil, subscription.ErrSubscriptionNotFound
 	}
 	if err != nil {
-		return subscription.Subscription{}, errors.Wrap(err, "unable to retrieve subscription")
+		return nil, errors.Wrap(err, "unable to retrieve subscription")
 	}
 	return toDomainSubscription(dbSub), nil
 }
 
-func (r PgRepo) GetPendingSubscriptions(ctx context.Context) ([]subscription.Subscription, error) {
+func (r PgRepo) GetPendingSubscriptions(ctx context.Context) ([]*subscription.Subscription, error) {
 	dbSubscriptions, err := r.queries.GetPendingSubscriptions(ctx)
 	if err != nil {
 		return nil, err
@@ -67,11 +67,11 @@ func (r PgRepo) GetPendingSubscriptions(ctx context.Context) ([]subscription.Sub
 	return toDomainSubscriptions(dbSubscriptions), nil
 }
 
-func (r PgRepo) CreateSubscriptionIfNotExists(ctx context.Context, sub subscription.Subscription) error {
+func (r PgRepo) CreateSubscriptionIfNotExists(ctx context.Context, sub *subscription.Subscription) error {
 	return r.createSubscriptionIfNotExists(ctx, sub)
 }
 
-func (r PgRepo) createSubscriptionIfNotExists(ctx context.Context, sub subscription.Subscription) error {
+func (r PgRepo) createSubscriptionIfNotExists(ctx context.Context, sub *subscription.Subscription) error {
 	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
 	defer tx.Rollback(ctx)
 
@@ -107,7 +107,7 @@ func (r PgRepo) createSubscriptionIfNotExists(ctx context.Context, sub subscript
 	return tx.Commit(ctx)
 }
 
-func (r PgRepo) ListSubscriptions(ctx context.Context) ([]subscription.Subscription, error) {
+func (r PgRepo) ListSubscriptions(ctx context.Context) ([]*subscription.Subscription, error) {
 	dbSubscriptions, err := r.queries.ListSubscriptions(ctx)
 	if err != nil {
 		return nil, err
@@ -115,15 +115,15 @@ func (r PgRepo) ListSubscriptions(ctx context.Context) ([]subscription.Subscript
 	return toDomainSubscriptions(dbSubscriptions), nil
 }
 
-func toDomainSubscriptions(dbSubs []db.Subscription) []subscription.Subscription {
-	var subscriptions []subscription.Subscription
+func toDomainSubscriptions(dbSubs []db.Subscription) []*subscription.Subscription {
+	var subscriptions []*subscription.Subscription
 	for _, dbSub := range dbSubs {
 		subscriptions = append(subscriptions, toDomainSubscription(dbSub))
 	}
 	return subscriptions
 }
 
-func toDomainSubscription(dbSub db.Subscription) subscription.Subscription {
+func toDomainSubscription(dbSub db.Subscription) *subscription.Subscription {
 	return subscription.NewSubscription(
 		dbSub.SubscriptionUuid,
 		dbSub.AccountUuid,
@@ -199,4 +199,54 @@ func (r PgRepo) AllNotificationCategories(ctx context.Context) ([]subscription.N
 		})
 	}
 	return notificationCategories, nil
+}
+
+// UpdateSubscription updates a subscription in the database.
+// updateFn is a function that takes the current account and returns the updated account.
+// updateFn is called within a transaction, so it should not start its own transaction.
+func (r PgRepo) UpdateSubscription(
+	ctx context.Context,
+	subscriptionUUID uuid.UUID,
+	updateFn func(ctx context.Context, sub *subscription.Subscription) (*subscription.Subscription, error),
+) error {
+	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
+	defer tx.Rollback(ctx)
+
+	inTransaction := r.WithTx(tx)
+
+	sub, err := inTransaction.GetSubscriptionByUUID(ctx, subscriptionUUID)
+	if err != nil {
+		return err
+	}
+	updatedSub, err := updateFn(ctx, sub)
+	err = inTransaction.queries.UpdateSubscription(ctx, db.UpdateSubscriptionParams{
+		SubscriptionUuid:    updatedSub.UUID(),
+		AccountUuid:         updatedSub.AccountUUID(),
+		Appli:               int32(updatedSub.Appli()),
+		Callbackurl:         updatedSub.CallbackURL(),
+		WebhookSecret:       updatedSub.WebhookSecret(),
+		Comment:             updatedSub.Comment(),
+		Status:              string(updatedSub.Status()),
+		StatusLastCheckedAt: updatedSub.StatusLastCheckedAt(),
+	})
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r PgRepo) MarkSubscriptionAsCheckedAndActive(ctx context.Context, sub *subscription.Subscription) error {
+	return r.UpdateSubscription(ctx,
+		sub.UUID(),
+		func(ctx context.Context, updatedSub *subscription.Subscription) (*subscription.Subscription, error) {
+			updatedSub.MarkAsCheckedAndActive()
+			return updatedSub, nil
+		},
+	)
 }

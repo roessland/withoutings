@@ -16,7 +16,7 @@ type CreateOrUpdateAccountHandler interface {
 
 func (h createOrUpdateAccountHandler) Handle(ctx context.Context, cmd CreateOrUpdateAccount) (err error) {
 	existingAcc, err := h.accountRepo.GetAccountByWithingsUserID(ctx, cmd.Account.WithingsUserID())
-	if err != nil && !errors.As(err, &account.NotFoundError{}) {
+	if err != nil && !errors.Is(err, account.ErrAccountNotFound) {
 		return err
 	}
 	accountAlreadyExists := err == nil

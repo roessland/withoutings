@@ -70,11 +70,11 @@ func (t Templates) RenderSleepSummaries(w io.Writer, sleepData *sleep.GetSleepSu
 
 type SubscriptionsPageVars struct {
 	Error         string
-	Subscriptions []subscription.Subscription
+	Subscriptions []*subscription.Subscription
 	Categories    []subscription.NotificationCategory
 }
 
-func (t Templates) RenderSubscriptionsPage(w io.Writer, subscriptions []subscription.Subscription, categories []subscription.NotificationCategory, err string) error {
+func (t Templates) RenderSubscriptionsPage(w io.Writer, subscriptions []*subscription.Subscription, categories []subscription.NotificationCategory, err string) error {
 	return t.template.ExecuteTemplate(w, "subscriptionspage.gohtml", SubscriptionsPageVars{
 		Subscriptions: subscriptions,
 		Categories:    categories,

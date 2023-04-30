@@ -2,25 +2,11 @@ package account
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"github.com/google/uuid"
 )
 
-type NotFoundError struct {
-	WithingsUserID string
-	AccountUUID    uuid.UUID
-}
-
-func (e NotFoundError) Error() string {
-	if e.WithingsUserID != "" {
-		return fmt.Sprintf("account with Withings user ID '%s' not found", e.WithingsUserID)
-	}
-	if e.AccountUUID != uuid.Nil {
-		return fmt.Sprintf("account with UUID '%s' not found", e.AccountUUID)
-	}
-	return fmt.Sprintf("account not found")
-
-}
+var ErrAccountNotFound = errors.New("account not found")
 
 //go:generate mockery --name Repo --filename accountrepo_mock.go
 type Repo interface {
