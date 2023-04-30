@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"github.com/alexedwards/scs/pgxstore"
 	"github.com/alexedwards/scs/v2"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/roessland/withoutings/pkg/config"
 	"github.com/roessland/withoutings/pkg/db"
 	"github.com/roessland/withoutings/pkg/service/sleep"
@@ -47,7 +47,7 @@ type MockApp struct {
 func NewApplication(ctx context.Context, cfg *config.Config) *App {
 	logger := logrus.New()
 
-	pool, err := pgxpool.Connect(ctx, cfg.DatabaseURL)
+	pool, err := pgxpool.New(ctx, cfg.DatabaseURL)
 	if err != nil {
 		panic(fmt.Sprintf("create connection pool: %s", err))
 	}

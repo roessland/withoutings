@@ -2,7 +2,7 @@ package db_test
 
 import (
 	"github.com/google/uuid"
-	_ "github.com/jackc/pgx/v4/stdlib"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/roessland/withoutings/pkg/db"
 	"github.com/roessland/withoutings/pkg/testctx"
 	"github.com/roessland/withoutings/pkg/testdb"

@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/roessland/withoutings/pkg/logging"
 	"github.com/roessland/withoutings/pkg/migration"
 	"strconv"
@@ -25,7 +25,7 @@ func New(ctx context.Context) TestDatabase {
 	// Connect to postgres using socket/trust with current user
 	// (<myuser> on localhost, "runner" in CI)
 	logger.Debugf("Connecting to template1")
-	postgresPool, err := pgxpool.Connect(ctx, "postgres://?host=localhost&password=postgres&database=template1")
+	postgresPool, err := pgxpool.New(ctx, "postgres://?host=localhost&password=postgres&database=template1")
 	if err != nil {
 		panic(err)
 	}
@@ -92,7 +92,7 @@ func New(ctx context.Context) TestDatabase {
 	migration.Run(wotsaConn)
 
 	// Connect to test DB using wotrw user
-	wotrwPool, err := pgxpool.Connect(ctx, "postgres://?host=localhost&user=wotrw&password=wotrw&database="+dbName)
+	wotrwPool, err := pgxpool.New(ctx, "postgres://?host=localhost&user=wotrw&password=wotrw&database="+dbName)
 	if err != nil {
 		panic(err)
 	}

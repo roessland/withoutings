@@ -5,7 +5,7 @@ import (
 	"github.com/alexedwards/scs/pgxstore"
 	"github.com/alexedwards/scs/v2"
 	"github.com/alexedwards/scs/v2/memstore"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/roessland/withoutings/pkg/config"
 	"github.com/roessland/withoutings/pkg/db"
 	"github.com/roessland/withoutings/pkg/logging"
