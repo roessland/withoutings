@@ -1,10 +1,10 @@
 # Withoutings
 
-Demo application for talking with Withings API. It is written in Go with few dependenices, and uses PostgreSQL as a
+Demo application for talking with Withings API. It is written in Go with few dependencies, and uses PostgreSQL as a
 database. The code is organized using DDD-ish / Clean Architecture-ish principles, based on the book and articles
 by https://threedots.tech/.
 
-![img.png](./docs/screenshot-2023-05-01.png)
+<img alt="screenshot" src="./docs/screenshot-2023-05-01.png" width="751" >
 
 ## Features
 
