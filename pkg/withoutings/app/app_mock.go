@@ -53,7 +53,7 @@ func NewTestApplication(t *testing.T, ctx context.Context, database *pgxpool.Poo
 
 	sleepSvc := sleep.NewSleep(nil) // no http client for now
 
-	templateSvc := templates.LoadTemplates()
+	templateSvc := templates.NewTemplates()
 
 	sessionManager := scs.New()
 	sessionManager.Store = pgxstore.New(database)
@@ -84,7 +84,7 @@ func NewMockApplication(t *testing.T) *App {
 	svc := &App{}
 	svc.Log = ctx.Logger
 	svc.Sessions = newInMemorySessionsManager()
-	svc.Templates = templates.LoadTemplates()
+	svc.Templates = templates.NewTemplates()
 	svc.Sleep = sleep.NewSleep(nil)
 	svc.Config = &config.Config{}
 	svc.WithingsRepo = withings.NewMockRepo(t)

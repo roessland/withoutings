@@ -17,7 +17,14 @@ func SleepSummaries(svc *app.App) http.HandlerFunc {
 
 		account := middleware.GetAccountFromContext(ctx)
 		if account == nil {
-			http.Error(w, "You must log in first", http.StatusUnauthorized)
+			w.Header().Set("Content-Type", "text/html")
+			w.WriteHeader(403)
+			err := svc.Templates.RenderSleepSummaries(w, nil, "You must be logged in to view this page.")
+			if err != nil {
+				log.WithError(err).WithField("event", "error.render.template").Error()
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
+			}
 			return
 		}
 

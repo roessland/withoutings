@@ -9,12 +9,12 @@ import (
 )
 
 func TestLoadTemplates(t *testing.T) {
-	tmpls := templates.LoadTemplates()
+	tmpls := templates.NewTemplates()
 	require.NotNil(t, tmpls)
 }
 
 func TestRenderTemplates(t *testing.T) {
-	tmpls := templates.LoadTemplates()
+	tmpls := templates.NewTemplates()
 	require.NotNil(t, tmpls)
 
 	var buf *bytes.Buffer

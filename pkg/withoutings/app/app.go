@@ -28,7 +28,7 @@ import (
 type App struct {
 	Log              logrus.FieldLogger
 	Sessions         *scs.SessionManager
-	Templates        templates.Templates
+	Templates        *templates.Templates
 	Sleep            *sleep.Sleep
 	DB               *pgxpool.Pool
 	Config           *config.Config
@@ -69,7 +69,7 @@ func NewApplication(ctx context.Context, cfg *config.Config) *App {
 		Log:              logger,
 		WithingsRepo:     withingsHttpClient,
 		Sessions:         sessions,
-		Templates:        templates.LoadTemplates(),
+		Templates:        templates.NewTemplates(),
 		Sleep:            sleep.NewSleep(withingsHttpClient),
 		DB:               pool,
 		Config:           cfg,
@@ -95,7 +95,7 @@ func (svc *App) Validate() {
 	if svc.Sessions == nil {
 		panic("App.Sessions was nil")
 	}
-	if svc.Templates.IsNil() {
+	if svc.Templates == nil {
 		panic("App.Templates was nil")
 	}
 	if svc.Sleep == nil {

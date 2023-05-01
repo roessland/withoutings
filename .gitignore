@@ -2,4 +2,5 @@ env.sh
 env.dev.sh
 env.prod.sh
 .idea
+node_modules
 .DS_Store

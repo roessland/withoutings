@@ -1,0 +1,14 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/** {*/
+/*    outline: 1px solid pink;*/
+/*}*/
+.sleepscore-hbar {
+    height: 20px;
+    background-color: darkslateblue;
+    display: inline-block;
+}

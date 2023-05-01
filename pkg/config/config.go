@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"github.com/kelseyhightower/envconfig"
 	"strings"
 )
@@ -61,7 +62,7 @@ func (cfg *Config) Validate() error {
 		return errors.New("missing config parameter: WebsiteURL")
 	}
 	if !strings.HasSuffix(cfg.WebsiteURL, "/") {
-		return errors.New("invalid config parameter: WebsiteURL must have trailing slash")
+		return fmt.Errorf("invalid config parameter: WebsiteURL '%s' must have trailing slash", cfg.WebsiteURL)
 	}
 	if cfg.WithingsRedirectURL == "" {
 		return errors.New("missing config parameter: WithingsRedirectURL")

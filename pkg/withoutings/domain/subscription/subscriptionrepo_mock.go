@@ -585,7 +585,7 @@ func (_c *MockRepo_ListSubscriptions_Call) RunAndReturn(run func(context.Context
 	return _c
 }
 
-// MarkAsCheckedAndActive provides a mock function with given fields: ctx, subscription
+// MarkSubscriptionAsCheckedAndActive provides a mock function with given fields: ctx, subscription
 func (_m *MockRepo) MarkSubscriptionAsCheckedAndActive(ctx context.Context, subscription *Subscription) error {
 	ret := _m.Called(ctx, subscription)
 
@@ -599,31 +599,31 @@ func (_m *MockRepo) MarkSubscriptionAsCheckedAndActive(ctx context.Context, subs
 	return r0
 }
 
-// MockRepo_MarkAsCheckedAndActive_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MarkSubscriptionAsCheckedAndActive'
-type MockRepo_MarkAsCheckedAndActive_Call struct {
+// MockRepo_MarkSubscriptionAsCheckedAndActive_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MarkSubscriptionAsCheckedAndActive'
+type MockRepo_MarkSubscriptionAsCheckedAndActive_Call struct {
 	*mock.Call
 }
 
-// MarkAsCheckedAndActive is a helper method to define mock.On call
+// MarkSubscriptionAsCheckedAndActive is a helper method to define mock.On call
 //   - ctx context.Context
 //   - subscription *Subscription
-func (_e *MockRepo_Expecter) MarkAsCheckedAndActive(ctx interface{}, subscription interface{}) *MockRepo_MarkAsCheckedAndActive_Call {
-	return &MockRepo_MarkAsCheckedAndActive_Call{Call: _e.mock.On("MarkSubscriptionAsCheckedAndActive", ctx, subscription)}
+func (_e *MockRepo_Expecter) MarkSubscriptionAsCheckedAndActive(ctx interface{}, subscription interface{}) *MockRepo_MarkSubscriptionAsCheckedAndActive_Call {
+	return &MockRepo_MarkSubscriptionAsCheckedAndActive_Call{Call: _e.mock.On("MarkSubscriptionAsCheckedAndActive", ctx, subscription)}
 }
 
-func (_c *MockRepo_MarkAsCheckedAndActive_Call) Run(run func(ctx context.Context, subscription *Subscription)) *MockRepo_MarkAsCheckedAndActive_Call {
+func (_c *MockRepo_MarkSubscriptionAsCheckedAndActive_Call) Run(run func(ctx context.Context, subscription *Subscription)) *MockRepo_MarkSubscriptionAsCheckedAndActive_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(*Subscription))
 	})
 	return _c
 }
 
-func (_c *MockRepo_MarkAsCheckedAndActive_Call) Return(_a0 error) *MockRepo_MarkAsCheckedAndActive_Call {
+func (_c *MockRepo_MarkSubscriptionAsCheckedAndActive_Call) Return(_a0 error) *MockRepo_MarkSubscriptionAsCheckedAndActive_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *MockRepo_MarkAsCheckedAndActive_Call) RunAndReturn(run func(context.Context, *Subscription) error) *MockRepo_MarkAsCheckedAndActive_Call {
+func (_c *MockRepo_MarkSubscriptionAsCheckedAndActive_Call) RunAndReturn(run func(context.Context, *Subscription) error) *MockRepo_MarkSubscriptionAsCheckedAndActive_Call {
 	_c.Call.Return(run)
 	return _c
 }

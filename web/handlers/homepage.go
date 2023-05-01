@@ -21,6 +21,7 @@ func Homepage(svc *app.App) http.HandlerFunc {
 		err := svc.Templates.RenderHomePage(w, account)
 		if err != nil {
 			log.WithError(err).WithField("event", "error.render.template").Error()
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
 	}

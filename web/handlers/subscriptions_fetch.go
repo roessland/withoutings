@@ -6,6 +6,7 @@ import (
 	"github.com/roessland/withoutings/pkg/withoutings/app"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
 	"github.com/roessland/withoutings/web/middleware"
+	"github.com/roessland/withoutings/web/templates"
 	"net/http"
 )
 
@@ -32,7 +33,7 @@ func SubscriptionsWithingsPage(svc *app.App) http.HandlerFunc {
 			return
 		}
 
-		var withingsResponses []string
+		withingsSubscriptions := make([]templates.SubscriptionsWithingsPageItem, 0)
 		for _, cat := range categories {
 			notifyListResponse, err := svc.WithingsRepo.NotifyList(ctx, account.WithingsAccessToken(),
 				withings.NewNotifyListParams(cat.Appli))
@@ -41,12 +42,26 @@ func SubscriptionsWithingsPage(svc *app.App) http.HandlerFunc {
 				fmt.Fprintf(w, "Error checking notification status with Withings")
 				return
 			}
-			withingsResponses = append(withingsResponses, string(notifyListResponse.Raw))
+			if len(notifyListResponse.Body.Profiles) == 0 {
+				withingsSubscriptions = append(withingsSubscriptions, templates.SubscriptionsWithingsPageItem{
+					Appli:            cat.Appli,
+					AppliDescription: cat.Description,
+					Exists:           false,
+				})
+			}
+			for _, profile := range notifyListResponse.Body.Profiles {
+				withingsSubscriptions = append(withingsSubscriptions, templates.SubscriptionsWithingsPageItem{
+					Appli:            profile.Appli,
+					AppliDescription: cat.Description,
+					Exists:           true,
+					Comment:          profile.Comment,
+				})
+			}
 		}
 
 		w.WriteHeader(200)
 		w.Header().Set("Content-Type", "text/html")
-		tmplErr := svc.Templates.RenderSubscriptionsWithingsPage(w, withingsResponses, "")
+		tmplErr := svc.Templates.RenderSubscriptionsWithingsPage(w, withingsSubscriptions, "")
 		if tmplErr != nil {
 			log.WithError(tmplErr).WithField("event", "error.RenderSubscriptionsWithingsPage").Error()
 			return

@@ -1,9 +1,12 @@
-{{template "header" .}}
+{{define "title"}}Refresh access token{{end}}
 
-
-{{if not .Error}}
+{{define "content"}}
+  {{if not .Error}}
     <br>Your access token has been refreshed.
+  {{end}}
+
+  {{if .Error}}
+    <br>Error: {{.Error}}
+  {{end}}
 {{end}}
 
-
-{{template "footer" .}}

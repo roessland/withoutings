@@ -29,6 +29,5 @@ type NotifyListBody struct {
 type NotifyListProfile struct {
 	Appli       int    `json:"appli"`
 	CallbackURL string `json:"callbackurl"`
-	Expires     int64  `json:"expires"`
 	Comment     string `json:"comment"`
 }

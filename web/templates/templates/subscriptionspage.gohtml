@@ -1,55 +1,59 @@
-{{template "header" .}}
+{{define "title"}}Subscriptions{{end}}
 
-<h3>Available subscriptions</h3>
-<table>
-    <thead>
-    <th>Appli</th>
-    <th>Description</th>
-    <th>Subscribe</th>
-    </thead>
-    {{ range $_, $value := .Categories }}
-        <tr>
-            <td>{{ $value.Appli }}</td>
-            <td>{{ $value.Description }}</td>
-            <td>
-                <form action="/subscriptions/subscribe/{{ $value.Appli }}" method="post">
-                    <input type="submit" value="Subscribe"/>
-                </form>
-            </td>
-        </tr>
-    {{ end }}
-</table>
+{{define "content"}}
+  <div class="py-4">
+    <div class="rounded-lg bg-gray-50 h-96">
 
-
-<h3>Your existing subscriptions</h3>
-
-{{if not .Subscriptions}}
-    <p>You don't have any webhook subscriptions yet.</p>
-{{else}}
-    <table>
+      <h3>Available subscriptions</h3>
+      <table>
         <thead>
-        <th>Appli</th>
-        <th>Status</th>
-        <th>Comment</th>
+        <tr>
+          <th>Appli</th>
+          <th>Description</th>
+          <th>Subscribe</th>
+        </tr>
         </thead>
-        {{ range $_, $value := .Subscriptions }}
+          {{ range $_, $value := .Categories }}
             <tr>
-                <td>
-                    <strong>{{ $value.Appli }}</strong>
-                </td>
-                <td>
-                    {{ $value.Status }}
-                </td>
-                <td>
-                    {{ $value.Comment }}
-                </td>
+              <td>{{ $value.Appli }}</td>
+              <td>{{ $value.Description }}</td>
+              <td>
+                <form action="/subscriptions/subscribe/{{ $value.Appli }}" method="post">
+                  <input type="submit" value="Subscribe"/>
+                </form>
+              </td>
             </tr>
-        {{ end }}
-    </table>
+          {{ end }}
+      </table>
+
+
+      <h3>Your existing subscriptions</h3>
+
+        {{if not .Subscriptions}}
+          <p>You don't have any webhook subscriptions yet.</p>
+        {{else}}
+          <table>
+            <thead>
+            <th>Appli</th>
+            <th>Status</th>
+            <th>Comment</th>
+            </thead>
+              {{ range $_, $value := .Subscriptions }}
+                <tr>
+                  <td>
+                    <strong>{{ $value.Appli }}</strong>
+                  </td>
+                  <td>
+                      {{ $value.Status }}
+                  </td>
+                  <td>
+                      {{ $value.Comment }}
+                  </td>
+                </tr>
+              {{ end }}
+          </table>
+        {{end}}
+
+    </div>
+  </div>
 {{end}}
-
-
-
-
-
-{{template "footer" .}}

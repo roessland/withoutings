@@ -1,8 +1,7 @@
-{{template "header" .}}
+{{define "title"}}Home{{end}}
 
-
-<br>Token:
-<pre>{{.Account}}</pre>
-
-
-{{template "footer" .}}
+{{define "content"}}
+  <div class="py-4">
+    <div class="rounded-lg bg-gray-50 h-96">This is the Home page.</div>
+  </div>
+{{end}}

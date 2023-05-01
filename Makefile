@@ -1,7 +1,26 @@
-.PHONY: sqlc
-sqlc:
-	cd pkg/db && sqlc generate
+.PHONY: all
+all: generate-all test build
+
+.PHONY: test
+test:
+	go test -v -cover ./...
+
+.PHONY: build
+build:
+	go build -v -o . ./...
+
+.PHONY: generate-all
+generate-all:
+	go generate ./...
+
+.PHONY: generate-sqlc
+generate-sqlc:
+	go generate ./pkg/db
+
+.PHONY: migrate
+migrate:
+	source env.dev.sh && go run cmd/withoutings/*.go migrate
 
 .PHONY: run-dev
-run-dev:
-	source env.dev.sh && go run cmd/withoutings/*.go migrate && go run cmd/withoutings/*.go server
+run-dev: generate-all migrate
+	source env.dev.sh && go run cmd/withoutings/*.go server

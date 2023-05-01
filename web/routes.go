@@ -4,7 +4,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/roessland/withoutings/pkg/withoutings/app"
 	"github.com/roessland/withoutings/web/handlers"
-	"github.com/roessland/withoutings/web/static"
 	"net/http"
 	"time"
 )
@@ -15,7 +14,7 @@ func Router(svc *app.App) *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/api/health", handlers.Health(svc))
 	r.HandleFunc("/", handlers.Homepage(svc))
-	r.PathPrefix("/static/").Handler(http.FileServer(http.FS(static.FS)))
+	r.PathPrefix("/static/").Handler(handlers.Static(svc))
 
 	r.Path("/auth/login").Methods("GET").Handler(handlers.Login(svc))
 	r.HandleFunc("/auth/logout", handlers.Logout(svc))

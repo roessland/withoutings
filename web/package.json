@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "dev": "npx tailwindcss -i ./static/static/style.template.css -o ./static/static/style.css --jit -w",
+    "build": "npx tailwindcss -i ./static/static/style.template.css -o ./static/static/style.css --minify"
+  },
+  "dependencies": {
+    "tailwindcss": "^3.3.2"
+  }
+}
