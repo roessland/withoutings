@@ -4,6 +4,8 @@ Demo application for talking with Withings API. It is written in Go with few dep
 database. The code is organized using DDD-ish / Clean Architecture-ish principles, based on the book and articles
 by https://threedots.tech/.
 
+![img.png](./docs/screenshot-2023-05-01.png)
+
 ## Features
 
 ### Currently available features
