@@ -1,12 +1,14 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/roessland/withoutings/pkg/logging"
 	"github.com/roessland/withoutings/pkg/withoutings/app"
 	"github.com/roessland/withoutings/pkg/withoutings/app/command"
-	"github.com/roessland/withoutings/web/middleware"
+	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
+	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 	"net/http"
 	"strconv"
 )
@@ -32,22 +34,23 @@ func Subscribe(svc *app.App) http.HandlerFunc {
 			return
 		}
 
-		account := middleware.GetAccountFromContext(ctx)
-		if account == nil {
+		acc := account.GetAccountFromContext(ctx)
+		if acc == nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			fmt.Fprintf(w, "You must be logged in to subscribe to webhooks.")
 			return
 		}
 
 		err = svc.Commands.SubscribeAccount.Handle(ctx, command.SubscribeAccount{
-			Account: *account,
+			Account: *acc,
 			Appli:   appli,
 		})
-		if err != nil {
+		if errors.Is(err, subscription.ErrSubscriptionAlreadyExists) {
+			svc.Flash.PutMsg(ctx, "You are already subscribed to this category.")
+		} else if err != nil {
 			log.WithError(err).Error()
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "An error occurred when trying to subscribe to webhooks.")
-
 			return
 		}
 

@@ -3,7 +3,7 @@ package handlers
 import (
 	"github.com/roessland/withoutings/pkg/logging"
 	"github.com/roessland/withoutings/pkg/withoutings/app"
-	"github.com/roessland/withoutings/web/middleware"
+	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"net/http"
 )
 
@@ -15,10 +15,10 @@ func Homepage(svc *app.App) http.HandlerFunc {
 		ctx := r.Context()
 		log := logging.MustGetLoggerFromContext(ctx)
 
-		account := middleware.GetAccountFromContext(ctx)
+		acc := account.GetAccountFromContext(ctx)
 
 		w.Header().Set("Content-Type", "text/html")
-		err := svc.Templates.RenderHomePage(w, account)
+		err := svc.Templates.RenderHomePage(ctx, w, acc)
 		if err != nil {
 			log.WithError(err).WithField("event", "error.render.template").Error()
 			http.Error(w, "Internal server error", http.StatusInternalServerError)

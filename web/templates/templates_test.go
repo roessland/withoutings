@@ -2,6 +2,7 @@ package templates_test
 
 import (
 	"bytes"
+	"context"
 	"github.com/roessland/withoutings/pkg/service/sleep"
 	"github.com/roessland/withoutings/web/templates"
 	"github.com/stretchr/testify/require"
@@ -25,19 +26,19 @@ func TestRenderTemplates(t *testing.T) {
 
 	t.Run("Home handles nil vars", func(t *testing.T) {
 		beforeEach(t)
-		err := tmpls.RenderHomePage(buf, nil)
+		err := tmpls.RenderHomePage(context.Background(), buf, nil)
 		require.NoError(t, err)
 	})
 
 	t.Run("RenderRefreshAccessToken handles nil vars", func(t *testing.T) {
 		beforeEach(t)
-		err := tmpls.RenderRefreshAccessToken(buf, nil, "")
+		err := tmpls.RenderRefreshAccessToken(context.Background(), buf, nil, "")
 		require.NoError(t, err)
 	})
 
 	t.Run("RenderRefreshAccessToken shows error", func(t *testing.T) {
 		beforeEach(t)
-		err := tmpls.RenderRefreshAccessToken(buf, nil, "no worky")
+		err := tmpls.RenderRefreshAccessToken(context.Background(), buf, nil, "no worky")
 		require.NoError(t, err)
 		require.Contains(t, buf.String(), "no worky")
 	})
@@ -46,21 +47,21 @@ func TestRenderTemplates(t *testing.T) {
 		beforeEach(t)
 		var paramSleepData *sleep.GetSleepSummaryOutput
 		var paramErr = ""
-		err := tmpls.RenderSleepSummaries(buf, paramSleepData, paramErr)
+		err := tmpls.RenderSleepSummaries(context.Background(), buf, paramSleepData, paramErr)
 		require.NoError(t, err)
 		require.Contains(t, buf.String(), "No data")
 	})
 
 	t.Run("RenderSubscriptionsPage handles nil vars", func(t *testing.T) {
 		beforeEach(t)
-		err := tmpls.RenderSubscriptionsPage(buf, nil, nil, "")
+		err := tmpls.RenderSubscriptionsPage(context.Background(), buf, nil, nil, "")
 		require.NoError(t, err)
 		require.Contains(t, buf.String(), "don't have")
 	})
 
 	t.Run("RenderSubscriptionsWithingsPage handles nil vars", func(t *testing.T) {
 		beforeEach(t)
-		err := tmpls.RenderSubscriptionsWithingsPage(buf, nil, "")
+		err := tmpls.RenderSubscriptionsWithingsPage(context.Background(), buf, nil, "")
 		require.NoError(t, err)
 		require.Contains(t, buf.String(), "don't have")
 	})

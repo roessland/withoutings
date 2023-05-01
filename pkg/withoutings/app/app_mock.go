@@ -18,6 +18,7 @@ import (
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
+	"github.com/roessland/withoutings/web/flash"
 	"github.com/roessland/withoutings/web/templates"
 	"testing"
 )
@@ -58,10 +59,13 @@ func NewTestApplication(t *testing.T, ctx context.Context, database *pgxpool.Poo
 	sessionManager := scs.New()
 	sessionManager.Store = pgxstore.New(database)
 
+	flashManager := flash.NewManager(sessionManager)
+
 	svc := &MockApp{
 		App: &App{
 			Log:              logger,
 			Sessions:         sessionManager,
+			Flash:            flashManager,
 			Templates:        templateSvc,
 			Sleep:            sleepSvc,
 			DB:               database,
@@ -84,6 +88,7 @@ func NewMockApplication(t *testing.T) *App {
 	svc := &App{}
 	svc.Log = ctx.Logger
 	svc.Sessions = newInMemorySessionsManager()
+	svc.Flash = flash.NewManager(svc.Sessions)
 	svc.Templates = templates.NewTemplates()
 	svc.Sleep = sleep.NewSleep(nil)
 	svc.Config = &config.Config{}

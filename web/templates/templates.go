@@ -1,6 +1,7 @@
 package templates
 
 import (
+	"context"
 	"embed"
 	"github.com/roessland/withoutings/pkg/service/sleep"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
@@ -50,69 +51,77 @@ func NewTemplates() *Templates {
 }
 
 type HomePageVars struct {
+	Context TemplateContext
 	Error   string
 	Account *account.Account
 }
 
-func (t *Templates) RenderHomePage(w io.Writer, account_ *account.Account) error {
+func (t *Templates) RenderHomePage(ctx context.Context, w io.Writer, account_ *account.Account) error {
 	tmpl, err := template.New("base.gohtml").ParseFS(FS, "base.gohtml", "homepage.gohtml")
 	if err != nil {
 		panic(err.Error())
 	}
 	tmpl.Option("missingkey=error")
 	return tmpl.ExecuteTemplate(w, "base.gohtml", HomePageVars{
+		Context: extractTemplateContext(ctx),
 		Account: account_,
 	})
 }
 
 type RefreshAccessTokenVars struct {
-	Token *withings.Token
-	Error string
+	Context TemplateContext
+	Token   *withings.Token
+	Error   string
 }
 
-func (t *Templates) RenderRefreshAccessToken(w io.Writer, token *withings.Token, errMsg string) error {
+func (t *Templates) RenderRefreshAccessToken(ctx context.Context, w io.Writer, token *withings.Token, errMsg string) error {
 	tmpl, err := template.New("base.gohtml").ParseFS(FS, "base.gohtml", "refreshaccesstoken.gohtml")
 	if err != nil {
 		panic(err.Error())
 	}
 	tmpl.Option("missingkey=error")
 	return tmpl.ExecuteTemplate(w, "base.gohtml", RefreshAccessTokenVars{
-		Token: token,
-		Error: errMsg,
+		Context: extractTemplateContext(ctx),
+		Token:   token,
+		Error:   errMsg,
 	})
 }
 
 type SleepSummariesVars struct {
+	Context   TemplateContext
 	Error     string
 	Token     *withings.Token
 	SleepData interface{}
 }
 
-func (t *Templates) RenderSleepSummaries(w io.Writer, sleepData *sleep.GetSleepSummaryOutput, errMsg string) error {
+func (t *Templates) RenderSleepSummaries(ctx context.Context, w io.Writer, sleepData *sleep.GetSleepSummaryOutput, errMsg string) error {
 	tmpl, err := template.New("base.gohtml").ParseFS(FS, "base.gohtml", "sleepsummaries.gohtml")
 	if err != nil {
 		panic(err.Error())
 	}
 	tmpl.Option("missingkey=error")
 	return tmpl.ExecuteTemplate(w, "base.gohtml", SleepSummariesVars{
+		Context:   extractTemplateContext(ctx),
 		SleepData: sleepData,
 		Error:     errMsg,
 	})
 }
 
 type SubscriptionsPageVars struct {
+	Context       TemplateContext
 	Error         string
 	Subscriptions []*subscription.Subscription
 	Categories    []subscription.NotificationCategory
 }
 
-func (t *Templates) RenderSubscriptionsPage(w io.Writer, subscriptions []*subscription.Subscription, categories []subscription.NotificationCategory, errMsg string) error {
+func (t *Templates) RenderSubscriptionsPage(ctx context.Context, w io.Writer, subscriptions []*subscription.Subscription, categories []subscription.NotificationCategory, errMsg string) error {
 	tmpl, err := template.New("base.gohtml").ParseFS(FS, "base.gohtml", "subscriptionspage.gohtml")
 	if err != nil {
 		panic(err.Error())
 	}
 	tmpl.Option("missingkey=error")
 	return tmpl.ExecuteTemplate(w, "base.gohtml", SubscriptionsPageVars{
+		Context:       extractTemplateContext(ctx),
 		Subscriptions: subscriptions,
 		Categories:    categories,
 		Error:         errMsg,
@@ -120,6 +129,7 @@ func (t *Templates) RenderSubscriptionsPage(w io.Writer, subscriptions []*subscr
 }
 
 type SubscriptionsWithingsPageVars struct {
+	Context               TemplateContext
 	Error                 string
 	WithingsSubscriptions []SubscriptionsWithingsPageItem
 }
@@ -131,13 +141,14 @@ type SubscriptionsWithingsPageItem struct {
 	Comment          string
 }
 
-func (t *Templates) RenderSubscriptionsWithingsPage(w io.Writer, withingsSubscriptions []SubscriptionsWithingsPageItem, errMsg string) error {
+func (t *Templates) RenderSubscriptionsWithingsPage(ctx context.Context, w io.Writer, withingsSubscriptions []SubscriptionsWithingsPageItem, errMsg string) error {
 	tmpl, err := template.New("base.gohtml").ParseFS(FS, "base.gohtml", "subscriptionswithingspage.gohtml")
 	if err != nil {
 		panic(err.Error())
 	}
 	tmpl.Option("missingkey=error")
 	return tmpl.ExecuteTemplate(w, "base.gohtml", SubscriptionsWithingsPageVars{
+		Context:               extractTemplateContext(ctx),
 		WithingsSubscriptions: withingsSubscriptions,
 		Error:                 errMsg,
 	})

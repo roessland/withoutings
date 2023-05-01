@@ -5,7 +5,6 @@ import (
 	"github.com/roessland/withoutings/pkg/integrationtest"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
-	"github.com/roessland/withoutings/web/middleware"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -58,7 +57,7 @@ func TestRefreshWithingsAccessToken(t *testing.T) {
 		}, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/auth/refresh", nil)
-		req = req.WithContext(middleware.AddAccountToContext(it.Ctx,
+		req = req.WithContext(account.AddToContext(it.Ctx,
 			account.NewAccountOrPanic(
 				accountUUID,
 				withingsUserID,

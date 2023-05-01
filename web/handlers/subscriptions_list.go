@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/roessland/withoutings/pkg/logging"
 	"github.com/roessland/withoutings/pkg/withoutings/app"
-	"github.com/roessland/withoutings/web/middleware"
+	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"net/http"
 )
 
@@ -17,8 +17,8 @@ func SubscriptionsPage(svc *app.App) http.HandlerFunc {
 		ctx := r.Context()
 		log := logging.MustGetLoggerFromContext(ctx)
 
-		account := middleware.GetAccountFromContext(ctx)
-		if account == nil {
+		acc := account.GetAccountFromContext(ctx)
+		if acc == nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			fmt.Fprintf(w, "You must log in to show subscriptions")
 			return
@@ -34,10 +34,10 @@ func SubscriptionsPage(svc *app.App) http.HandlerFunc {
 		}
 
 		// Get persisted subscriptions.
-		subscriptions, err := svc.SubscriptionRepo.GetSubscriptionsByAccountUUID(ctx, account.UUID())
+		subscriptions, err := svc.SubscriptionRepo.GetSubscriptionsByAccountUUID(ctx, acc.UUID())
 		if err != nil {
 			log.WithError(err).WithField("event", "error.AllNotificationCategories").Error()
-			tmplErr := svc.Templates.RenderSubscriptionsPage(w, nil,
+			tmplErr := svc.Templates.RenderSubscriptionsPage(ctx, w, nil,
 				categories, "An error occurred when retrieving your webhook subscriptions.")
 			if tmplErr != nil {
 				log.WithError(tmplErr).WithField("event", "error.RenderSubscriptionsPage").Error()
@@ -48,7 +48,7 @@ func SubscriptionsPage(svc *app.App) http.HandlerFunc {
 
 		w.WriteHeader(200)
 		w.Header().Set("Content-Type", "text/html")
-		tmplErr := svc.Templates.RenderSubscriptionsPage(w, subscriptions, categories, "")
+		tmplErr := svc.Templates.RenderSubscriptionsPage(ctx, w, subscriptions, categories, "")
 		if tmplErr != nil {
 			log.WithError(tmplErr).WithField("event", "error.RenderSubscriptionsPage").Error()
 			return

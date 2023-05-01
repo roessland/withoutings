@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"context"
 	"errors"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -11,20 +10,6 @@ import (
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"net/http"
 )
-
-var contextKeyAccount contextKey = struct{}{}
-
-func GetAccountFromContext(ctx context.Context) *account.Account {
-	acc, ok := ctx.Value(contextKeyAccount).(*account.Account)
-	if !ok {
-		return nil
-	}
-	return acc
-}
-
-func AddAccountToContext(ctx context.Context, account *account.Account) context.Context {
-	return context.WithValue(ctx, contextKeyAccount, account)
-}
 
 func Account(svc *app.App) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
@@ -43,7 +28,7 @@ func Account(svc *app.App) mux.MiddlewareFunc {
 				return
 			}
 			if acc != nil && acc.UUID() != uuid.Nil {
-				ctx = AddAccountToContext(ctx, acc)
+				ctx = account.AddToContext(ctx, acc)
 				ctx = logging.AddLoggerToContext(ctx, log.WithField("account_uuid", acc.UUID()))
 			}
 			next.ServeHTTP(w, r.WithContext(ctx))

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/roessland/withoutings/pkg/logging"
 	"github.com/roessland/withoutings/pkg/withoutings/app"
+	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
-	"github.com/roessland/withoutings/web/middleware"
 	"github.com/roessland/withoutings/web/templates"
 	"net/http"
 )
@@ -19,8 +19,8 @@ func SubscriptionsWithingsPage(svc *app.App) http.HandlerFunc {
 		ctx := r.Context()
 		log := logging.MustGetLoggerFromContext(ctx)
 
-		account := middleware.GetAccountFromContext(ctx)
-		if account == nil {
+		acc := account.GetAccountFromContext(ctx)
+		if acc == nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			fmt.Fprintf(w, "You must log in to show subscriptions")
 			return
@@ -35,7 +35,7 @@ func SubscriptionsWithingsPage(svc *app.App) http.HandlerFunc {
 
 		withingsSubscriptions := make([]templates.SubscriptionsWithingsPageItem, 0)
 		for _, cat := range categories {
-			notifyListResponse, err := svc.WithingsRepo.NotifyList(ctx, account.WithingsAccessToken(),
+			notifyListResponse, err := svc.WithingsRepo.NotifyList(ctx, acc.WithingsAccessToken(),
 				withings.NewNotifyListParams(cat.Appli))
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
@@ -61,7 +61,7 @@ func SubscriptionsWithingsPage(svc *app.App) http.HandlerFunc {
 
 		w.WriteHeader(200)
 		w.Header().Set("Content-Type", "text/html")
-		tmplErr := svc.Templates.RenderSubscriptionsWithingsPage(w, withingsSubscriptions, "")
+		tmplErr := svc.Templates.RenderSubscriptionsWithingsPage(ctx, w, withingsSubscriptions, "")
 		if tmplErr != nil {
 			log.WithError(tmplErr).WithField("event", "error.RenderSubscriptionsWithingsPage").Error()
 			return

@@ -12,5 +12,6 @@ func Middleware(svc *app.App) []mux.MiddlewareFunc {
 		middleware.Logging(svc),
 		svc.Sessions.LoadAndSave,
 		middleware.Account(svc),
+		middleware.FlashMessages(svc),
 	}
 }

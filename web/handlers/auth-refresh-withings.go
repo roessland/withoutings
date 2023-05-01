@@ -4,7 +4,7 @@ import (
 	"github.com/roessland/withoutings/pkg/logging"
 	"github.com/roessland/withoutings/pkg/withoutings/app"
 	"github.com/roessland/withoutings/pkg/withoutings/app/command"
-	"github.com/roessland/withoutings/web/middleware"
+	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"net/http"
 )
 
@@ -18,7 +18,7 @@ func RefreshWithingsAccessToken(svc *app.App) http.HandlerFunc {
 		ctx := r.Context()
 		log := logging.MustGetLoggerFromContext(ctx)
 
-		accInitial := middleware.GetAccountFromContext(ctx)
+		accInitial := account.GetAccountFromContext(ctx)
 		if accInitial == nil {
 			http.Error(w, "You must log in first", http.StatusUnauthorized)
 			return
@@ -26,7 +26,7 @@ func RefreshWithingsAccessToken(svc *app.App) http.HandlerFunc {
 
 		if !accInitial.CanRefreshAccessToken() {
 			w.WriteHeader(200)
-			tmplErr := svc.Templates.RenderRefreshAccessToken(w, nil,
+			tmplErr := svc.Templates.RenderRefreshAccessToken(ctx, w, nil,
 				"Not refreshing your access token since it not yet expired.")
 			if tmplErr != nil {
 				log.WithError(tmplErr).WithField("event", "error.render.template").Error()
@@ -41,7 +41,7 @@ func RefreshWithingsAccessToken(svc *app.App) http.HandlerFunc {
 				WithField("event", "event.handlers.RefreshWithingsAccessToken.failed").
 				Error()
 			w.WriteHeader(500)
-			tmplErr := svc.Templates.RenderRefreshAccessToken(w, nil,
+			tmplErr := svc.Templates.RenderRefreshAccessToken(ctx, w, nil,
 				"Could not refresh your access token since an error occurred.")
 			if tmplErr != nil {
 				log.WithError(tmplErr).WithField("event", "error.render.template").Error()
@@ -51,7 +51,7 @@ func RefreshWithingsAccessToken(svc *app.App) http.HandlerFunc {
 		}
 
 		w.Header().Set("Content-Type", "text/html")
-		tmplErr := svc.Templates.RenderRefreshAccessToken(w, nil, "")
+		tmplErr := svc.Templates.RenderRefreshAccessToken(ctx, w, nil, "")
 		if tmplErr != nil {
 			log.WithError(tmplErr).WithField("event", "error.render.template").Error()
 			return

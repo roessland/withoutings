@@ -19,6 +19,7 @@ import (
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
+	"github.com/roessland/withoutings/web/flash"
 	"github.com/roessland/withoutings/web/templates"
 	"github.com/sirupsen/logrus"
 	"time"
@@ -28,6 +29,7 @@ import (
 type App struct {
 	Log              logrus.FieldLogger
 	Sessions         *scs.SessionManager
+	Flash            *flash.Manager
 	Templates        *templates.Templates
 	Sleep            *sleep.Sleep
 	DB               *pgxpool.Pool
@@ -58,6 +60,8 @@ func NewApplication(ctx context.Context, cfg *config.Config) *App {
 	sessions.Lifetime = time.Hour * 24 * 180    // 6 months
 	sessions.IdleTimeout = time.Hour * 24 * 180 // 6 months
 
+	flashManager := flash.NewManager(sessions)
+
 	sessions.Store = pgxstore.New(pool)
 
 	accountRepo := accountAdapter.NewPgRepo(pool, dbQueries)
@@ -69,6 +73,7 @@ func NewApplication(ctx context.Context, cfg *config.Config) *App {
 		Log:              logger,
 		WithingsRepo:     withingsHttpClient,
 		Sessions:         sessions,
+		Flash:            flashManager,
 		Templates:        templates.NewTemplates(),
 		Sleep:            sleep.NewSleep(withingsHttpClient),
 		DB:               pool,
@@ -94,6 +99,9 @@ func (svc *App) Validate() {
 	}
 	if svc.Sessions == nil {
 		panic("App.Sessions was nil")
+	}
+	if svc.Flash == nil {
+		panic("App.Flash was nil")
 	}
 	if svc.Templates == nil {
 		panic("App.Templates was nil")

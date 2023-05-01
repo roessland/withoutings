@@ -4,7 +4,7 @@ import (
 	"github.com/roessland/withoutings/pkg/logging"
 	"github.com/roessland/withoutings/pkg/service/sleep"
 	"github.com/roessland/withoutings/pkg/withoutings/app"
-	"github.com/roessland/withoutings/web/middleware"
+	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"net/http"
 	"time"
 )
@@ -15,11 +15,11 @@ func SleepSummaries(svc *app.App) http.HandlerFunc {
 		ctx := r.Context()
 		log := logging.MustGetLoggerFromContext(ctx)
 
-		account := middleware.GetAccountFromContext(ctx)
-		if account == nil {
+		acc := account.GetAccountFromContext(ctx)
+		if acc == nil {
 			w.Header().Set("Content-Type", "text/html")
 			w.WriteHeader(403)
-			err := svc.Templates.RenderSleepSummaries(w, nil, "You must be logged in to view this page.")
+			err := svc.Templates.RenderSleepSummaries(ctx, w, nil, "You must be logged in to view this page.")
 			if err != nil {
 				log.WithError(err).WithField("event", "error.render.template").Error()
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -29,10 +29,10 @@ func SleepSummaries(svc *app.App) http.HandlerFunc {
 		}
 
 		var sleepData sleep.GetSleepSummaryOutput
-		if time.Now().After(account.WithingsAccessTokenExpiry()) {
+		if time.Now().After(acc.WithingsAccessTokenExpiry()) {
 			w.Header().Set("Content-Type", "text/html")
 			w.WriteHeader(200)
-			err := svc.Templates.RenderSleepSummaries(w, nil, "Your token is expired. ")
+			err := svc.Templates.RenderSleepSummaries(ctx, w, nil, "Your token is expired. ")
 			if err != nil {
 				log.WithError(err).WithField("event", "error.render.template").Error()
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -41,7 +41,7 @@ func SleepSummaries(svc *app.App) http.HandlerFunc {
 			return
 		}
 
-		sleepData, err := svc.Sleep.GetSleepSummaries(ctx, account.WithingsAccessToken(), sleep.GetSleepSummaryInput{
+		sleepData, err := svc.Sleep.GetSleepSummaries(ctx, acc.WithingsAccessToken(), sleep.GetSleepSummaryInput{
 			Year:  0,
 			Month: 0,
 		})
@@ -53,7 +53,7 @@ func SleepSummaries(svc *app.App) http.HandlerFunc {
 
 		w.Header().Set("Content-Type", "text/html")
 		w.WriteHeader(200)
-		err = svc.Templates.RenderSleepSummaries(w, &sleepData, "")
+		err = svc.Templates.RenderSleepSummaries(ctx, w, &sleepData, "")
 		if err != nil {
 			log.WithError(err).WithField("event", "error.render.template").Error()
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
