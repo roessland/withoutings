@@ -57,7 +57,7 @@ func (c *AuthenticatedClient) NotifyList(ctx context.Context, params withings.No
 	}
 
 	if resp.Status != 0 {
-		return &resp, APIError(resp.Status)
+		return &resp, withings.APIError(resp.Status)
 	}
 
 	return &resp, nil
