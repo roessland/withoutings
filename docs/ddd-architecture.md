@@ -2,6 +2,7 @@
 
 ## Dependency graph
 
+
 ```mermaid
 flowchart LR;
 
@@ -59,12 +60,9 @@ adapters-->domain
 subgraph commands
     direction LR
     CreateOrUpdateAccount
-    CreateOrUpdateAccount
     SubscribeAccount
-    SubscribeAccount
-    RefreshAccessTokenHandler
-    RefreshAccessTokenHandler
-    SubscribeAccount
+    RefreshAccessToken
+    SyncSubscriptions
 end
 commands-->domain
 
@@ -104,8 +102,5 @@ subgraph subscriptiondomain
     subscription.RawNotification
     subscription.Repo
 end
-
-
-
 
 ```

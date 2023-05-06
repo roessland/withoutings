@@ -128,7 +128,7 @@ func (q *Queries) ListAccounts(ctx context.Context) ([]Account, error) {
 	return items, nil
 }
 
-const updateAccount = `-- name: UpdateAccount :exec
+const updateAccount = `-- name: Update :exec
 UPDATE account
 SET withings_access_token=$1,
     withings_refresh_token=$2,

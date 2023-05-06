@@ -3,6 +3,7 @@ package command
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/roessland/withoutings/pkg/logging"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
@@ -10,7 +11,8 @@ import (
 )
 
 type RefreshAccessToken struct {
-	Account *account.Account
+	Account   *account.Account
+	CommandID uuid.UUID
 }
 
 type RefreshAccessTokenHandler interface {
@@ -32,7 +34,7 @@ func (h refreshAccessTokenHandler) Handle(ctx context.Context, cmd RefreshAccess
 		return err
 	}
 
-	return h.accountRepo.UpdateAccount(
+	return h.accountRepo.Update(
 		ctx,
 		acc.WithingsUserID(),
 		func(ctx context.Context, accNext *account.Account) (*account.Account, error) {

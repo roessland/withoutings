@@ -6,7 +6,7 @@ type contextKey struct{}
 
 var contextKeyAccount contextKey = struct{}{}
 
-func GetAccountFromContext(ctx context.Context) *Account {
+func GetFromContext(ctx context.Context) *Account {
 	acc, ok := ctx.Value(contextKeyAccount).(*Account)
 	if !ok {
 		return nil

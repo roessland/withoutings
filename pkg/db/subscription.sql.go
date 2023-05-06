@@ -356,7 +356,7 @@ func (q *Queries) ListSubscriptions(ctx context.Context) ([]Subscription, error)
 	return items, nil
 }
 
-const updateSubscription = `-- name: UpdateSubscription :exec
+const updateSubscription = `-- name: Update :exec
 UPDATE subscription
 SET account_uuid           = $1,
     appli                  = $2,

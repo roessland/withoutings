@@ -11,6 +11,8 @@ import (
 	"github.com/roessland/withoutings/pkg/config"
 	"github.com/roessland/withoutings/pkg/db"
 	"github.com/roessland/withoutings/pkg/service/sleep"
+	"github.com/roessland/withoutings/pkg/web/flash"
+	"github.com/roessland/withoutings/pkg/web/templates"
 	accountAdapter "github.com/roessland/withoutings/pkg/withoutings/adapter/account"
 	subscriptionAdapter "github.com/roessland/withoutings/pkg/withoutings/adapter/subscription"
 	withingsAdapter "github.com/roessland/withoutings/pkg/withoutings/adapter/withings"
@@ -19,8 +21,6 @@ import (
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
-	"github.com/roessland/withoutings/web/flash"
-	"github.com/roessland/withoutings/web/templates"
 	"github.com/sirupsen/logrus"
 	"time"
 )
@@ -68,6 +68,8 @@ func NewApplication(ctx context.Context, cfg *config.Config) *App {
 	subscriptionRepo := subscriptionAdapter.NewPgRepo(pool, dbQueries)
 
 	withingsHttpClient := withingsAdapter.NewClient(cfg.WithingsClientID, cfg.WithingsClientSecret, cfg.WithingsRedirectURL)
+
+	withingsSvc := withingsService.New(withingsHttpClient, accountRepo, subscriptionRepo)
 
 	return &App{
 		Log:              logger,
@@ -133,7 +135,7 @@ type Commands struct {
 
 func (cs Commands) Validate() {
 	if cs.SubscribeAccount == nil {
-		panic("Commands.SubscribeAccount was nil")
+		panic("Commands.SyncSubscriptions was nil")
 	}
 	if cs.CreateOrUpdateAccount == nil {
 		panic("Commands.CreateOrUpdateAccount was nil")

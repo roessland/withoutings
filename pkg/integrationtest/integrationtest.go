@@ -5,8 +5,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/roessland/withoutings/pkg/testctx"
 	"github.com/roessland/withoutings/pkg/testdb"
+	"github.com/roessland/withoutings/pkg/web"
 	"github.com/roessland/withoutings/pkg/withoutings/app"
-	"github.com/roessland/withoutings/web"
 	"github.com/sirupsen/logrus"
 	"testing"
 )

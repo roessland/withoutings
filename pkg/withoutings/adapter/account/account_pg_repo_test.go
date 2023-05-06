@@ -42,7 +42,7 @@ func TestAccountPgRepo_UpdateAccount(t *testing.T) {
 	withingsID := acc.WithingsUserID()
 
 	t.Run("updates all fields", func(t *testing.T) {
-		err := repo.UpdateAccount(ctx, withingsID, func(ctx context.Context, accNext *account.Account) (*account.Account, error) {
+		err := repo.Update(ctx, withingsID, func(ctx context.Context, accNext *account.Account) (*account.Account, error) {
 			require.NoError(t, accNext.UpdateWithingsToken(
 				"gibberish-updated",
 				"whatever-updated",

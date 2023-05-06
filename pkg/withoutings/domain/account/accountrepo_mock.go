@@ -230,7 +230,7 @@ func (_c *MockRepo_ListAccounts_Call) RunAndReturn(run func(context.Context) ([]
 }
 
 // UpdateAccount provides a mock function with given fields: ctx, withingsUserID, updateFn
-func (_m *MockRepo) UpdateAccount(ctx context.Context, withingsUserID string, updateFn func(context.Context, *Account) (*Account, error)) error {
+func (_m *MockRepo) Update(ctx context.Context, withingsUserID string, updateFn func(context.Context, *Account) (*Account, error)) error {
 	ret := _m.Called(ctx, withingsUserID, updateFn)
 
 	var r0 error
@@ -243,7 +243,7 @@ func (_m *MockRepo) UpdateAccount(ctx context.Context, withingsUserID string, up
 	return r0
 }
 
-// MockRepo_UpdateAccount_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateAccount'
+// MockRepo_UpdateAccount_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Update'
 type MockRepo_UpdateAccount_Call struct {
 	*mock.Call
 }
@@ -253,7 +253,7 @@ type MockRepo_UpdateAccount_Call struct {
 //   - withingsUserID string
 //   - updateFn func(context.Context , *Account)(*Account , error)
 func (_e *MockRepo_Expecter) UpdateAccount(ctx interface{}, withingsUserID interface{}, updateFn interface{}) *MockRepo_UpdateAccount_Call {
-	return &MockRepo_UpdateAccount_Call{Call: _e.mock.On("UpdateAccount", ctx, withingsUserID, updateFn)}
+	return &MockRepo_UpdateAccount_Call{Call: _e.mock.On("Update", ctx, withingsUserID, updateFn)}
 }
 
 func (_c *MockRepo_UpdateAccount_Call) Run(run func(ctx context.Context, withingsUserID string, updateFn func(context.Context, *Account) (*Account, error))) *MockRepo_UpdateAccount_Call {

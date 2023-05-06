@@ -11,6 +11,8 @@ import (
 	"github.com/roessland/withoutings/pkg/logging"
 	"github.com/roessland/withoutings/pkg/service/sleep"
 	"github.com/roessland/withoutings/pkg/testctx"
+	"github.com/roessland/withoutings/pkg/web/flash"
+	"github.com/roessland/withoutings/pkg/web/templates"
 	accountAdapter "github.com/roessland/withoutings/pkg/withoutings/adapter/account"
 	subscriptionAdapter "github.com/roessland/withoutings/pkg/withoutings/adapter/subscription"
 	"github.com/roessland/withoutings/pkg/withoutings/app/command"
@@ -18,8 +20,6 @@ import (
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
-	"github.com/roessland/withoutings/web/flash"
-	"github.com/roessland/withoutings/web/templates"
 	"testing"
 )
 
