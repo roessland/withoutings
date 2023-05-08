@@ -22,7 +22,7 @@ func (h createOrUpdateAccountHandler) Handle(ctx context.Context, cmd CreateOrUp
 	accountAlreadyExists := err == nil
 
 	if accountAlreadyExists {
-		return h.accountRepo.Update(ctx, existingAcc.WithingsUserID(),
+		return h.accountRepo.Update(ctx, existingAcc,
 			func(ctx context.Context, acc *account.Account) (*account.Account, error) {
 				acc = cmd.Account
 				return acc, nil

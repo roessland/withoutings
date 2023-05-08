@@ -31,7 +31,7 @@ func TestAccountPgRepo_UpdateAccount(t *testing.T) {
 		withingsUserID,
 		"gibberish",
 		"whatever",
-		time.Now().Add(time.Hour),
+		time.Now().Add(5*time.Second),
 		"some_scope",
 	))
 	require.NoError(t, err)
@@ -39,21 +39,20 @@ func TestAccountPgRepo_UpdateAccount(t *testing.T) {
 	// Retrieve inserted account ID
 	acc, err := repo.GetAccountByWithingsUserID(ctx, withingsUserID)
 	require.NoError(t, err)
-	withingsID := acc.WithingsUserID()
 
 	t.Run("updates all fields", func(t *testing.T) {
-		err := repo.Update(ctx, withingsID, func(ctx context.Context, accNext *account.Account) (*account.Account, error) {
+		err := repo.Update(ctx, acc, func(ctx context.Context, accNext *account.Account) (*account.Account, error) {
 			require.NoError(t, accNext.UpdateWithingsToken(
 				"gibberish-updated",
 				"whatever-updated",
-				time.Now().Add(time.Minute),
+				time.Now().Add(1*time.Minute),
 				"some_scope-updated",
 			))
 			return accNext, nil
 		})
 		require.NoError(t, err)
 
-		accUpdated, err := repo.GetAccountByWithingsUserID(ctx, withingsID)
+		accUpdated, err := repo.GetAccountByUUID(ctx, acc.UUID())
 		require.NoError(t, err)
 		require.EqualValues(t, withingsUserID, accUpdated.WithingsUserID())
 		require.EqualValues(t, "gibberish-updated", accUpdated.WithingsAccessToken())

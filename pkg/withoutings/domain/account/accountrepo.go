@@ -16,7 +16,7 @@ type Repo interface {
 	ListAccounts(ctx context.Context) ([]*Account, error)
 	Update(
 		ctx context.Context,
-		withingsUserID string,
+		account *Account,
 		updateFn func(ctx context.Context, acc *Account) (*Account, error),
 	) error
 }

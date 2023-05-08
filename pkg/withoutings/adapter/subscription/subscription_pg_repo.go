@@ -204,9 +204,10 @@ func (r PgRepo) AllNotificationCategories(ctx context.Context) ([]subscription.N
 // Update updates a subscription in the database.
 // updateFn is a function that takes the current account and returns the updated account.
 // updateFn is called within a transaction, so it should not start its own transaction.
+// TODO test that it returns the updated sub
 func (r PgRepo) Update(
 	ctx context.Context,
-	subscriptionUUID uuid.UUID,
+	sub *subscription.Subscription,
 	updateFn func(ctx context.Context, sub *subscription.Subscription) (*subscription.Subscription, error),
 ) error {
 	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
@@ -214,7 +215,7 @@ func (r PgRepo) Update(
 
 	inTransaction := r.WithTx(tx)
 
-	sub, err := inTransaction.GetSubscriptionByUUID(ctx, subscriptionUUID)
+	sub, err = inTransaction.GetSubscriptionByUUID(ctx, sub.UUID())
 	if err != nil {
 		return err
 	}
@@ -243,7 +244,7 @@ func (r PgRepo) Update(
 
 func (r PgRepo) MarkSubscriptionAsCheckedAndActive(ctx context.Context, sub *subscription.Subscription) error {
 	return r.Update(ctx,
-		sub.UUID(),
+		sub,
 		func(ctx context.Context, updatedSub *subscription.Subscription) (*subscription.Subscription, error) {
 			updatedSub.MarkAsCheckedAndActive()
 			return updatedSub, nil

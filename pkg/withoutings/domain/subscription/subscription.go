@@ -20,7 +20,7 @@ type Status string
 
 const StatusPending Status = "pending"
 const StatusActive Status = "active"
-const StatusUnlinked Status = "unlinked"
+const StatusRevoked Status = "revoked"
 const StatusUserDeleted Status = "user-deleted"
 
 // NewSubscription returns a new subscription.
@@ -100,4 +100,9 @@ func (s *Subscription) StatusShouldBeChecked() bool {
 func (s *Subscription) MarkAsCheckedAndActive() {
 	s.statusLastCheckedAt = time.Now()
 	s.status = StatusActive
+}
+
+func (s *Subscription) MarkAsRevoked() {
+	s.statusLastCheckedAt = time.Now()
+	s.status = StatusRevoked
 }

@@ -17,9 +17,10 @@ import (
 	subscriptionAdapter "github.com/roessland/withoutings/pkg/withoutings/adapter/subscription"
 	"github.com/roessland/withoutings/pkg/withoutings/app/command"
 	"github.com/roessland/withoutings/pkg/withoutings/app/query"
+	withings2 "github.com/roessland/withoutings/pkg/withoutings/app/service/withings"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
-	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
+	withings "github.com/roessland/withoutings/pkg/withoutings/domain/withings"
 	"testing"
 )
 
@@ -39,17 +40,18 @@ func NewTestApplication(t *testing.T, ctx context.Context, database *pgxpool.Poo
 	accountRepo := accountAdapter.NewPgRepo(database, dbQueries)
 	subscriptionsRepo := subscriptionAdapter.NewPgRepo(database, dbQueries)
 	mockWithingsRepo := withings.NewMockRepo(t)
+	withingsSvc := withings2.NewService(mockWithingsRepo, accountRepo)
 
 	queries := Queries{
 		AccountByAccountUUID:    query.NewAccountByUUIDHandler(accountRepo),
 		AccountByWithingsUserID: query.NewAccountByWithingsUserIDHandler(accountRepo),
 		AllAccounts:             query.NewAllAccountsHandler(accountRepo),
 	}
-
 	commands := Commands{
-		SubscribeAccount:      command.NewSubscribeAccountHandler(accountRepo, subscriptionsRepo, mockWithingsRepo, cfg),
-		CreateOrUpdateAccount: command.NewCreateOrUpdateAccountHandler(accountRepo),
-		RefreshAccessToken:    command.NewRefreshAccessTokenHandler(accountRepo, mockWithingsRepo),
+		SubscribeAccount:         command.NewSubscribeAccountHandler(accountRepo, subscriptionsRepo, mockWithingsRepo, cfg),
+		CreateOrUpdateAccount:    command.NewCreateOrUpdateAccountHandler(accountRepo),
+		RefreshAccessToken:       command.NewRefreshAccessTokenHandler(accountRepo, mockWithingsRepo),
+		SyncRevokedSubscriptions: command.NewSyncRevokedSubscriptionsHandler(subscriptionsRepo, withingsSvc),
 	}
 
 	sleepSvc := sleep.NewSleep(nil) // no http client for now
@@ -95,10 +97,12 @@ func NewMockApplication(t *testing.T) *App {
 	svc.WithingsRepo = withings.NewMockRepo(t)
 	svc.AccountRepo = account.NewMockRepo(t)
 	svc.SubscriptionRepo = subscription.NewMockRepo(t)
+	withingsSvc := withings2.NewService(svc.WithingsRepo, svc.AccountRepo)
 	svc.Commands = Commands{
-		SubscribeAccount:      command.NewSubscribeAccountHandler(svc.AccountRepo, svc.SubscriptionRepo, svc.WithingsRepo, svc.Config),
-		CreateOrUpdateAccount: command.NewCreateOrUpdateAccountHandler(svc.AccountRepo),
-		RefreshAccessToken:    command.NewRefreshAccessTokenHandler(svc.AccountRepo, svc.WithingsRepo),
+		SubscribeAccount:         command.NewSubscribeAccountHandler(svc.AccountRepo, svc.SubscriptionRepo, svc.WithingsRepo, svc.Config),
+		CreateOrUpdateAccount:    command.NewCreateOrUpdateAccountHandler(svc.AccountRepo),
+		RefreshAccessToken:       command.NewRefreshAccessTokenHandler(svc.AccountRepo, svc.WithingsRepo),
+		SyncRevokedSubscriptions: command.NewSyncRevokedSubscriptionsHandler(svc.SubscriptionRepo, withingsSvc),
 	}
 	svc.Queries = Queries{
 		AccountByWithingsUserID: query.NewAccountByWithingsUserIDHandler(svc.AccountRepo),

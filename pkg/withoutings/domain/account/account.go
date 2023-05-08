@@ -6,13 +6,15 @@ import (
 	"time"
 )
 
+const withingsRefreshLeaseDuration = 10 * time.Second
+
 type Account struct {
 	accountUUID               uuid.UUID
 	withingsUserID            string
 	withingsAccessToken       string
 	withingsRefreshToken      string
-	withingsAccessTokenExpiry time.Time
 	withingsScopes            string
+	withingsAccessTokenExpiry time.Time
 }
 
 func NewAccount(
@@ -103,6 +105,8 @@ func (acc *Account) CanRefreshAccessToken() bool {
 	return acc != nil && time.Now().After(acc.withingsAccessTokenExpiry)
 }
 
+// UpdateWithingsToken updates the account's access token.
+// If the account already has a newer access token, this method does nothing.
 func (acc *Account) UpdateWithingsToken(accessToken string, refreshToken string, expiry time.Time, scopes string) error {
 	if accessToken == "" {
 		return errors.New("empty access token")
@@ -115,6 +119,10 @@ func (acc *Account) UpdateWithingsToken(accessToken string, refreshToken string,
 	}
 	if scopes == "" {
 		return errors.New("empty scopes")
+	}
+	// Someone else has already refreshed the token.
+	if expiry.Before(acc.withingsAccessTokenExpiry) {
+		return nil
 	}
 	acc.withingsAccessToken = accessToken
 	acc.withingsRefreshToken = refreshToken

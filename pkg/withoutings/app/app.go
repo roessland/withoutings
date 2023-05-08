@@ -18,6 +18,7 @@ import (
 	withingsAdapter "github.com/roessland/withoutings/pkg/withoutings/adapter/withings"
 	"github.com/roessland/withoutings/pkg/withoutings/app/command"
 	"github.com/roessland/withoutings/pkg/withoutings/app/query"
+	withingsService "github.com/roessland/withoutings/pkg/withoutings/app/service/withings"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
@@ -69,7 +70,7 @@ func NewApplication(ctx context.Context, cfg *config.Config) *App {
 
 	withingsHttpClient := withingsAdapter.NewClient(cfg.WithingsClientID, cfg.WithingsClientSecret, cfg.WithingsRedirectURL)
 
-	withingsSvc := withingsService.New(withingsHttpClient, accountRepo, subscriptionRepo)
+	withingsSvc := withingsService.NewService(withingsHttpClient, accountRepo)
 
 	return &App{
 		Log:              logger,
@@ -83,9 +84,10 @@ func NewApplication(ctx context.Context, cfg *config.Config) *App {
 		AccountRepo:      accountRepo,
 		SubscriptionRepo: subscriptionRepo,
 		Commands: Commands{
-			SubscribeAccount:      command.NewSubscribeAccountHandler(accountRepo, subscriptionRepo, withingsHttpClient, cfg),
-			CreateOrUpdateAccount: command.NewCreateOrUpdateAccountHandler(accountRepo),
-			RefreshAccessToken:    command.NewRefreshAccessTokenHandler(accountRepo, withingsHttpClient),
+			SubscribeAccount:         command.NewSubscribeAccountHandler(accountRepo, subscriptionRepo, withingsHttpClient, cfg),
+			CreateOrUpdateAccount:    command.NewCreateOrUpdateAccountHandler(accountRepo),
+			RefreshAccessToken:       command.NewRefreshAccessTokenHandler(accountRepo, withingsHttpClient),
+			SyncRevokedSubscriptions: command.NewSyncRevokedSubscriptionsHandler(subscriptionRepo, withingsSvc),
 		},
 		Queries: Queries{
 			AccountByWithingsUserID: query.NewAccountByWithingsUserIDHandler(accountRepo),
@@ -128,20 +130,24 @@ func (svc *App) Validate() {
 }
 
 type Commands struct {
-	SubscribeAccount      command.SubscribeAccountHandler
-	CreateOrUpdateAccount command.CreateOrUpdateAccountHandler
-	RefreshAccessToken    command.RefreshAccessTokenHandler
+	SubscribeAccount         command.SubscribeAccountHandler
+	CreateOrUpdateAccount    command.CreateOrUpdateAccountHandler
+	RefreshAccessToken       command.RefreshAccessTokenHandler
+	SyncRevokedSubscriptions command.SyncRevokedSubscriptionsHandler
 }
 
 func (cs Commands) Validate() {
 	if cs.SubscribeAccount == nil {
-		panic("Commands.SyncSubscriptions was nil")
+		panic("Commands.SyncRevokedSubscriptions was nil")
 	}
 	if cs.CreateOrUpdateAccount == nil {
 		panic("Commands.CreateOrUpdateAccount was nil")
 	}
 	if cs.RefreshAccessToken == nil {
 		panic("Commands.RefreshAccessToken was nil")
+	}
+	if cs.SyncRevokedSubscriptions == nil {
+		panic("Commands.SyncRevokedSubscriptions was nil")
 	}
 }
 

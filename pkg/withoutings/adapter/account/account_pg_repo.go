@@ -110,7 +110,7 @@ func (r PgRepo) ListAccounts(ctx context.Context) ([]*account.Account, error) {
 // updateFn is called within a transaction, so it should not start its own transaction.
 func (r PgRepo) Update(
 	ctx context.Context,
-	withingsUserID string,
+	account *account.Account,
 	updateFn func(ctx context.Context, acc *account.Account) (*account.Account, error),
 ) error {
 	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
@@ -118,7 +118,7 @@ func (r PgRepo) Update(
 
 	inTransaction := r.WithTx(tx)
 
-	acc, err := inTransaction.GetAccountByWithingsUserID(ctx, withingsUserID)
+	acc, err := inTransaction.GetAccountByUUID(ctx, account.UUID())
 	if err != nil {
 		return err
 	}
