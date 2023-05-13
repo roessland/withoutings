@@ -17,7 +17,7 @@ import (
 	subscriptionAdapter "github.com/roessland/withoutings/pkg/withoutings/adapter/subscription"
 	"github.com/roessland/withoutings/pkg/withoutings/app/command"
 	"github.com/roessland/withoutings/pkg/withoutings/app/query"
-	withings2 "github.com/roessland/withoutings/pkg/withoutings/app/service/withings"
+	withingsService "github.com/roessland/withoutings/pkg/withoutings/app/service/withings"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 	withings "github.com/roessland/withoutings/pkg/withoutings/domain/withings"
@@ -40,7 +40,7 @@ func NewTestApplication(t *testing.T, ctx context.Context, database *pgxpool.Poo
 	accountRepo := accountAdapter.NewPgRepo(database, dbQueries)
 	subscriptionsRepo := subscriptionAdapter.NewPgRepo(database, dbQueries)
 	mockWithingsRepo := withings.NewMockRepo(t)
-	withingsSvc := withings2.NewService(mockWithingsRepo, accountRepo)
+	mockWithingsSvc := withingsService.NewMockService(t)
 
 	queries := Queries{
 		AccountByAccountUUID:    query.NewAccountByUUIDHandler(accountRepo),
@@ -48,10 +48,10 @@ func NewTestApplication(t *testing.T, ctx context.Context, database *pgxpool.Poo
 		AllAccounts:             query.NewAllAccountsHandler(accountRepo),
 	}
 	commands := Commands{
-		SubscribeAccount:         command.NewSubscribeAccountHandler(accountRepo, subscriptionsRepo, mockWithingsRepo, cfg),
+		SubscribeAccount:         command.NewSubscribeAccountHandler(accountRepo, subscriptionsRepo, mockWithingsSvc, cfg),
 		CreateOrUpdateAccount:    command.NewCreateOrUpdateAccountHandler(accountRepo),
 		RefreshAccessToken:       command.NewRefreshAccessTokenHandler(accountRepo, mockWithingsRepo),
-		SyncRevokedSubscriptions: command.NewSyncRevokedSubscriptionsHandler(subscriptionsRepo, withingsSvc),
+		SyncRevokedSubscriptions: command.NewSyncRevokedSubscriptionsHandler(subscriptionsRepo, mockWithingsSvc),
 	}
 
 	sleepSvc := sleep.NewSleep(nil) // no http client for now
@@ -75,10 +75,12 @@ func NewTestApplication(t *testing.T, ctx context.Context, database *pgxpool.Poo
 			WithingsRepo:     mockWithingsRepo,
 			AccountRepo:      accountRepo,
 			SubscriptionRepo: subscriptionsRepo,
+			WithingsSvc:      mockWithingsSvc,
 			Commands:         commands,
 			Queries:          queries,
 		},
 		MockWithingsRepo: mockWithingsRepo,
+		MockWithingsSvc:  mockWithingsSvc,
 	}
 	return svc
 }
@@ -97,12 +99,12 @@ func NewMockApplication(t *testing.T) *App {
 	svc.WithingsRepo = withings.NewMockRepo(t)
 	svc.AccountRepo = account.NewMockRepo(t)
 	svc.SubscriptionRepo = subscription.NewMockRepo(t)
-	withingsSvc := withings2.NewService(svc.WithingsRepo, svc.AccountRepo)
+	svc.WithingsSvc = withingsService.NewMockService(t)
 	svc.Commands = Commands{
-		SubscribeAccount:         command.NewSubscribeAccountHandler(svc.AccountRepo, svc.SubscriptionRepo, svc.WithingsRepo, svc.Config),
+		SubscribeAccount:         command.NewSubscribeAccountHandler(svc.AccountRepo, svc.SubscriptionRepo, svc.WithingsSvc, svc.Config),
 		CreateOrUpdateAccount:    command.NewCreateOrUpdateAccountHandler(svc.AccountRepo),
 		RefreshAccessToken:       command.NewRefreshAccessTokenHandler(svc.AccountRepo, svc.WithingsRepo),
-		SyncRevokedSubscriptions: command.NewSyncRevokedSubscriptionsHandler(svc.SubscriptionRepo, withingsSvc),
+		SyncRevokedSubscriptions: command.NewSyncRevokedSubscriptionsHandler(svc.SubscriptionRepo, svc.WithingsSvc),
 	}
 	svc.Queries = Queries{
 		AccountByWithingsUserID: query.NewAccountByWithingsUserIDHandler(svc.AccountRepo),

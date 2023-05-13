@@ -37,6 +37,7 @@ type App struct {
 	Config           *config.Config
 	WithingsRepo     withings.Repo
 	AccountRepo      account.Repo
+	WithingsSvc      withingsService.Service
 	SubscriptionRepo subscription.Repo
 	Commands         Commands
 	Queries          Queries
@@ -45,6 +46,7 @@ type App struct {
 type MockApp struct {
 	*App
 	MockWithingsRepo *withings.MockRepo
+	MockWithingsSvc  *withingsService.MockService
 }
 
 func NewApplication(ctx context.Context, cfg *config.Config) *App {
@@ -83,8 +85,9 @@ func NewApplication(ctx context.Context, cfg *config.Config) *App {
 		Config:           cfg,
 		AccountRepo:      accountRepo,
 		SubscriptionRepo: subscriptionRepo,
+		WithingsSvc:      withingsSvc,
 		Commands: Commands{
-			SubscribeAccount:         command.NewSubscribeAccountHandler(accountRepo, subscriptionRepo, withingsHttpClient, cfg),
+			SubscribeAccount:         command.NewSubscribeAccountHandler(accountRepo, subscriptionRepo, withingsSvc, cfg),
 			CreateOrUpdateAccount:    command.NewCreateOrUpdateAccountHandler(accountRepo),
 			RefreshAccessToken:       command.NewRefreshAccessTokenHandler(accountRepo, withingsHttpClient),
 			SyncRevokedSubscriptions: command.NewSyncRevokedSubscriptionsHandler(subscriptionRepo, withingsSvc),

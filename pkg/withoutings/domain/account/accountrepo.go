@@ -14,9 +14,5 @@ type Repo interface {
 	GetAccountByUUID(ctx context.Context, accountUUID uuid.UUID) (*Account, error)
 	CreateAccount(ctx context.Context, account *Account) error
 	ListAccounts(ctx context.Context) ([]*Account, error)
-	Update(
-		ctx context.Context,
-		account *Account,
-		updateFn func(ctx context.Context, acc *Account) (*Account, error),
-	) error
+	Update(ctx context.Context, accountUUID uuid.UUID, updateFn func(ctx context.Context, acc *Account) (*Account, error)) error
 }

@@ -4,7 +4,7 @@ import (
 	"context"
 )
 
-//go:generate mockery --name Repo --filename withingsrepo_mock.go
+//go:generate mockery --name Repo --filename domain_withingsrepo_mock.go
 type Repo interface {
 	AuthCodeURL(nonce string) string
 	GetAccessToken(ctx context.Context, authCode string) (*Token, error)

@@ -2,10 +2,12 @@ package withings
 
 // https://developer.withings.com/api-reference#operation/notify-list
 
+var NotifyListAction = "list"
+
 // NewNotifyListParams creates new NotifyListParams with some defaults.
 func NewNotifyListParams(appli int) NotifyListParams {
 	return NotifyListParams{
-		Action: "list",
+		Action: NotifyListAction,
 		Appli:  appli,
 	}
 }

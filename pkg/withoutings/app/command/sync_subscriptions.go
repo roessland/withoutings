@@ -29,7 +29,12 @@ func (h syncRevokedSubscriptionsHandler) Handle(ctx context.Context, cmd SyncRev
 
 	// Get list of active subscriptions from Withings for the categories in DB.
 	for _, sub := range subs {
+		// To avoid spamming Withings, only check if it's a long time since we last checked.
+		if !sub.StatusShouldBeChecked() {
+			continue
+		}
 
+		// Fetch from Withings.
 		notifyListResponse, err := h.withingsSvc.NotifyList(ctx, cmd.Account,
 			withings.NewNotifyListParams(sub.Appli()),
 		)
@@ -38,6 +43,8 @@ func (h syncRevokedSubscriptionsHandler) Handle(ctx context.Context, cmd SyncRev
 			return fmt.Errorf("NotifyList failed: %w", err)
 		}
 
+		// Check if the subscriptions callback URL is in Withings list of active subscriptions
+		// to determine if it's still active.
 		subIsActive := false
 		for _, profile := range notifyListResponse.Body.Profiles {
 			if profile.CallbackURL == sub.CallbackURL() {
@@ -46,8 +53,10 @@ func (h syncRevokedSubscriptionsHandler) Handle(ctx context.Context, cmd SyncRev
 			}
 		}
 
+		// Update subscription status in DB.
 		if subIsActive {
-			err := h.subscriptionRepo.Update(ctx, sub,
+			// Mark repo sub as active
+			err := h.subscriptionRepo.Update(ctx, sub.UUID(),
 				func(ctx context.Context, sub *subscription.Subscription) (*subscription.Subscription, error) {
 					sub.MarkAsCheckedAndActive()
 					return sub, nil
@@ -56,7 +65,8 @@ func (h syncRevokedSubscriptionsHandler) Handle(ctx context.Context, cmd SyncRev
 				return fmt.Errorf("failed to mark subscription as active: %w", err)
 			}
 		} else {
-			err := h.subscriptionRepo.Update(ctx, sub,
+			// Mark repo sub as revoked
+			err := h.subscriptionRepo.Update(ctx, sub.UUID(),
 				func(ctx context.Context, sub *subscription.Subscription) (*subscription.Subscription, error) {
 					sub.MarkAsRevoked()
 					return sub, nil
@@ -65,7 +75,6 @@ func (h syncRevokedSubscriptionsHandler) Handle(ctx context.Context, cmd SyncRev
 				return fmt.Errorf("failed to mark subscription as revoked: %w", err)
 			}
 		}
-
 	}
 
 	return nil
@@ -73,7 +82,7 @@ func (h syncRevokedSubscriptionsHandler) Handle(ctx context.Context, cmd SyncRev
 
 func NewSyncRevokedSubscriptionsHandler(
 	subscriptionsRepo subscription.Repo,
-	withingsSvc *withingsSvc.Service,
+	withingsSvc withingsSvc.Service,
 ) SyncRevokedSubscriptionsHandler {
 	return syncRevokedSubscriptionsHandler{
 		subscriptionRepo: subscriptionsRepo,
@@ -83,5 +92,5 @@ func NewSyncRevokedSubscriptionsHandler(
 
 type syncRevokedSubscriptionsHandler struct {
 	subscriptionRepo subscription.Repo
-	withingsSvc      *withingsSvc.Service
+	withingsSvc      withingsSvc.Service
 }

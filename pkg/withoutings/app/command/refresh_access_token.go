@@ -36,7 +36,7 @@ func (h refreshAccessTokenHandler) Handle(ctx context.Context, cmd RefreshAccess
 
 	return h.accountRepo.Update(
 		ctx,
-		acc,
+		acc.UUID(),
 		func(ctx context.Context, accNext *account.Account) (*account.Account, error) {
 			if accNext.WithingsRefreshToken() != acc.WithingsRefreshToken() {
 				log.Warn("someone else updated withingsRefreshToken already")

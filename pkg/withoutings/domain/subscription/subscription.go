@@ -91,8 +91,7 @@ func (s *Subscription) StatusLastCheckedAt() time.Time {
 // StatusShouldBeChecked returns true if the status should be checked with Withings API
 // to see if the subscription is still active.
 func (s *Subscription) StatusShouldBeChecked() bool {
-	// TODO: Increase this time
-	return time.Now().Sub(s.statusLastCheckedAt) > 24*time.Hour
+	return time.Since(s.statusLastCheckedAt) > 24*time.Hour
 }
 
 // MarkAsCheckedAndActive marks the subscription as checked and active.

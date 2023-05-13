@@ -26,8 +26,9 @@ func TestAccountPgRepo_UpdateAccount(t *testing.T) {
 
 	// Insert test user with default field values
 	withingsUserID := fmt.Sprintf("%d", rand.Intn(10000))
+	accountUUID := uuid.New()
 	err := repo.CreateAccount(ctx, account.NewAccountOrPanic(
-		uuid.New(),
+		accountUUID,
 		withingsUserID,
 		"gibberish",
 		"whatever",
@@ -41,7 +42,7 @@ func TestAccountPgRepo_UpdateAccount(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("updates all fields", func(t *testing.T) {
-		err := repo.Update(ctx, acc, func(ctx context.Context, accNext *account.Account) (*account.Account, error) {
+		err := repo.Update(ctx, accountUUID, func(ctx context.Context, accNext *account.Account) (*account.Account, error) {
 			require.NoError(t, accNext.UpdateWithingsToken(
 				"gibberish-updated",
 				"whatever-updated",

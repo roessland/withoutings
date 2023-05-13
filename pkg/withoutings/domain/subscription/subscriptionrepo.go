@@ -19,10 +19,9 @@ type Repo interface {
 	GetPendingSubscriptions(ctx context.Context) ([]*Subscription, error)
 	CreateSubscriptionIfNotExists(ctx context.Context, subscription *Subscription) error
 	ListSubscriptions(ctx context.Context) ([]*Subscription, error)
-	MarkSubscriptionAsCheckedAndActive(ctx context.Context, subscription *Subscription) error
 	CreateRawNotification(ctx context.Context, rawNotification RawNotification) error
 	GetRawNotificationByUUID(ctx context.Context, rawNotificationUUID uuid.UUID) (RawNotification, error)
 	GetPendingRawNotifications(ctx context.Context) ([]RawNotification, error)
 	DeleteRawNotification(ctx context.Context, rawNotification RawNotification) error
-	Update(ctx context.Context, sub *Subscription, updateFn func(ctx context.Context, sub *Subscription) (*Subscription, error)) error
+	Update(ctx context.Context, subscriptionUUID uuid.UUID, updateFn func(ctx context.Context, sub *Subscription) (*Subscription, error)) error
 }

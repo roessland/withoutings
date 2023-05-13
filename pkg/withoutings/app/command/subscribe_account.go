@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/google/uuid"
 	"github.com/roessland/withoutings/pkg/config"
+	withingsSvc "github.com/roessland/withoutings/pkg/withoutings/app/service/withings"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
@@ -35,7 +36,7 @@ func (h subscribeAccountHandler) Handle(ctx context.Context, cmd SubscribeAccoun
 	callbackURL := h.cfg.WebsiteURL + "withings/webhooks/" + h.cfg.WithingsWebhookSecret
 	params.Callbackurl = callbackURL
 	params.Comment = "test"
-	_, err = h.withingsRepo.NotifySubscribe(ctx, acc.WithingsAccessToken(), params)
+	_, err = h.withingsSvc.NotifySubscribe(ctx, acc, params)
 	if err != nil {
 		return err
 	}
@@ -60,13 +61,13 @@ func (h subscribeAccountHandler) Handle(ctx context.Context, cmd SubscribeAccoun
 func NewSubscribeAccountHandler(
 	accountRepo account.Repo,
 	subscriptionsRepo subscription.Repo,
-	withingsRepo withings.Repo,
+	withingsSvc withingsSvc.Service,
 	cfg *config.Config,
 ) SubscribeAccountHandler {
 	return subscribeAccountHandler{
 		accountRepo:      accountRepo,
 		subscriptionRepo: subscriptionsRepo,
-		withingsRepo:     withingsRepo,
+		withingsSvc:      withingsSvc,
 		cfg:              cfg,
 	}
 }
@@ -74,6 +75,6 @@ func NewSubscribeAccountHandler(
 type subscribeAccountHandler struct {
 	accountRepo      account.Repo
 	subscriptionRepo subscription.Repo
-	withingsRepo     withings.Repo
+	withingsSvc      withingsSvc.Service
 	cfg              *config.Config
 }

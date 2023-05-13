@@ -7,32 +7,56 @@ import (
 	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
 )
 
-type Service struct {
+//go:generate mockery --name Service --filename withings_service_mock.go
+type Service interface {
+	NotifyList(ctx context.Context, acc *account.Account, params withings.NotifyListParams) (*withings.NotifyListResponse, error)
+	NotifySubscribe(ctx context.Context, acc *account.Account, params withings.NotifySubscribeParams) (*withings.NotifySubscribeResponse, error)
+}
+
+type service struct {
 	repo        withings.Repo
 	accountRepo account.Repo
 }
 
-func NewService(withingsRepo withings.Repo, accountRepo account.Repo) *Service {
-	return &Service{
+func NewService(withingsRepo withings.Repo, accountRepo account.Repo) Service {
+	return &service{
 		repo:        withingsRepo,
 		accountRepo: accountRepo,
 	}
 }
 
-// attemptAccessTokenRefresh refreshes the access token for the given account and persists it.
-func (s *Service) attemptAccessTokenRefresh(ctx context.Context, acc *account.Account) error {
+// ensureTokenStillValid refreshes the access token for the given account and persists it.
+// If someone else already updated the access token, the input account is updated with those values.
+func (s *service) ensureTokenStillValid(ctx context.Context, acc *account.Account) error {
+	// Token still valid, no need to refresh.
+	if !acc.CanRefreshAccessToken() {
+		return nil
+	}
+
 	// Get new token from Withings API
 	token, err := s.repo.RefreshAccessToken(ctx, acc.WithingsRefreshToken())
 	refreshSucceeded := err == nil
 
-	// Store updated token in database
 	if refreshSucceeded {
-		err = s.accountRepo.Update(ctx, acc, func(ctx context.Context, acc *account.Account) (*account.Account, error) {
-			err := acc.UpdateWithingsToken(token.AccessToken, token.RefreshToken, token.Expiry, token.Scope)
+		// In transaction
+		err = s.accountRepo.Update(ctx, acc.UUID(), func(ctx context.Context, accLatest *account.Account) (*account.Account, error) {
+			// Store updated token in database
+			err := accLatest.UpdateWithingsToken(token.AccessToken, token.RefreshToken, token.Expiry, token.Scope)
 			if err != nil {
-				return nil, fmt.Errorf("UpdateWithingsToken failed: %w", err)
+				return nil, fmt.Errorf("UpdateWithingsToken for latest account failed: %w", err)
 			}
-			return acc, nil
+
+			// Update input account with latest values from database so we don't have to fetch the account again.
+			err = acc.UpdateWithingsToken(
+				accLatest.WithingsAccessToken(),
+				accLatest.WithingsRefreshToken(),
+				accLatest.WithingsAccessTokenExpiry(),
+				accLatest.WithingsScopes(),
+			)
+			if err != nil {
+				return nil, fmt.Errorf("UpdateWithingsToken for input account failed: %w", err)
+			}
+			return accLatest, nil
 		})
 		if err != nil {
 			return fmt.Errorf("failed to update account with new token: %w", err)
@@ -41,39 +65,42 @@ func (s *Service) attemptAccessTokenRefresh(ctx context.Context, acc *account.Ac
 	return nil
 }
 
-// NotifyList does a NotifyList request with automated access token renewal if necessary.
-// TODO build a generic retry method
-func (s *Service) NotifyList(
-	ctx context.Context,
-	acc *account.Account,
-	params withings.NotifyListParams,
-) (*withings.NotifyListResponse, error) {
-	// Get latest account from database to ensure we have the latest token
-	acc, err := s.accountRepo.GetAccountByUUID(ctx, acc.UUID())
-	if err != nil {
-		return nil, fmt.Errorf("failed to get account in preparation for token refresh: %w", err)
-	}
+func executeWithRetry[P any, R any](s *service, fn func(ctx context.Context, accessToken string, params P) (*R, error), ctx context.Context, acc *account.Account, params P) (*R, error) {
+	// To verify the logic works the when first attempt fails, this is commented out for now.
+	//err := s.ensureTokenStillValid(ctx, acc)
+	//if err != nil {
+	//	return nil, fmt.Errorf("failed to ensure valid access token (guard): %w", err)
+	//}
 
 	// First attempt
-	resp, err := s.repo.NotifyList(ctx, acc.WithingsAccessToken(), params)
+	resp, err := fn(ctx, acc.WithingsAccessToken(), params)
 	if err == nil {
 		return resp, nil
 	}
-
-	// Refresh token
-	if err == withings.ErrInvalidToken {
-		err = s.attemptAccessTokenRefresh(ctx, acc)
-		if err != nil {
-			return nil, fmt.Errorf("failed to refresh access token: %w", err)
-		}
-		acc, err = s.accountRepo.GetAccountByUUID(ctx, acc.UUID())
-		if err != nil {
-			return nil, fmt.Errorf("failed to get account after token refresh: %w", err)
-		}
-	} else if err != nil {
-		return nil, fmt.Errorf("unexpected error from NotifyList: %w", err)
+	if err != withings.ErrInvalidToken {
+		return nil, fmt.Errorf("unexpected error from Withings API: %w", err)
 	}
 
-	// Second attempt using refreshed token
-	return s.repo.NotifyList(ctx, acc.WithingsAccessToken(), params)
+	// If token was invalid, refresh token
+	err = s.ensureTokenStillValid(ctx, acc)
+	if err != nil {
+		return nil, fmt.Errorf("failed to ensure valid access token (retry): %w", err)
+	}
+
+	// Second attempt
+	resp, err = fn(ctx, acc.WithingsAccessToken(), params)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute Withings API request after retry: %w", err)
+	}
+	return resp, nil
+}
+
+// NotifyList does a NotifyList request with automated access token renewal if necessary.
+func (s *service) NotifyList(ctx context.Context, acc *account.Account, params withings.NotifyListParams) (*withings.NotifyListResponse, error) {
+	return executeWithRetry(s, s.repo.NotifyList, ctx, acc, params)
+}
+
+// NotifySubscribe does a NotifySubscribe request with automated access token renewal if necessary.
+func (s *service) NotifySubscribe(ctx context.Context, acc *account.Account, params withings.NotifySubscribeParams) (*withings.NotifySubscribeResponse, error) {
+	return executeWithRetry(s, s.repo.NotifySubscribe, ctx, acc, params)
 }

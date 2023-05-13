@@ -108,17 +108,13 @@ func (r PgRepo) ListAccounts(ctx context.Context) ([]*account.Account, error) {
 // Update updates an account in the database.
 // updateFn is a function that takes the current account and returns the updated account.
 // updateFn is called within a transaction, so it should not start its own transaction.
-func (r PgRepo) Update(
-	ctx context.Context,
-	account *account.Account,
-	updateFn func(ctx context.Context, acc *account.Account) (*account.Account, error),
-) error {
+func (r PgRepo) Update(ctx context.Context, accountUUID uuid.UUID, updateFn func(ctx context.Context, acc *account.Account) (*account.Account, error)) error {
 	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
 	defer tx.Rollback(ctx)
 
 	inTransaction := r.WithTx(tx)
 
-	acc, err := inTransaction.GetAccountByUUID(ctx, account.UUID())
+	acc, err := inTransaction.GetAccountByUUID(ctx, accountUUID)
 	if err != nil {
 		return err
 	}

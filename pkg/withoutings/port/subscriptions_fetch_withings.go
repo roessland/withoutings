@@ -33,22 +33,10 @@ func SubscriptionsWithingsPage(svc *app.App) http.HandlerFunc {
 			return
 		}
 
-		// TODO: This section is becoming spaghetti. Try to clean it up.
 		withingsSubscriptions := make([]templates.SubscriptionsWithingsPageItem, 0)
 		for _, cat := range categories {
-			notifyListResponse, err := svc.WithingsRepo.NotifyList(ctx, acc.WithingsAccessToken(),
+			notifyListResponse, err := svc.WithingsSvc.NotifyList(ctx, acc,
 				withings.NewNotifyListParams(cat.Appli))
-			if err == withings.ErrInvalidToken {
-				w.WriteHeader(http.StatusUnauthorized)
-				w.Header().Set("Content-Type", "text/html")
-				err := svc.Templates.RenderSubscriptionsPage(ctx, w, nil, categories,
-					"Your Withings access token is invalid. Please refresh it.")
-				if err != nil {
-					log.WithError(err).WithField("event", "error.RenderSubscriptionsWithingsPage").Error()
-					return
-				}
-				return
-			}
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				fmt.Fprintf(w, "Error checking notification status with Withings")
