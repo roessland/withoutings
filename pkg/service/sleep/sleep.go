@@ -3,9 +3,12 @@ package sleep
 import (
 	"cloud.google.com/go/civil"
 	"context"
+	"errors"
+	"fmt"
 	"github.com/roessland/withoutings/pkg/domain/entities"
 	"github.com/roessland/withoutings/pkg/logging"
-	withingsAdapter "github.com/roessland/withoutings/pkg/withoutings/adapter/withings"
+	withingsService "github.com/roessland/withoutings/pkg/withoutings/app/service/withings"
+	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
 	"time"
 )
@@ -13,18 +16,38 @@ import (
 // TODO: convert to query.
 
 type Sleep struct {
-	Withings *withingsAdapter.HTTPClient
+	Withings withingsService.Service
 }
 
-func NewSleep(withings *withingsAdapter.HTTPClient) *Sleep {
+func NewSleep(withingsSvc withingsService.Service) *Sleep {
 	return &Sleep{
-		Withings: withings,
+		Withings: withingsSvc,
 	}
 }
 
 type GetSleepSummaryInput struct {
-	Year  int
-	Month int
+	From time.Time // required
+	To   time.Time // defaults to now
+}
+
+func (in GetSleepSummaryInput) Validate() error {
+	if in.From.IsZero() {
+		return errors.New("from cannot be zero")
+	}
+
+	if in.To.IsZero() {
+		return errors.New("to cannot be zero")
+	}
+
+	if in.From.After(in.To) {
+		return errors.New("from cannot be after to")
+	}
+
+	if in.To.Sub(in.From) > 32*24*time.Hour {
+		return errors.New("date range cannot be longer than 1 month")
+	}
+
+	return nil
 }
 
 type GetSleepSummaryOutput struct {
@@ -32,16 +55,25 @@ type GetSleepSummaryOutput struct {
 	Raw       []byte
 }
 
-func (sleepSvc *Sleep) GetSleepSummaries(ctx context.Context, accessToken string, in GetSleepSummaryInput) (GetSleepSummaryOutput, error) {
+func (sleepSvc *Sleep) GetSleepSummaries(
+	ctx context.Context,
+	acc *account.Account,
+	in GetSleepSummaryInput,
+) (GetSleepSummaryOutput, error) {
 	log := logging.MustGetLoggerFromContext(ctx)
-	authClient := sleepSvc.Withings.WithAccessToken(accessToken)
 
-	// todo: use input
+	if in.To.IsZero() {
+		in.To = time.Now()
+	}
+	if err := in.Validate(); err != nil {
+		return GetSleepSummaryOutput{}, fmt.Errorf("input validation failed: %w", err)
+	}
+
 	params := withings.NewSleepGetsummaryParams()
-	params.Startdateymd = "2023-01-01"
-	params.Enddateymd = "2023-01-27"
+	params.Startdateymd = in.From.Format("2006-01-02")
+	params.Enddateymd = in.To.Format("2006-01-02")
 
-	resp, err := authClient.SleepGetsummary(ctx, params)
+	resp, err := sleepSvc.Withings.SleepGetsummary(ctx, acc, params)
 	if err != nil {
 		return GetSleepSummaryOutput{}, err
 	}

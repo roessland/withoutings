@@ -11,6 +11,7 @@ import (
 type Service interface {
 	NotifyList(ctx context.Context, acc *account.Account, params withings.NotifyListParams) (*withings.NotifyListResponse, error)
 	NotifySubscribe(ctx context.Context, acc *account.Account, params withings.NotifySubscribeParams) (*withings.NotifySubscribeResponse, error)
+	SleepGetsummary(ctx context.Context, acc *account.Account, params withings.SleepGetsummaryParams) (*withings.SleepGetsummaryResponse, error)
 }
 
 type service struct {
@@ -95,12 +96,14 @@ func executeWithRetry[P any, R any](s *service, fn func(ctx context.Context, acc
 	return resp, nil
 }
 
-// NotifyList does a NotifyList request with automated access token renewal if necessary.
 func (s *service) NotifyList(ctx context.Context, acc *account.Account, params withings.NotifyListParams) (*withings.NotifyListResponse, error) {
 	return executeWithRetry(s, s.repo.NotifyList, ctx, acc, params)
 }
 
-// NotifySubscribe does a NotifySubscribe request with automated access token renewal if necessary.
 func (s *service) NotifySubscribe(ctx context.Context, acc *account.Account, params withings.NotifySubscribeParams) (*withings.NotifySubscribeResponse, error) {
 	return executeWithRetry(s, s.repo.NotifySubscribe, ctx, acc, params)
+}
+
+func (s *service) SleepGetsummary(ctx context.Context, acc *account.Account, params withings.SleepGetsummaryParams) (*withings.SleepGetsummaryResponse, error) {
+	return executeWithRetry(s, s.repo.SleepGetsummary, ctx, acc, params)
 }

@@ -80,7 +80,7 @@ func NewApplication(ctx context.Context, cfg *config.Config) *App {
 		Sessions:         sessions,
 		Flash:            flashManager,
 		Templates:        templates.NewTemplates(),
-		Sleep:            sleep.NewSleep(withingsHttpClient),
+		Sleep:            sleep.NewSleep(withingsSvc),
 		DB:               pool,
 		Config:           cfg,
 		AccountRepo:      accountRepo,

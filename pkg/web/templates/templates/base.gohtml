@@ -5,16 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/static/style.css">
 </head>
-<body>
+<body class="h-full">
 
 {{/*<br>Token:*/}}
 {{/*        <pre>{{.Account}}</pre></p>*/}}
 
 <!-- source: https://wickedblocks.dev/groups/sidebar/ -->
-<div class="container max-w-5xl mx-auto px-4 py-4">
+<div class="container max-w-5xl mx-auto min-h-screen">
 
-  <div class="flex bg-white rounded-lg">
-    <div class="md:flex md:flex-shrink-0">
+  <div class="flex bg-white rounded-lg min-h-full">
+    <div class="md:flex md:flex-shrink-0 h-screen">
       <div class="flex flex-col w-64">
         <div class="flex flex-col flex-grow pt-5 overflow-y-auto bg-white border-r border-gray-50">
           <div class="flex flex-col items-center flex-shrink-0 px-4">
@@ -151,7 +151,7 @@
           </div>
 
             {{ if .Context.Account.IsLoggedIn }}
-              <div class="flex flex-shrink-0 p-4 px-4 bg-gray-50">
+              <div class="flex flex-shrink-0 p-4 px-4 bg-gray-50 my-4">
                 <a href="#" class="flex-shrink-0 block w-full group">
                   <div class="flex items-center">
                       {{/*                                        <div>*/}}
@@ -175,7 +175,7 @@
       </div>
     </div>
     <div class="flex flex-col flex-1 w-0">
-      <main class="relative flex-1 overflow-y-auto focus:outline-none">
+      <main class="flex-1 focus:outline-none">
         <div class="py-6">
           <div class="px-4 mx-auto max-w-7xl sm:px-6 md:px-8">
             <h1 class="text-lg text-neutral-600">{{template "title" .}}</h1>
@@ -190,12 +190,6 @@
                     <div class="p-5 border-l-4 border-red-500 rounded-r-xl bg-red-50">
                       <div class="flex">
                         <div class="flex-shrink-0">
-                          <svg class="w-5 h-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                               fill="currentColor" aria-hidden="true">
-                            <path fill-rule="evenodd"
-                                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                  clip-rule="evenodd"></path>
-                          </svg>
                         </div>
                         <div class="ml-3">
                           <div class="text-sm text-red-600">

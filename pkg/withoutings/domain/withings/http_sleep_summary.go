@@ -38,17 +38,17 @@ var SleepGetSummaryAllDataFields = strings.Join([]string{
 	"wakeupduration",
 }, ",")
 
-// NewSleepGetsummaryParams creates new SleepGetSummaryParams with some defaults.
-func NewSleepGetsummaryParams() SleepGetSummaryParams {
-	return SleepGetSummaryParams{
+// NewSleepGetsummaryParams creates new SleepGetsummaryParams with some defaults.
+func NewSleepGetsummaryParams() SleepGetsummaryParams {
+	return SleepGetsummaryParams{
 		Action:     "getsummary",
 		DataFields: SleepGetSummaryAllDataFields,
 	}
 }
 
-// SleepGetSummaryParams
+// SleepGetsummaryParams
 // Don't set Lastupdate and Startdateymd or Enddateymd at the same time.
-type SleepGetSummaryParams struct {
+type SleepGetsummaryParams struct {
 	Action       string `json:"action" url:"action"`
 	Startdateymd string `json:"startdateymd" url:"startdateymd"`
 	Enddateymd   string `json:"enddateymd" url:"enddateymd"`

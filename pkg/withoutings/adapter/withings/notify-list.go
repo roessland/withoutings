@@ -42,11 +42,6 @@ func (c *AuthenticatedClient) NotifyList(ctx context.Context, params withings.No
 		return nil, err
 	}
 
-	log.WithField("event", "NotifyList response read").
-		WithField("response_body", string(resp.Raw)).
-		WithField("http_status_code", httpResp.StatusCode).
-		Info()
-
 	err = json.Unmarshal(resp.Raw, &resp)
 	if err != nil {
 		log.WithField("response_body", string(resp.Raw)).
