@@ -8,7 +8,7 @@ import (
 	"runtime"
 )
 
-//go:embed static
+//go:embed static favicon.ico
 var EmbeddedFS embed.FS
 
 var FS fs.FS = EmbeddedFS

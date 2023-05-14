@@ -15,6 +15,7 @@ func Router(svc *app.App) *mux.Router {
 	r.HandleFunc("/api/health", port.Health(svc))
 	r.HandleFunc("/", port.Homepage(svc))
 	r.PathPrefix("/static/").Handler(port.Static(svc))
+	r.Path("/favicon.ico").Handler(port.Static(svc))
 
 	r.Path("/auth/login").Methods("GET").Handler(port.Login(svc))
 	r.HandleFunc("/auth/logout", port.Logout(svc))
