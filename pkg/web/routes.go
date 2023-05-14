@@ -26,6 +26,8 @@ func Router(svc *app.App) *mux.Router {
 	//r.HandleFunc("/sleepget.json", handlers.SleepGetJSON(svc))
 	r.Path("/subscriptions").Methods("GET").Handler(port.SubscriptionsPage(svc))
 	r.Path("/subscriptions/withings").Methods("GET").Handler(port.SubscriptionsWithingsPage(svc))
+	r.Path("/notifications").Methods("GET").Handler(port.NotificationsPage(svc))
+
 	// TODO make it POST
 	r.Path("/commands/sync-revoked-subscriptions").Methods("GET").Handler(port.SyncRevokedSubscriptions(svc))
 
