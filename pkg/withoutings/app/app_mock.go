@@ -2,6 +2,8 @@ package app
 
 import (
 	"context"
+	"testing"
+
 	"github.com/alexedwards/scs/pgxstore"
 	"github.com/alexedwards/scs/v2"
 	"github.com/alexedwards/scs/v2/memstore"
@@ -21,7 +23,6 @@ import (
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 	withings "github.com/roessland/withoutings/pkg/withoutings/domain/withings"
-	"testing"
 )
 
 func NewTestApplication(t *testing.T, ctx context.Context, database *pgxpool.Pool) *MockApp {
@@ -56,7 +57,7 @@ func NewTestApplication(t *testing.T, ctx context.Context, database *pgxpool.Poo
 
 	sleepSvc := sleep.NewSleep(nil) // no http client for now
 
-	templateSvc := templates.NewTemplates()
+	templateSvc := templates.NewTemplates(templates.Config{})
 
 	sessionManager := scs.New()
 	sessionManager.Store = pgxstore.New(database)
@@ -93,7 +94,7 @@ func NewMockApplication(t *testing.T) *App {
 	svc.Log = ctx.Logger
 	svc.Sessions = newInMemorySessionsManager()
 	svc.Flash = flash.NewManager(svc.Sessions)
-	svc.Templates = templates.NewTemplates()
+	svc.Templates = templates.NewTemplates(templates.Config{})
 	svc.Sleep = sleep.NewSleep(nil)
 	svc.Config = &config.Config{}
 	svc.WithingsRepo = withings.NewMockRepo(t)

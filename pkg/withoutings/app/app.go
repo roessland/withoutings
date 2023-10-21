@@ -5,11 +5,14 @@ package app
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/alexedwards/scs/pgxstore"
 	"github.com/alexedwards/scs/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/roessland/withoutings/pkg/config"
 	"github.com/roessland/withoutings/pkg/db"
+	"github.com/roessland/withoutings/pkg/logging"
 	"github.com/roessland/withoutings/pkg/service/sleep"
 	"github.com/roessland/withoutings/pkg/web/flash"
 	"github.com/roessland/withoutings/pkg/web/templates"
@@ -23,7 +26,6 @@ import (
 	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
 	"github.com/sirupsen/logrus"
-	"time"
 )
 
 // App holds all application resources.
@@ -50,7 +52,7 @@ type MockApp struct {
 }
 
 func NewApplication(ctx context.Context, cfg *config.Config) *App {
-	logger := logrus.New()
+	logger := logging.NewLogger(cfg.LogFormat)
 
 	pool, err := pgxpool.New(ctx, cfg.DatabaseURL)
 	if err != nil {
@@ -74,12 +76,15 @@ func NewApplication(ctx context.Context, cfg *config.Config) *App {
 
 	withingsSvc := withingsService.NewService(withingsHttpClient, accountRepo)
 
+	templateSvc := templates.NewTemplates(templates.Config{})
+	logger.WithField("template-source", templateSvc.Source()).Info("Loaded templates")
+
 	return &App{
 		Log:              logger,
 		WithingsRepo:     withingsHttpClient,
 		Sessions:         sessions,
 		Flash:            flashManager,
-		Templates:        templates.NewTemplates(),
+		Templates:        templateSvc,
 		Sleep:            sleep.NewSleep(withingsSvc),
 		DB:               pool,
 		Config:           cfg,

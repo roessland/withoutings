@@ -15,7 +15,7 @@ type Context struct {
 // New returns a new Context.
 func New() Context {
 	ctx := context.Background()
-	logger := logrus.New()
+	logger := logging.NewLogger("json")
 	ctx = logging.AddLoggerToContext(ctx, logger)
 	return Context{Context: ctx, Logger: logger}
 }

@@ -3,33 +3,52 @@ package templates
 import (
 	"context"
 	"embed"
-	"github.com/roessland/withoutings/pkg/service/sleep"
-	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
-	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
-	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
-	"github.com/sirupsen/logrus"
 	"html/template"
 	"io"
 	"io/fs"
 	"os"
 	"path"
 	"runtime"
+
+	"github.com/roessland/withoutings/pkg/service/sleep"
+	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
+	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
+	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
 )
 
 //go:embed templates/*.gohtml
 var embeddedFS embed.FS
 
-// FS is either disk or embedded files.
-var FS fs.FS
+type Templates struct {
+	FS     fs.FS
+	source string
+}
 
-// init sets FS if the templates are available on disk.
-func init() {
-	var err error
+func (t *Templates) Source() string {
+	return t.source
+}
+
+type Config struct {
+	EmbeddedOnly bool
+}
+
+// NewTemplates creates a new templates instance.
+// Uses templates from disk if available, otherwise uses embedded templates.
+// embeddedOnly: Set to true to force the use of embedded templates (never load from disk).
+func NewTemplates(templatesConfig Config) *Templates {
+	t := &Templates{}
 
 	// Set FS to use embedded files.
-	FS, err = fs.Sub(embeddedFS, "templates")
+	var err error
+	t.FS, err = fs.Sub(embeddedFS, "templates")
+	t.source = "embedded"
 	if err != nil {
 		panic(err.Error())
+	}
+
+	// If embeddedOnly is set, don't allow loading templates from disk.
+	if templatesConfig.EmbeddedOnly {
+		return t
 	}
 
 	// If the templates are available on disk, set FS to use disk files instead.
@@ -37,27 +56,21 @@ func init() {
 	templatesDir := path.Dir(templatesGoPath)
 	stat, err := os.Stat(path.Join(templatesDir, "templates/base.gohtml"))
 	if err == nil && stat.Size() > 0 {
-		FS = os.DirFS(path.Join(templatesDir, "templates"))
-		logrus.Info("Using disk files for templates")
+		t.FS = os.DirFS(path.Join(templatesDir, "templates"))
+		t.source = "disk"
 	}
-}
 
-type Templates struct {
-}
-
-func NewTemplates() *Templates {
-	t := &Templates{}
 	return t
 }
 
 type HomePageVars struct {
-	Context TemplateContext
-	Error   string
 	Account *account.Account
+	Error   string
+	Context TemplateContext
 }
 
 func (t *Templates) RenderHomePage(ctx context.Context, w io.Writer, account_ *account.Account) error {
-	tmpl, err := template.New("base.gohtml").ParseFS(FS, "base.gohtml", "homepage.gohtml")
+	tmpl, err := template.New("base.gohtml").ParseFS(t.FS, "base.gohtml", "homepage.gohtml")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -69,13 +82,13 @@ func (t *Templates) RenderHomePage(ctx context.Context, w io.Writer, account_ *a
 }
 
 type RefreshAccessTokenVars struct {
-	Context TemplateContext
 	Token   *withings.Token
 	Error   string
+	Context TemplateContext
 }
 
 func (t *Templates) RenderRefreshAccessToken(ctx context.Context, w io.Writer, token *withings.Token, errMsg string) error {
-	tmpl, err := template.New("base.gohtml").ParseFS(FS, "base.gohtml", "refreshaccesstoken.gohtml")
+	tmpl, err := template.New("base.gohtml").ParseFS(t.FS, "base.gohtml", "refreshaccesstoken.gohtml")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -88,14 +101,14 @@ func (t *Templates) RenderRefreshAccessToken(ctx context.Context, w io.Writer, t
 }
 
 type SleepSummariesVars struct {
-	Context   TemplateContext
-	Error     string
-	Token     *withings.Token
 	SleepData interface{}
+	Token     *withings.Token
+	Error     string
+	Context   TemplateContext
 }
 
 func (t *Templates) RenderSleepSummaries(ctx context.Context, w io.Writer, sleepData *sleep.GetSleepSummaryOutput, errMsg string) error {
-	tmpl, err := template.New("base.gohtml").ParseFS(FS, "base.gohtml", "sleepsummaries.gohtml")
+	tmpl, err := template.New("base.gohtml").ParseFS(t.FS, "base.gohtml", "sleepsummaries.gohtml")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -115,7 +128,7 @@ type SubscriptionsPageVars struct {
 }
 
 func (t *Templates) RenderSubscriptionsPage(ctx context.Context, w io.Writer, subscriptions []*subscription.Subscription, categories []subscription.NotificationCategory, errMsg string) error {
-	tmpl, err := template.New("base.gohtml").ParseFS(FS, "base.gohtml", "subscriptionspage.gohtml")
+	tmpl, err := template.New("base.gohtml").ParseFS(t.FS, "base.gohtml", "subscriptionspage.gohtml")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -135,14 +148,14 @@ type SubscriptionsWithingsPageVars struct {
 }
 
 type SubscriptionsWithingsPageItem struct {
-	Appli            int
 	AppliDescription string
-	Exists           bool
 	Comment          string
+	Appli            int
+	Exists           bool
 }
 
 func (t *Templates) RenderSubscriptionsWithingsPage(ctx context.Context, w io.Writer, withingsSubscriptions []SubscriptionsWithingsPageItem, errMsg string) error {
-	tmpl, err := template.New("base.gohtml").ParseFS(FS, "base.gohtml", "subscriptionswithingspage.gohtml")
+	tmpl, err := template.New("base.gohtml").ParseFS(t.FS, "base.gohtml", "subscriptionswithingspage.gohtml")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -151,5 +164,26 @@ func (t *Templates) RenderSubscriptionsWithingsPage(ctx context.Context, w io.Wr
 		Context:               extractTemplateContext(ctx),
 		WithingsSubscriptions: withingsSubscriptions,
 		Error:                 errMsg,
+	})
+}
+
+type TemplateTestVars struct {
+	Error   string
+	Title   string
+	Content string
+	Context TemplateContext
+}
+
+func (t *Templates) RenderTemplateTest(ctx context.Context, w io.Writer) error {
+	tmpl, err := template.New("base.gohtml").ParseFS(t.FS, "base.gohtml", "templatetest.gohtml")
+	if err != nil {
+		panic(err.Error())
+	}
+	tmpl.Option("missingkey=error")
+	return tmpl.ExecuteTemplate(w, "base.gohtml", TemplateTestVars{
+		Context: TemplateContext{},
+		Error:   "ThisIsTheError",
+		Title:   "ThisIsTheTitle",
+		Content: "ThisIsTheContent",
 	})
 }

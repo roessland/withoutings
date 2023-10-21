@@ -8,6 +8,9 @@ import (
 )
 
 type Config struct {
+	// LogFormat is either "json" or "text".
+	LogFormat string `envconfig:"LOG_FORMAT" default:"json"`
+
 	// ListenAddr is the address where the web server listens for HTTP requests.
 	ListenAddr string `envconfig:"LISTEN_ADDR" default:"127.0.0.1:3628"`
 
