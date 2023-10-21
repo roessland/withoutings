@@ -3,10 +3,13 @@ package logging
 import (
 	"context"
 	"fmt"
+
 	"github.com/sirupsen/logrus"
 )
 
-var ContextKeyLogger = "logger"
+type symbol string
+
+var ContextKeyLogger = symbol("logger")
 
 func MustGetLoggerFromContext(ctx context.Context) logrus.FieldLogger {
 	log, ok := ctx.Value(ContextKeyLogger).(logrus.FieldLogger)

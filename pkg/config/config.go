@@ -3,8 +3,9 @@ package config
 import (
 	"errors"
 	"fmt"
-	"github.com/kelseyhightower/envconfig"
 	"strings"
+
+	"github.com/kelseyhightower/envconfig"
 )
 
 type Config struct {
@@ -13,10 +14,6 @@ type Config struct {
 
 	// ListenAddr is the address where the web server listens for HTTP requests.
 	ListenAddr string `envconfig:"LISTEN_ADDR" default:"127.0.0.1:3628"`
-
-	// SessionSecret is used to encrypt cookies.
-	SessionSecret []byte `envconfig:"SESSION_SECRET"`
-
 	// WebsiteURL is the public URL where the website is accessible.
 	// Use a trailing slash.
 	WebsiteURL string `envconfig:"WEBSITE_URL"`
@@ -43,6 +40,9 @@ type Config struct {
 	// If you have separate admin/superuser and read/write users,
 	// this should use the read/write user with fewer permissions.
 	DatabaseURL string `envconfig:"DATABASE_URL"`
+
+	// SessionSecret is used to encrypt cookies.
+	SessionSecret []byte `envconfig:"SESSION_SECRET"`
 }
 
 func LoadFromEnv() (*Config, error) {

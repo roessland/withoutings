@@ -3,13 +3,14 @@ package withings
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"net/http"
+	"time"
+
 	"github.com/google/go-querystring/query"
 	"github.com/roessland/withoutings/pkg/logging"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
-	"io"
-	"net/http"
-	"time"
 )
 
 // DefaultAPIBase is the base URL to the Withings API.

@@ -3,8 +3,9 @@ package worker
 import (
 	"context"
 	"fmt"
-	"github.com/roessland/withoutings/pkg/withoutings/app"
 	"time"
+
+	"github.com/roessland/withoutings/pkg/withoutings/app"
 )
 
 type Worker struct {
@@ -17,14 +18,14 @@ func NewWorker(svc *app.App) *Worker {
 	return &Worker{svc}
 }
 
-func (app *Worker) close() {
+func (wrk *Worker) close() {
 	//err := app.Async.Close()
 	//if err != nil {
 	//	app.Log.Print(err)
 	//}
 }
 
-func (app *Worker) Work(ctx context.Context) {
+func (wrk *Worker) Work(ctx context.Context) {
 	//asyncSrv := asynq.NewServer(
 	//	asynq.RedisClientOpt{
 	//		Addr: redisAddr,
@@ -43,20 +44,17 @@ func (app *Worker) Work(ctx context.Context) {
 	//	}
 	//}()
 	for {
-
 		select {
 		case <-ctx.Done():
-			app.Log.Info("Worker shutdown initiated.")
-			app.close()
+			wrk.Log.Info("Worker shutdown initiated.")
+			wrk.close()
 			return
 
 		case <-time.After(10 * time.Minute):
 			fmt.Println("working")
 		}
-
 	}
 	//
 	//asyncSrv.Shutdown()
 	//fmt.Println("WORK SHUTDOWN DONE")
-
 }

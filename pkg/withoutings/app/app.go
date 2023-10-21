@@ -58,16 +58,28 @@ func NewApplication(ctx context.Context, cfg *config.Config) *App {
 	if err != nil {
 		panic(fmt.Sprintf("create connection pool: %s", err))
 	}
+	go func() {
+		<-ctx.Done()
+		pool.Close()
+	}()
 
 	dbQueries := db.New(pool)
 
 	sessions := scs.New()
 	sessions.Lifetime = time.Hour * 24 * 180    // 6 months
 	sessions.IdleTimeout = time.Hour * 24 * 180 // 6 months
+	go func() {
+		<-ctx.Done()
+	}()
 
 	flashManager := flash.NewManager(sessions)
 
-	sessions.Store = pgxstore.New(pool)
+	pgSessionsStore := pgxstore.New(pool)
+	sessions.Store = pgSessionsStore
+	go func() {
+		<-ctx.Done()
+		pgSessionsStore.StopCleanup()
+	}()
 
 	accountRepo := accountAdapter.NewPgRepo(pool, dbQueries)
 	subscriptionRepo := subscriptionAdapter.NewPgRepo(pool, dbQueries)
