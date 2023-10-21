@@ -54,18 +54,24 @@ func withoutingsServer() {
 
 	// On shutdown, do forceful exit after another interrupt, or after 10 seconds
 	forcefulShutdownCtx, abortForcefulShutdown := context.WithCancel(context.WithoutCancel(ctx))
-	g.Go(func() error {
+	go (func() error {
 		<-ctx.Done()
-		svc.Log.Info("Interrupted. Attempting graceful shutdown... Wait 10 seconds or press Ctrl-C to exit immediately.")
+
+		svc.Log.
+			WithField("event", "graceful-shutdown.initiated").
+			Info("Interrupted. Attempting graceful shutdown... Wait 10 seconds or press Ctrl-C to exit immediately.")
+
 		deregister()
 		signalCh := make(chan os.Signal, 1)
 		signal.Notify(signalCh, os.Interrupt)
 
 		select {
 		case <-signalCh:
-			svc.Log.WithField("event", "graceful-shutdown.interrupted").Error("Exiting immediately...")
+			svc.Log.
+				WithField("event", "graceful-shutdown.interrupted").Error()
 		case <-time.After(5 * time.Second):
-			svc.Log.WithField("event", "graceful-shutdown.timeout").Error("Exiting immediately...")
+			svc.Log.
+				WithField("event", "graceful-shutdown.timeout").Error()
 		case <-forcefulShutdownCtx.Done():
 			return nil
 		}
@@ -74,22 +80,24 @@ func withoutingsServer() {
 		_ = pprof.Lookup("goroutine").WriteTo(&buf, 2)
 		svc.Log.
 			WithField("event", "graceful-shutdown.goroutine-dump").
-			WithField("goroutines-remaining", buf.String()).
-			Error()
-		buf.WriteTo(os.Stdout)
+			WithField("goroutines-remaining", buf.String()).Error()
+
+		// Useful for development
+		if svc.Config.LogFormat == "text" {
+			buf.WriteTo(os.Stdout)
+		}
 
 		time.Sleep(100 * time.Millisecond)
 		os.Exit(1)
 		return nil
-	})
+	})()
 
 	err = g.Wait()
 	if err != nil {
 		panic(err)
 	}
 
-	time.Sleep(15 * time.Second)
-	abortForcefulShutdown() // Wasn't needed
+	abortForcefulShutdown() // Wasn't needed after all
 
 	svc.Log.WithField("event", "graceful-shutdown.success").Info()
 	time.Sleep(100 * time.Millisecond) // Wait a bit to increase chance of logs being flushed

@@ -46,7 +46,7 @@ func (wrk *Worker) Work(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			wrk.Log.Info("Worker shutdown initiated.")
+			wrk.Log.WithField("event", "worker.shutdown.initiated").Info()
 			wrk.close()
 			return
 

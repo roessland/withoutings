@@ -4,11 +4,13 @@ package app
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
-	"github.com/alexedwards/scs/pgxstore"
+	"github.com/alexedwards/scs/postgresstore"
 	"github.com/alexedwards/scs/v2"
+	"github.com/alexedwards/scs/v2/memstore"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/roessland/withoutings/pkg/config"
 	"github.com/roessland/withoutings/pkg/db"
@@ -54,12 +56,18 @@ type MockApp struct {
 func NewApplication(ctx context.Context, cfg *config.Config) *App {
 	logger := logging.NewLogger(cfg.LogFormat)
 
+	stdDB, err := sql.Open("pgx", cfg.DatabaseURL)
+	if err != nil {
+		panic(fmt.Sprintf("create DB connection: %s", err))
+	}
+
 	pool, err := pgxpool.New(ctx, cfg.DatabaseURL)
 	if err != nil {
-		panic(fmt.Sprintf("create connection pool: %s", err))
+		panic(fmt.Sprintf("create DB connection pool: %s", err))
 	}
 	go func() {
 		<-ctx.Done()
+		stdDB.Close()
 		pool.Close()
 	}()
 
@@ -68,18 +76,21 @@ func NewApplication(ctx context.Context, cfg *config.Config) *App {
 	sessions := scs.New()
 	sessions.Lifetime = time.Hour * 24 * 180    // 6 months
 	sessions.IdleTimeout = time.Hour * 24 * 180 // 6 months
-	go func() {
-		<-ctx.Done()
-	}()
-
-	flashManager := flash.NewManager(sessions)
-
-	pgSessionsStore := pgxstore.New(pool)
-	sessions.Store = pgSessionsStore
+	go func(store scs.Store) {
+		// Stop useless memstore cleanup goroutine started by scs.New()
+		if m, ok := store.(*memstore.MemStore); ok {
+			time.Sleep(time.Millisecond)
+			m.StopCleanup()
+		}
+	}(sessions.Store)
+	pgSessionsStore := postgresstore.New(stdDB)
 	go func() {
 		<-ctx.Done()
 		pgSessionsStore.StopCleanup()
 	}()
+	sessions.Store = pgSessionsStore
+
+	flashManager := flash.NewManager(sessions)
 
 	accountRepo := accountAdapter.NewPgRepo(pool, dbQueries)
 	subscriptionRepo := subscriptionAdapter.NewPgRepo(pool, dbQueries)
