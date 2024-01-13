@@ -28,13 +28,13 @@ func NewLogger(logFormat string) *logrus.Logger {
 	case "":
 		fallthrough
 	case "json":
-		logger := logrus.New()
-		logger.SetFormatter(&logrus.JSONFormatter{})
-		return logger
+		log := logrus.New()
+		log.SetFormatter(&logrus.JSONFormatter{})
+		return log
 	case "text":
-		logger := logrus.New()
-		logger.SetFormatter(&logrus.TextFormatter{})
-		return logger
+		log := logrus.New()
+		log.SetFormatter(&logrus.TextFormatter{})
+		return log
 	default:
 		panic(fmt.Sprintf("unknown log format: %s", logFormat))
 	}

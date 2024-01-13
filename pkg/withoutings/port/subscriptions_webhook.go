@@ -30,7 +30,9 @@ func WithingsWebhook(svc *app.App) http.HandlerFunc {
 
 		data, err := io.ReadAll(r.Body)
 		if err != nil {
-			log.WithError(err).Error()
+			log.WithError(err).
+				WithField("event", "error.withingswebhook.readbody.failed").
+				Error()
 			w.WriteHeader(500)
 			return
 		}
@@ -48,7 +50,9 @@ func WithingsWebhook(svc *app.App) http.HandlerFunc {
 			),
 		)
 		if err != nil {
-			log.WithError(err).Error()
+			log.WithError(err).
+				WithField("event", "error.withingswebhook.createrawnotification.failed").
+				Error()
 			w.WriteHeader(500)
 			return
 		}

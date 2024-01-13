@@ -26,8 +26,8 @@ func Subscribe(svc *app.App) http.HandlerFunc {
 		appli, err := strconv.Atoi(vars["appli"])
 		if err != nil || appli == 0 {
 			log.WithError(err).
+				WithField("event", "warn.subscribe.illegal_parameter").
 				WithField("appli", vars["appli"]).
-				WithField("event", "warn.illegal_parameter").
 				Warn()
 			w.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(w, "appli parameter must be an integer")
@@ -48,7 +48,9 @@ func Subscribe(svc *app.App) http.HandlerFunc {
 		if errors.Is(err, subscription.ErrSubscriptionAlreadyExists) {
 			svc.Flash.PutMsg(ctx, "You are already subscribed to this category.")
 		} else if err != nil {
-			log.WithError(err).Error()
+			log.WithError(err).
+				WithField("event", "error.subscribe.subscribeaccount.failed").
+				Error()
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "An error occurred when trying to subscribe to webhooks.")
 			return

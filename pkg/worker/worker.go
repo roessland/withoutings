@@ -2,7 +2,6 @@ package worker
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/roessland/withoutings/pkg/withoutings/app"
@@ -46,12 +45,12 @@ func (wrk *Worker) Work(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			wrk.Log.WithField("event", "worker.shutdown.initiated").Info()
+			wrk.Log.WithField("event", "info.worker.shutdown.initiated").Info()
 			wrk.close()
 			return
 
 		case <-time.After(10 * time.Minute):
-			fmt.Println("working")
+			wrk.Log.WithField("event", "info.worker.heartbeat").Info()
 		}
 	}
 	//

@@ -128,7 +128,7 @@ func (c *HTTPClient) RefreshAccessToken(ctx context.Context, refreshToken string
 	v.Set("refresh_token", refreshToken)
 
 	log := logging.MustGetLoggerFromContext(ctx)
-	log.WithField("event", "RefreshAccessToken-prepared-request").
+	log.WithField("event", "info.RefreshAccessToken.prepared-request").
 		WithField("request_url", c.OAuth2Config.Endpoint.TokenURL).
 		WithField("request_method", "POST").
 		WithField("request_body", v.Encode()).
@@ -153,7 +153,7 @@ func (c *HTTPClient) RefreshAccessToken(ctx context.Context, refreshToken string
 	if err != nil {
 		return nil, fmt.Errorf("oauth2: cannot refresh token: %w", err)
 	}
-	log.WithField("event", "RefreshAccessToken-got-response").
+	log.WithField("event", "info.RefreshAccessToken.got-response").
 		WithField("response_body", string(body)).
 		WithField("response_status", resp.StatusCode).
 		Info()
@@ -170,7 +170,8 @@ func (c *HTTPClient) RefreshAccessToken(ctx context.Context, refreshToken string
 	}
 
 	if response.Body.AccessToken == "" {
-		log.WithField("body", string(body)).Error()
+		log.WithField("event", "error.RefreshAccessToken.access-token-missing-from-response").
+			WithField("body", string(body)).Error()
 		return nil, errors.New("oauth2: server response missing access_token")
 	}
 	return response.Token(), nil

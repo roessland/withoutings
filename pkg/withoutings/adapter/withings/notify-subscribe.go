@@ -36,7 +36,7 @@ func (c *AuthenticatedClient) NotifySubscribe(ctx context.Context, params within
 
 	resp.Raw, err = io.ReadAll(httpResp.Body)
 	if err != nil {
-		log.WithField("event", "NotifySubscribe io.ReadAll failed").
+		log.WithField("event", "error.NotifySubscribe.readbody.failed").
 			WithError(err).
 			Error()
 		return nil, err
@@ -45,7 +45,7 @@ func (c *AuthenticatedClient) NotifySubscribe(ctx context.Context, params within
 	err = json.Unmarshal(resp.Raw, &resp)
 	if err != nil {
 		log.WithField("response_body", string(resp.Raw)).
-			WithField("event", "NotifySubscribe io.ReadAll failed").
+			WithField("event", "error.NotifySubscribe.unmarshal.failed").
 			WithError(err).
 			Error()
 		return nil, err

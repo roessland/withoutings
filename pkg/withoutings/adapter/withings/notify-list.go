@@ -36,7 +36,7 @@ func (c *AuthenticatedClient) NotifyList(ctx context.Context, params withings.No
 
 	resp.Raw, err = io.ReadAll(httpResp.Body)
 	if err != nil {
-		log.WithField("event", "NotifyList io.ReadAll failed").
+		log.WithField("event", "error.NotifyList.readbody.failed").
 			WithError(err).
 			Error()
 		return nil, err
@@ -45,7 +45,7 @@ func (c *AuthenticatedClient) NotifyList(ctx context.Context, params withings.No
 	err = json.Unmarshal(resp.Raw, &resp)
 	if err != nil {
 		log.WithField("response_body", string(resp.Raw)).
-			WithField("event", "NotifyList unmarshal failed").
+			WithField("event", "error.NotifyList.unmarshal.failed").
 			WithError(err).
 			Error()
 		return nil, err

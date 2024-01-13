@@ -87,7 +87,7 @@ func (c *HTTPClient) NewRequest(endpoint string, params any) (*http.Request, err
 // Do sends a request
 func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 	var err error
-	logger := logging.MustGetLoggerFromContext(req.Context())
+	log := logging.MustGetLoggerFromContext(req.Context())
 
 	var reqBody []byte
 	if req.Body != nil {
@@ -98,7 +98,7 @@ func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 		req.Body = io.NopCloser(bytes.NewReader(reqBody))
 	}
 
-	logger.WithFields(logrus.Fields{
+	log.WithFields(logrus.Fields{
 		"event":           "withings-api-request.started",
 		"url":             req.URL,
 		"request.body":    string(reqBody),
@@ -117,7 +117,7 @@ func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 	}
 	resp.Body = io.NopCloser(bytes.NewReader(respBody))
 
-	logger.WithFields(logrus.Fields{
+	log.WithFields(logrus.Fields{
 		"event":            "withings-api-request.finished",
 		"response.body":    string(respBody),
 		"response.headers": resp.Header,

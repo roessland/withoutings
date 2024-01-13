@@ -20,7 +20,7 @@ func Callback(svc *app.App) http.HandlerFunc {
 
 		err := r.ParseForm()
 		if err != nil {
-			log.WithError(err).Error("parsing form")
+			log.WithError(err).WithField("event", "error.callback.parseform").Error()
 			http.Error(w, "Error parsing form", http.StatusBadRequest)
 			return
 		}
@@ -43,8 +43,7 @@ func Callback(svc *app.App) http.HandlerFunc {
 		}
 		token, err := svc.WithingsRepo.GetAccessToken(ctx, code)
 		if err != nil {
-			log.WithError(err).
-				WithField("event", "error.callback.getaccesstoken").
+			log.WithError(err).WithField("event", "error.callback.getaccesstoken").
 				Info()
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -63,8 +62,7 @@ func Callback(svc *app.App) http.HandlerFunc {
 			token.Scope,
 		)
 		if err != nil {
-			log.WithError(err).
-				WithField("event", "error.callback.newaccount").
+			log.WithError(err).WithField("event", "error.callback.newaccount").
 				Error()
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -76,8 +74,7 @@ func Callback(svc *app.App) http.HandlerFunc {
 			Account: acc,
 		})
 		if err != nil {
-			log.WithError(err).
-				WithField("event", "error.callback.createaccount").
+			log.WithError(err).WithField("event", "error.callback.createaccount").
 				Error()
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -86,8 +83,7 @@ func Callback(svc *app.App) http.HandlerFunc {
 		// Find account ID
 		acc, err = svc.Queries.AccountByWithingsUserID.Handle(ctx, query.AccountByWithingsUserID{WithingsUserID: token.UserID})
 		if err != nil {
-			log.WithError(err).
-				WithField("event", "error.callback.getaccount").
+			log.WithError(err).WithField("event", "error.callback.getaccount").
 				Error()
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

@@ -35,7 +35,7 @@ func (c *AuthenticatedClient) SleepGet(ctx context.Context, params withings.Slee
 
 	resp.Raw, err = io.ReadAll(httpResp.Body)
 	if err != nil {
-		log.WithField("event", "SleepGet io.ReadAll failed").
+		log.WithField("event", "error.SleepGet.readbody.failed").
 			WithError(err).
 			Error()
 		return nil, err
@@ -44,7 +44,7 @@ func (c *AuthenticatedClient) SleepGet(ctx context.Context, params withings.Slee
 	err = json.Unmarshal(resp.Raw, &resp)
 	if err != nil {
 		log.WithField("response_body", string(resp.Raw)).
-			WithField("event", "SleepGet io.ReadAll failed").
+			WithField("event", "error.SleepGet.unmarshal.failed").
 			WithError(err).
 			Error()
 		return nil, err

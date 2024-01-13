@@ -37,7 +37,7 @@ func (c *AuthenticatedClient) SleepGetsummary(ctx context.Context, params within
 
 	resp.Raw, err = io.ReadAll(httpResp.Body)
 	if err != nil {
-		log.WithField("event", "SleepGetsummary io.ReadAll failed").
+		log.WithField("event", "error.SleepGetsummary.readbody.failed").
 			WithError(err).
 			Error()
 		return nil, err
@@ -45,8 +45,8 @@ func (c *AuthenticatedClient) SleepGetsummary(ctx context.Context, params within
 
 	err = json.Unmarshal(resp.Raw, &resp)
 	if err != nil {
-		log.WithField("response_body", string(resp.Raw)).
-			WithField("event", "SleepGetsummary io.ReadAll failed").
+		log.WithField("event", "error.SleepGetsummary.unmarshal.failed").
+			WithField("response_body", string(resp.Raw)).
 			WithError(err).
 			Error()
 		return nil, err

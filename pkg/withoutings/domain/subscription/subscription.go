@@ -55,7 +55,7 @@ func (s *Subscription) AccountUUID() uuid.UUID {
 	return s.accountUUID
 }
 
-// Appli is the subscription cateogry. 1 = activity, 4 = sleep, 16 = weight, etc.
+// Appli is the subscription category. 1 = activity, 4 = sleep, 16 = weight, etc.
 func (s *Subscription) Appli() int {
 	return s.appli
 }

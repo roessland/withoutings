@@ -26,7 +26,7 @@ func SyncRevokedSubscriptions(svc *app.App) http.HandlerFunc {
 			Account: acc,
 		})
 		if err != nil {
-			log.WithError(err).Error()
+			log.WithError(err).WithField("event", "error.syncrevoked.command.failed").Error()
 			w.WriteHeader(500)
 			fmt.Fprintf(w, "An error occurred when trying to sync your subscriptions.")
 			return

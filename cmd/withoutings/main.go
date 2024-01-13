@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/roessland/withoutings/pkg/worker"
 	"net/http"
 	"os"
 	"os/signal"
@@ -13,7 +14,6 @@ import (
 	"github.com/roessland/withoutings/pkg/config"
 	"github.com/roessland/withoutings/pkg/web"
 	"github.com/roessland/withoutings/pkg/withoutings/app"
-	"github.com/roessland/withoutings/worker"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -35,11 +35,11 @@ func withoutingsServer() {
 	// Start worker
 	wrk := worker.NewWorker(svc)
 	go wrk.Work(ctx)
-	svc.Log.WithField("event", "worker.started").Info()
+	svc.Log.WithField("event", "info.worker.started").Info()
 
 	// Start server
 	g.Go(func() error {
-		svc.Log.WithField("event", "webserver.started").WithField("addr", webserver.Addr).Info()
+		svc.Log.WithField("event", "info.webserver.started").WithField("addr", webserver.Addr).Info()
 		if err := webserver.ListenAndServe(); err != http.ErrServerClosed {
 			return err
 		}
@@ -99,6 +99,6 @@ func withoutingsServer() {
 
 	abortForcefulShutdown() // Wasn't needed after all
 
-	svc.Log.WithField("event", "graceful-shutdown.success").Info()
+	svc.Log.WithField("event", "info.graceful-shutdown.success").Info()
 	time.Sleep(100 * time.Millisecond) // Wait a bit to increase chance of logs being flushed
 }

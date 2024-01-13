@@ -27,6 +27,7 @@ import (
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
+
 	"github.com/sirupsen/logrus"
 )
 
@@ -54,7 +55,7 @@ type MockApp struct {
 }
 
 func NewApplication(ctx context.Context, cfg *config.Config) *App {
-	logger := logging.NewLogger(cfg.LogFormat)
+	log := logging.NewLogger(cfg.LogFormat)
 
 	stdDB, err := sql.Open("pgx", cfg.DatabaseURL)
 	if err != nil {
@@ -100,10 +101,13 @@ func NewApplication(ctx context.Context, cfg *config.Config) *App {
 	withingsSvc := withingsService.NewService(withingsHttpClient, accountRepo)
 
 	templateSvc := templates.NewTemplates(templates.Config{})
-	logger.WithField("template-source", templateSvc.Source()).Info("Loaded templates")
+	log.
+		WithField("event", "templates.loaded").
+		WithField("template-source", templateSvc.Source()).
+		Info()
 
 	return &App{
-		Log:              logger,
+		Log:              log,
 		WithingsRepo:     withingsHttpClient,
 		Sessions:         sessions,
 		Flash:            flashManager,

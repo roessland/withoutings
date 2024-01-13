@@ -36,7 +36,7 @@ func NewTestApplication(t *testing.T, ctx context.Context, database *pgxpool.Poo
 		WithingsWebhookSecret: "qwerty1234",
 		DatabaseURL:           "<test-database-url>",
 	}
-	logger := logging.MustGetLoggerFromContext(ctx)
+	log := logging.MustGetLoggerFromContext(ctx)
 	dbQueries := db.New(database)
 	accountRepo := accountAdapter.NewPgRepo(database, dbQueries)
 	subscriptionsRepo := subscriptionAdapter.NewPgRepo(database, dbQueries)
@@ -66,7 +66,7 @@ func NewTestApplication(t *testing.T, ctx context.Context, database *pgxpool.Poo
 
 	svc := &MockApp{
 		App: &App{
-			Log:              logger,
+			Log:              log,
 			Sessions:         sessionManager,
 			Flash:            flashManager,
 			Templates:        templateSvc,

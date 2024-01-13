@@ -30,20 +30,21 @@ func Logging(svc *app.App) mux.MiddlewareFunc {
 
 			log = log.WithField("requestID", requestID)
 			log = log.WithField("url", r.URL.String())
+			log = log.WithField("method", r.Method)
 
 			ctx = logging.AddLoggerToContext(ctx, log)
 
-			log.WithField("event", "request.start").
+			log.WithField("event", "info.request.start").
 				WithField("headers", r.Header).
 				WithField("real_ip", r.RemoteAddr).
-				Info("")
+				Info()
 
 			responseRecorder := NewRecordingResponseWriter(w)
 			next.ServeHTTP(responseRecorder, r.WithContext(ctx))
 
-			log.WithField("headers", responseRecorder.Header()).
+			log.WithField("event", "info.request.finish").
+				WithField("headers", responseRecorder.Header()).
 				WithField("response_status", responseRecorder.StatusCode()).
-				WithField("event", "request.finish").
 				Info()
 		})
 	}
