@@ -76,6 +76,49 @@ func (_c *MockRepo_AllNotificationCategories_Call) RunAndReturn(run func(context
 	return _c
 }
 
+// CreateNotification provides a mock function with given fields: ctx, notification
+func (_m *MockRepo) CreateNotification(ctx context.Context, notification Notification) error {
+	ret := _m.Called(ctx, notification)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, Notification) error); ok {
+		r0 = rf(ctx, notification)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockRepo_CreateNotification_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateNotification'
+type MockRepo_CreateNotification_Call struct {
+	*mock.Call
+}
+
+// CreateNotification is a helper method to define mock.On call
+//   - ctx context.Context
+//   - notification Notification
+func (_e *MockRepo_Expecter) CreateNotification(ctx interface{}, notification interface{}) *MockRepo_CreateNotification_Call {
+	return &MockRepo_CreateNotification_Call{Call: _e.mock.On("CreateNotification", ctx, notification)}
+}
+
+func (_c *MockRepo_CreateNotification_Call) Run(run func(ctx context.Context, notification Notification)) *MockRepo_CreateNotification_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(Notification))
+	})
+	return _c
+}
+
+func (_c *MockRepo_CreateNotification_Call) Return(_a0 error) *MockRepo_CreateNotification_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockRepo_CreateNotification_Call) RunAndReturn(run func(context.Context, Notification) error) *MockRepo_CreateNotification_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateRawNotification provides a mock function with given fields: ctx, rawNotification
 func (_m *MockRepo) CreateRawNotification(ctx context.Context, rawNotification RawNotification) error {
 	ret := _m.Called(ctx, rawNotification)
@@ -625,6 +668,50 @@ func (_c *MockRepo_Update_Call) Return(_a0 error) *MockRepo_Update_Call {
 }
 
 func (_c *MockRepo_Update_Call) RunAndReturn(run func(context.Context, uuid.UUID, func(context.Context, *Subscription) (*Subscription, error)) error) *MockRepo_Update_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateRawNotification provides a mock function with given fields: ctx, rawNotificationUUID, updateFn
+func (_m *MockRepo) UpdateRawNotification(ctx context.Context, rawNotificationUUID uuid.UUID, updateFn func(context.Context, *RawNotification) (*RawNotification, error)) error {
+	ret := _m.Called(ctx, rawNotificationUUID, updateFn)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, func(context.Context, *RawNotification) (*RawNotification, error)) error); ok {
+		r0 = rf(ctx, rawNotificationUUID, updateFn)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockRepo_UpdateRawNotification_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateRawNotification'
+type MockRepo_UpdateRawNotification_Call struct {
+	*mock.Call
+}
+
+// UpdateRawNotification is a helper method to define mock.On call
+//   - ctx context.Context
+//   - rawNotificationUUID uuid.UUID
+//   - updateFn func(context.Context , *RawNotification)(*RawNotification , error)
+func (_e *MockRepo_Expecter) UpdateRawNotification(ctx interface{}, rawNotificationUUID interface{}, updateFn interface{}) *MockRepo_UpdateRawNotification_Call {
+	return &MockRepo_UpdateRawNotification_Call{Call: _e.mock.On("UpdateRawNotification", ctx, rawNotificationUUID, updateFn)}
+}
+
+func (_c *MockRepo_UpdateRawNotification_Call) Run(run func(ctx context.Context, rawNotificationUUID uuid.UUID, updateFn func(context.Context, *RawNotification) (*RawNotification, error))) *MockRepo_UpdateRawNotification_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(func(context.Context, *RawNotification) (*RawNotification, error)))
+	})
+	return _c
+}
+
+func (_c *MockRepo_UpdateRawNotification_Call) Return(_a0 error) *MockRepo_UpdateRawNotification_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockRepo_UpdateRawNotification_Call) RunAndReturn(run func(context.Context, uuid.UUID, func(context.Context, *RawNotification) (*RawNotification, error)) error) *MockRepo_UpdateRawNotification_Call {
 	_c.Call.Return(run)
 	return _c
 }

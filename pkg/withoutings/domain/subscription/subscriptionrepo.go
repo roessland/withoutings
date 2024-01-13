@@ -24,4 +24,6 @@ type Repo interface {
 	GetPendingRawNotifications(ctx context.Context) ([]RawNotification, error)
 	DeleteRawNotification(ctx context.Context, rawNotification RawNotification) error
 	Update(ctx context.Context, subscriptionUUID uuid.UUID, updateFn func(ctx context.Context, sub *Subscription) (*Subscription, error)) error
+	UpdateRawNotification(ctx context.Context, rawNotificationUUID uuid.UUID, updateFn func(ctx context.Context, rawNotification *RawNotification) (*RawNotification, error)) error
+	CreateNotification(ctx context.Context, notification Notification) error
 }

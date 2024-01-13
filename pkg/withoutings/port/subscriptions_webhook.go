@@ -9,6 +9,7 @@ import (
 	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 	"io"
 	"net/http"
+	"time"
 )
 
 // WithingsWebhook is the endpoint that Withings will send notifications to.
@@ -47,6 +48,8 @@ func WithingsWebhook(svc *app.App) http.HandlerFunc {
 				source,
 				string(data),
 				subscription.RawNotificationStatusPending,
+				time.Now(),
+				nil,
 			),
 		)
 		if err != nil {

@@ -3,6 +3,7 @@ package subscription
 import (
 	"fmt"
 	"github.com/google/uuid"
+	"time"
 )
 
 // RawNotification represents a notification received from the Withings API.
@@ -21,6 +22,13 @@ type RawNotification struct {
 
 	// status is the status of the RawNotification.
 	status RawNotificationStatus
+
+	// receivedAt is the time the notification was received.
+	receivedAt time.Time
+
+	// processedAt is the time the notification was processed.
+	// If the notification has not been processed yet, it is nil.
+	processedAt *time.Time
 }
 
 // RawNotificationStatus represents the status of a RawNotification.
@@ -51,18 +59,30 @@ func MustRawNotificationStatusFromString(s string) RawNotificationStatus {
 }
 
 // NewRawNotification validates input and returns a new RawNotification
-func NewRawNotification(rawNotificationUUID uuid.UUID, source string, data string, status RawNotificationStatus) RawNotification {
+func NewRawNotification(rawNotificationUUID uuid.UUID, source string, data string, status RawNotificationStatus, receivedAt time.Time, processedAt *time.Time) RawNotification {
 	if rawNotificationUUID == uuid.Nil {
 		panic("rawNotificationUUID cannot be nil")
 	}
 	if status != RawNotificationStatusPending && status != RawNotificationStatusProcessed {
 		panic(fmt.Sprintf("invalid status: %s", status))
 	}
+
+	if status == RawNotificationStatusPending && processedAt != nil {
+		msg := fmt.Sprintf("processedAt must be nil if status is pending, got %s / %v", status, processedAt)
+		panic(msg)
+	}
+
+	if status == RawNotificationStatusProcessed && processedAt == nil {
+		panic("processedAt cannot be nil if status is processed")
+	}
+
 	return RawNotification{
 		rawNotificationUUID: rawNotificationUUID,
 		source:              source,
 		data:                data,
 		status:              status,
+		receivedAt:          receivedAt,
+		processedAt:         processedAt,
 	}
 }
 
@@ -84,4 +104,18 @@ func (r RawNotification) Data() string {
 // Status returns the status.
 func (r RawNotification) Status() RawNotificationStatus {
 	return r.status
+}
+
+func (r RawNotification) ReceivedAt() time.Time {
+	return r.receivedAt
+}
+
+func (r RawNotification) ProcessedAt() *time.Time {
+	return r.processedAt
+}
+
+func (r *RawNotification) MarkAsProcessed() {
+	now := time.Now()
+	r.status = RawNotificationStatusProcessed
+	r.processedAt = &now
 }

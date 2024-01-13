@@ -2,6 +2,7 @@ package subscription
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -167,6 +168,8 @@ func (r PgRepo) GetPendingRawNotifications(ctx context.Context) ([]subscription.
 			dbRawNotification.Source,
 			dbRawNotification.Data,
 			subscription.RawNotificationStatus(dbRawNotification.Status),
+			dbRawNotification.ReceivedAt,
+			dbRawNotification.ProcessedAt,
 		))
 	}
 	return rawNotifications, nil
@@ -182,6 +185,8 @@ func toDomainRawNotification(dbRawNotification db.RawNotification) subscription.
 		dbRawNotification.Source,
 		dbRawNotification.Data,
 		subscription.MustRawNotificationStatusFromString(dbRawNotification.Status),
+		dbRawNotification.ReceivedAt,
+		dbRawNotification.ProcessedAt,
 	)
 }
 
@@ -207,6 +212,9 @@ func (r PgRepo) AllNotificationCategories(ctx context.Context) ([]subscription.N
 // TODO test that it returns the updated sub
 func (r PgRepo) Update(ctx context.Context, subscriptionUUID uuid.UUID, updateFn func(ctx context.Context, sub *subscription.Subscription) (*subscription.Subscription, error)) error {
 	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return err
+	}
 	defer tx.Rollback(ctx)
 
 	inTransaction := r.WithTx(tx)
@@ -235,5 +243,103 @@ func (r PgRepo) Update(ctx context.Context, subscriptionUUID uuid.UUID, updateFn
 		return err
 	}
 
+	return nil
+}
+
+// UpdateRawNotification updates a raw notification in the database.
+// updateFn is a function that takes the current raw notification and returns the updated raw notification.
+// updateFn is called within a transaction, so it should not start its own transaction.
+func (r PgRepo) UpdateRawNotification(ctx context.Context, rawNotificationUUID uuid.UUID, updateFn func(ctx context.Context, rawNotification *subscription.RawNotification) (*subscription.RawNotification, error)) error {
+	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	inTransaction := r.WithTx(tx)
+
+	rawNotification, err := inTransaction.GetRawNotificationByUUID(ctx, rawNotificationUUID)
+	if err != nil {
+		return err
+	}
+	updatedRawNotification, err := updateFn(ctx, &rawNotification)
+	err = inTransaction.queries.UpdateRawNotification(ctx, db.UpdateRawNotificationParams{
+		RawNotificationUuid: updatedRawNotification.UUID(),
+		Source:              updatedRawNotification.Source(),
+		Status:              string(updatedRawNotification.Status()),
+		Data:                updatedRawNotification.Data(),
+		ReceivedAt:          updatedRawNotification.ReceivedAt(),
+		ProcessedAt:         updatedRawNotification.ProcessedAt(),
+	})
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+type DbNotificationParams struct {
+	UserID    string `json:"userid"`
+	StartDate string `json:"startdate"`
+	EndDate   string `json:"enddate"`
+	Appli     string `json:"appli"`
+}
+
+func encodeDBNotificationParams(p subscription.NotificationParams) []byte {
+	buf, err := json.Marshal(struct {
+		UserID    string `json:"userid"`
+		StartDate string `json:"startdate"`
+		EndDate   string `json:"enddate"`
+		Appli     string `json:"appli"`
+	}{
+		UserID:    p.UserID,
+		StartDate: p.StartDate,
+		EndDate:   p.EndDate,
+		Appli:     p.Appli,
+	})
+
+	if err != nil {
+		panic(err)
+	}
+	return buf
+}
+
+func (r PgRepo) CreateNotification(ctx context.Context, notification subscription.Notification) error {
+	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	inTransaction := r.WithTx(tx)
+
+	err = inTransaction.queries.CreateNotification(ctx, db.CreateNotificationParams{
+		NotificationUuid:    notification.UUID(),
+		AccountUuid:         notification.AccountUUID(),
+		ReceivedAt:          notification.ReceivedAt(),
+		Params:              encodeDBNotificationParams(notification.Params()),
+		Data:                notification.Data(),
+		FetchedAt:           notification.FetchedAt(),
+		RawNotificationUuid: notification.RawNotificationUUID(),
+		Source:              notification.Source(),
+	})
+	if err != nil {
+		return err
+	}
+
+	err = inTransaction.UpdateRawNotification(ctx, notification.RawNotificationUUID(), func(ctx context.Context, rawNotification *subscription.RawNotification) (*subscription.RawNotification, error) {
+		rawNotification.MarkAsProcessed()
+		return rawNotification, nil
+	})
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return err
+	}
 	return nil
 }

@@ -2,8 +2,8 @@ version: "2"
 sql:
 
   - queries:
-      - "account.sql"
       - "subscription.sql"
+      - "account.sql"
     engine: "postgresql"
     schema: "../migration/"
     gen:
@@ -12,9 +12,24 @@ sql:
         package: "db"
         out: "."
         overrides:
+
         - column: "*.*uuid"
           go_type: "github.com/google/uuid.UUID"
-        - column: "*.*_at"
-          go_type: "time.Time"
-        - column: "*.*_expiry"
-          go_type: "time.Time"
+
+        - column: "*.*expiry"
+          go_type:
+            import: "time"
+            type: "Time"
+
+        - db_type: "timestamptz"
+          nullable: false
+          go_type:
+            import: "time"
+            type: "Time"
+
+        - db_type: "timestamptz"
+          nullable: true
+          go_type:
+            import: "time"
+            type: "Time"
+            pointer: true

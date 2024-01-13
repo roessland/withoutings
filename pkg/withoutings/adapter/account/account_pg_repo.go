@@ -4,10 +4,12 @@ import (
 	"context"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pkg/errors"
 	"github.com/roessland/withoutings/pkg/db"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
+	"time"
 )
 
 type PgRepo struct {
@@ -26,6 +28,24 @@ func (r PgRepo) WithTx(tx pgx.Tx) PgRepo {
 	return PgRepo{
 		db:      r.db,
 		queries: r.queries.WithTx(tx),
+	}
+}
+
+func fromPgTime(t pgtype.Timestamptz) time.Time {
+	if !t.Valid {
+		panic("time was not valid")
+	}
+	if t.InfinityModifier != pgtype.Finite {
+		panic("time was not finite")
+	}
+	return t.Time
+}
+
+func toPgTime(t time.Time) pgtype.Timestamptz {
+	return pgtype.Timestamptz{
+		Time:             t,
+		InfinityModifier: pgtype.Finite,
+		Valid:            true,
 	}
 }
 

@@ -9,6 +9,7 @@ import (
 	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 	"github.com/stretchr/testify/require"
 	"testing"
+	"time"
 )
 
 var _ subscription.Repo = subscriptionAdapter.PgRepo{}
@@ -65,6 +66,8 @@ func TestSubscriptionPgRepo(t *testing.T) {
 			"ip=123.123.123.123",
 			"appli=1337&foo=bar",
 			subscription.RawNotificationStatusPending,
+			time.Now(),
+			nil,
 		)
 
 		// Create it

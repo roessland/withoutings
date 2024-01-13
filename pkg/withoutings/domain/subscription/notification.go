@@ -7,10 +7,10 @@ import (
 )
 
 type NotificationParams struct {
-	UserID    string `json:"userid"`
-	StartDate string `json:"startdate"`
-	EndDate   string `json:"enddate"`
-	Appli     string `json:"appli"`
+	UserID    string
+	StartDate string
+	EndDate   string
+	Appli     string
 }
 
 // Notification represents a notification received from the Withings API,

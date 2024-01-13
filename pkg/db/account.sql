@@ -5,7 +5,14 @@ WHERE withings_user_id = $1
 LIMIT 1;
 
 -- name: GetAccountByAccountUUID :one
-SELECT *
+SELECT
+    account_id,
+    withings_user_id,
+    withings_access_token,
+    withings_refresh_token,
+    withings_access_token_expiry,
+    withings_scopes,
+    account_uuid
 FROM account
 WHERE account_uuid = $1
 LIMIT 1;

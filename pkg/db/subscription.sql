@@ -84,3 +84,23 @@ FROM raw_notification
 WHERE raw_notification_uuid = $1;
 
 
+-- name: CreateNotification :exec
+INSERT INTO notification(notification_uuid,
+                         account_uuid,
+                         received_at,
+                         params,
+                         data,
+                         fetched_at,
+                         raw_notification_uuid,
+                         source)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
+
+
+-- name: UpdateRawNotification :exec
+UPDATE raw_notification
+SET source       = $1,
+    status       = $2,
+    data         = $3,
+    received_at  = $4,
+    processed_at = $5
+WHERE raw_notification_uuid = $6;
