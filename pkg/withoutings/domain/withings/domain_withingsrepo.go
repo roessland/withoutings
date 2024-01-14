@@ -13,4 +13,5 @@ type Repo interface {
 	NotifyList(ctx context.Context, accessToken string, params NotifyListParams) (*NotifyListResponse, error)
 	SleepGetsummary(ctx context.Context, accessToken string, params SleepGetsummaryParams) (*SleepGetsummaryResponse, error)
 	SleepGet(ctx context.Context, accessToken string, params SleepGetParams) (*SleepGetResponse, error)
+	MeasureGetmeas(ctx context.Context, accessToken string, params MeasureGetmeasParams) (*MeasureGetmeasResponse, error)
 }

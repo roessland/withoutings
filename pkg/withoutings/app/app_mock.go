@@ -39,7 +39,7 @@ func NewTestApplication(t *testing.T, ctx context.Context, database *pgxpool.Poo
 	log := logging.MustGetLoggerFromContext(ctx)
 	dbQueries := db.New(database)
 	accountRepo := accountAdapter.NewPgRepo(database, dbQueries)
-	subscriptionsRepo := subscriptionAdapter.NewPgRepo(database, dbQueries)
+	subscriptionRepo := subscriptionAdapter.NewPgRepo(database, dbQueries)
 	mockWithingsRepo := withings.NewMockRepo(t)
 	mockWithingsSvc := withingsService.NewMockService(t)
 
@@ -49,10 +49,11 @@ func NewTestApplication(t *testing.T, ctx context.Context, database *pgxpool.Poo
 		AllAccounts:             query.NewAllAccountsHandler(accountRepo),
 	}
 	commands := Commands{
-		SubscribeAccount:         command.NewSubscribeAccountHandler(accountRepo, subscriptionsRepo, mockWithingsSvc, cfg),
+		SubscribeAccount:         command.NewSubscribeAccountHandler(accountRepo, subscriptionRepo, mockWithingsSvc, cfg),
 		CreateOrUpdateAccount:    command.NewCreateOrUpdateAccountHandler(accountRepo),
 		RefreshAccessToken:       command.NewRefreshAccessTokenHandler(accountRepo, mockWithingsRepo),
-		SyncRevokedSubscriptions: command.NewSyncRevokedSubscriptionsHandler(subscriptionsRepo, mockWithingsSvc),
+		SyncRevokedSubscriptions: command.NewSyncRevokedSubscriptionsHandler(subscriptionRepo, mockWithingsSvc),
+		ProcessRawNotification:   command.NewProcessRawNotificationHandler(subscriptionRepo, mockWithingsSvc),
 	}
 
 	sleepSvc := sleep.NewSleep(nil) // no http client for now
@@ -75,7 +76,7 @@ func NewTestApplication(t *testing.T, ctx context.Context, database *pgxpool.Poo
 			Config:           cfg,
 			WithingsRepo:     mockWithingsRepo,
 			AccountRepo:      accountRepo,
-			SubscriptionRepo: subscriptionsRepo,
+			SubscriptionRepo: subscriptionRepo,
 			WithingsSvc:      mockWithingsSvc,
 			Commands:         commands,
 			Queries:          queries,
@@ -106,6 +107,7 @@ func NewMockApplication(t *testing.T) *App {
 		CreateOrUpdateAccount:    command.NewCreateOrUpdateAccountHandler(svc.AccountRepo),
 		RefreshAccessToken:       command.NewRefreshAccessTokenHandler(svc.AccountRepo, svc.WithingsRepo),
 		SyncRevokedSubscriptions: command.NewSyncRevokedSubscriptionsHandler(svc.SubscriptionRepo, svc.WithingsSvc),
+		ProcessRawNotification:   command.NewProcessRawNotificationHandler(svc.SubscriptionRepo, svc.WithingsSvc),
 	}
 	svc.Queries = Queries{
 		AccountByWithingsUserID: query.NewAccountByWithingsUserIDHandler(svc.AccountRepo),

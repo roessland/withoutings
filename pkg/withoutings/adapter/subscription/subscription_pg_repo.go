@@ -309,6 +309,11 @@ func encodeDBNotificationParams(p subscription.NotificationParams) []byte {
 	return buf
 }
 
+// TODO: Make unique index on raw_notification.data.
+// TODO: Make idempotent, should return success if notification already exists.
+
+// CreateNotification creates a notification in the database,
+// and marks the corresponding raw notification as processed.
 func (r PgRepo) CreateNotification(ctx context.Context, notification subscription.Notification) error {
 	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
@@ -322,7 +327,7 @@ func (r PgRepo) CreateNotification(ctx context.Context, notification subscriptio
 		NotificationUuid:    notification.UUID(),
 		AccountUuid:         notification.AccountUUID(),
 		ReceivedAt:          notification.ReceivedAt(),
-		Params:              encodeDBNotificationParams(notification.Params()),
+		Params:              []byte(notification.Params()),
 		Data:                notification.Data(),
 		FetchedAt:           notification.FetchedAt(),
 		RawNotificationUuid: notification.RawNotificationUUID(),

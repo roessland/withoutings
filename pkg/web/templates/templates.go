@@ -187,3 +187,22 @@ func (t *Templates) RenderTemplateTest(ctx context.Context, w io.Writer) error {
 		Content: "ThisIsTheContent",
 	})
 }
+
+type MeasureGetmeasPageVars struct {
+	Context         TemplateContext
+	Error           string
+	GetmeasResponse *withings.MeasureGetmeasResponse
+}
+
+func (t *Templates) RenderMeasureGetmeas(ctx context.Context, w io.Writer, resp *withings.MeasureGetmeasResponse, errMsg string) error {
+	tmpl, err := template.New("base.gohtml").ParseFS(t.FS, "base.gohtml", "measuregetmeaspage.gohtml")
+	if err != nil {
+		panic(err.Error())
+	}
+	tmpl.Option("missingkey=error")
+	return tmpl.ExecuteTemplate(w, "base.gohtml", MeasureGetmeasPageVars{
+		Context:         extractTemplateContext(ctx),
+		GetmeasResponse: resp,
+		Error:           errMsg,
+	})
+}

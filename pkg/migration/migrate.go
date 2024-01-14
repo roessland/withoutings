@@ -3,6 +3,7 @@ package migration
 import (
 	"database/sql"
 	"fmt"
+	wmSql "github.com/ThreeDotsLabs/watermill-sql/v2/pkg/sql"
 	"github.com/golang-migrate/migrate/v4"
 	migratepgx "github.com/golang-migrate/migrate/v4/database/pgx"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
@@ -38,5 +39,19 @@ func Run(db *sql.DB) {
 	if err != nil && err != migrate.ErrNoChange {
 		fmt.Fprintf(os.Stderr, "Unable to run migrations:: %v\n", err)
 		os.Exit(1)
+	}
+
+	// Run watermill migrations, create topic tables
+	watermillSchema := wmSql.DefaultPostgreSQLSchema{}
+	topicNames := []string{"withings_raw_notification_received"}
+	for _, topicName := range topicNames {
+		initQueries := watermillSchema.SchemaInitializingQueries(topicName)
+		for _, q := range initQueries {
+			_, err = db.Exec(q)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Unable to create topic table: %v\n", err)
+				os.Exit(1)
+			}
+		}
 	}
 }

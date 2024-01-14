@@ -4,6 +4,7 @@ go 1.21
 
 require (
 	cloud.google.com/go v0.110.9
+	github.com/ThreeDotsLabs/watermill-sql/v2 v2.0.0
 	github.com/alexedwards/scs/pgxstore v0.0.0-20231019082033-4c4a69f4f7d4
 	github.com/alexedwards/scs/v2 v2.5.1
 	github.com/golang-migrate/migrate/v4 v4.16.2
@@ -19,7 +20,12 @@ require (
 	golang.org/x/oauth2 v0.13.0
 )
 
-require github.com/rogpeppe/go-internal v1.10.0 // indirect
+require (
+	github.com/ThreeDotsLabs/watermill v1.2.0 // indirect
+	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
+	github.com/oklog/ulid v1.3.1 // indirect
+	github.com/rogpeppe/go-internal v1.10.0 // indirect
+)
 
 require (
 	github.com/alexedwards/scs/postgresstore v0.0.0-20231019082033-4c4a69f4f7d4

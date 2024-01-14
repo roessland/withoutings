@@ -3,6 +3,7 @@ package subscription
 import (
 	"errors"
 	"github.com/google/uuid"
+	"net/url"
 	"time"
 )
 
@@ -11,6 +12,29 @@ type NotificationParams struct {
 	StartDate string
 	EndDate   string
 	Appli     string
+}
+
+func NotificationParamsFromString(s string) (NotificationParams, error) {
+	var p NotificationParams
+	params, err := url.ParseQuery(s)
+	if err != nil {
+		return p, err
+	}
+	for paramKey, paramVal := range params {
+		if len(paramVal) != 1 {
+			continue
+		}
+		if paramKey == "userid" {
+			p.UserID = paramVal[0]
+		} else if paramKey == "startdate" {
+			p.StartDate = paramVal[0]
+		} else if paramKey == "enddate" {
+			p.EndDate = paramVal[0]
+		} else if paramKey == "appli" {
+			p.Appli = paramVal[0]
+		}
+	}
+	return p, err
 }
 
 // Notification represents a notification received from the Withings API,
@@ -27,7 +51,7 @@ type Notification struct {
 
 	// params are the query parameters of the POST request from Withings.
 	// Example: {UserID: "133337", StartDate: "1682809920", EndDate: "1682837220", Appli: "44"}
-	params NotificationParams
+	params string
 
 	// data is the response body from the Withings API using the provided query parameters.
 	data []byte
@@ -46,7 +70,7 @@ type NewNotificationParams struct {
 	NotificationUUID    uuid.UUID
 	AccountUUID         uuid.UUID
 	ReceivedAt          time.Time
-	Params              NotificationParams
+	Params              string
 	Data                []byte
 	FetchedAt           time.Time
 	RawNotificationUUID uuid.UUID
@@ -65,10 +89,6 @@ func NewNotification(p NewNotificationParams) (Notification, error) {
 
 	if p.ReceivedAt.IsZero() {
 		return Notification{}, errors.New("zero receivedAt")
-	}
-
-	if p.Params.UserID == "" {
-		return Notification{}, errors.New("empty params.UserID")
 	}
 
 	if p.FetchedAt.IsZero() {
@@ -103,8 +123,8 @@ func (r Notification) ReceivedAt() time.Time {
 }
 
 // Params returns the query parameters of the POST request from Withings.
-// Example: {UserID: "133337", StartDate: "1682809920", EndDate: "1682837220", Appli: "44"}
-func (r Notification) Params() NotificationParams {
+// Example:  "userid=133337&startdate=1682809920&enddate=1682837220&appli=44"
+func (r Notification) Params() string {
 	return r.params
 }
 

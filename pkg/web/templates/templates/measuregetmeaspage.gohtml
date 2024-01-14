@@ -1,0 +1,18 @@
+{{define "title"}}Measure - Getmeas{{end}}
+
+{{define "content"}}
+  <div class="py-4">
+    <div class="">
+        {{if not .GetmeasResponse}}
+          <p>No data</p>
+          <p>{{ .Error }}</p>
+        {{else}}
+          <pre>
+            <code>
+              {{ printf "%s" .GetmeasResponse.Raw}}
+            </code>
+          </pre>
+        {{end}}
+    </div>
+  </div>
+{{end}}

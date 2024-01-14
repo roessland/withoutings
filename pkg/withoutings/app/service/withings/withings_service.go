@@ -12,6 +12,7 @@ type Service interface {
 	NotifyList(ctx context.Context, acc *account.Account, params withings.NotifyListParams) (*withings.NotifyListResponse, error)
 	NotifySubscribe(ctx context.Context, acc *account.Account, params withings.NotifySubscribeParams) (*withings.NotifySubscribeResponse, error)
 	SleepGetsummary(ctx context.Context, acc *account.Account, params withings.SleepGetsummaryParams) (*withings.SleepGetsummaryResponse, error)
+	MeasureGetmeas(ctx context.Context, acc *account.Account, params withings.MeasureGetmeasParams) (*withings.MeasureGetmeasResponse, error)
 }
 
 type service struct {
@@ -106,4 +107,12 @@ func (s *service) NotifySubscribe(ctx context.Context, acc *account.Account, par
 
 func (s *service) SleepGetsummary(ctx context.Context, acc *account.Account, params withings.SleepGetsummaryParams) (*withings.SleepGetsummaryResponse, error) {
 	return executeWithRetry(s, s.repo.SleepGetsummary, ctx, acc, params)
+}
+
+func (s *service) MeasureGetmeas(ctx context.Context, acc *account.Account, params withings.MeasureGetmeasParams) (*withings.MeasureGetmeasResponse, error) {
+	return executeWithRetry(s, s.repo.MeasureGetmeas, ctx, acc, params)
+}
+
+func (s *service) CallService(ctx context.Context, acc *account.Account, appli int, params string) ([]byte, error) {
+	panic("not implemented")
 }

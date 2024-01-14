@@ -25,6 +25,62 @@ func (_m *MockService) EXPECT() *MockService_Expecter {
 	return &MockService_Expecter{mock: &_m.Mock}
 }
 
+// MeasureGetmeas provides a mock function with given fields: ctx, acc, params
+func (_m *MockService) MeasureGetmeas(ctx context.Context, acc *account.Account, params domainwithings.MeasureGetmeasParams) (*domainwithings.MeasureGetmeasResponse, error) {
+	ret := _m.Called(ctx, acc, params)
+
+	var r0 *domainwithings.MeasureGetmeasResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *account.Account, domainwithings.MeasureGetmeasParams) (*domainwithings.MeasureGetmeasResponse, error)); ok {
+		return rf(ctx, acc, params)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *account.Account, domainwithings.MeasureGetmeasParams) *domainwithings.MeasureGetmeasResponse); ok {
+		r0 = rf(ctx, acc, params)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domainwithings.MeasureGetmeasResponse)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *account.Account, domainwithings.MeasureGetmeasParams) error); ok {
+		r1 = rf(ctx, acc, params)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockService_MeasureGetmeas_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MeasureGetmeas'
+type MockService_MeasureGetmeas_Call struct {
+	*mock.Call
+}
+
+// MeasureGetmeas is a helper method to define mock.On call
+//   - ctx context.Context
+//   - acc *account.Account
+//   - params domainwithings.MeasureGetmeasParams
+func (_e *MockService_Expecter) MeasureGetmeas(ctx interface{}, acc interface{}, params interface{}) *MockService_MeasureGetmeas_Call {
+	return &MockService_MeasureGetmeas_Call{Call: _e.mock.On("MeasureGetmeas", ctx, acc, params)}
+}
+
+func (_c *MockService_MeasureGetmeas_Call) Run(run func(ctx context.Context, acc *account.Account, params domainwithings.MeasureGetmeasParams)) *MockService_MeasureGetmeas_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*account.Account), args[2].(domainwithings.MeasureGetmeasParams))
+	})
+	return _c
+}
+
+func (_c *MockService_MeasureGetmeas_Call) Return(_a0 *domainwithings.MeasureGetmeasResponse, _a1 error) *MockService_MeasureGetmeas_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockService_MeasureGetmeas_Call) RunAndReturn(run func(context.Context, *account.Account, domainwithings.MeasureGetmeasParams) (*domainwithings.MeasureGetmeasResponse, error)) *MockService_MeasureGetmeas_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NotifyList provides a mock function with given fields: ctx, acc, params
 func (_m *MockService) NotifyList(ctx context.Context, acc *account.Account, params domainwithings.NotifyListParams) (*domainwithings.NotifyListResponse, error) {
 	ret := _m.Called(ctx, acc, params)

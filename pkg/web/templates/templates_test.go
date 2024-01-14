@@ -103,4 +103,11 @@ func TestRenderTemplates(t *testing.T) {
 		require.NoError(t, err)
 		require.Contains(t, buf.String(), "don't have")
 	})
+
+	t.Run("MeasureGetmeasPage handles nil vars", func(t *testing.T) {
+		beforeEach(t)
+		err := tmpls.RenderMeasureGetmeas(context.Background(), buf, nil, "")
+		require.NoError(t, err)
+		require.Contains(t, buf.String(), "Measure - Getmeas")
+	})
 }

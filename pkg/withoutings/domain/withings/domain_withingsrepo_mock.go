@@ -118,6 +118,62 @@ func (_c *MockRepo_GetAccessToken_Call) RunAndReturn(run func(context.Context, s
 	return _c
 }
 
+// MeasureGetmeas provides a mock function with given fields: ctx, accessToken, params
+func (_m *MockRepo) MeasureGetmeas(ctx context.Context, accessToken string, params MeasureGetmeasParams) (*MeasureGetmeasResponse, error) {
+	ret := _m.Called(ctx, accessToken, params)
+
+	var r0 *MeasureGetmeasResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, MeasureGetmeasParams) (*MeasureGetmeasResponse, error)); ok {
+		return rf(ctx, accessToken, params)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, MeasureGetmeasParams) *MeasureGetmeasResponse); ok {
+		r0 = rf(ctx, accessToken, params)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*MeasureGetmeasResponse)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, MeasureGetmeasParams) error); ok {
+		r1 = rf(ctx, accessToken, params)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockRepo_MeasureGetmeas_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MeasureGetmeas'
+type MockRepo_MeasureGetmeas_Call struct {
+	*mock.Call
+}
+
+// MeasureGetmeas is a helper method to define mock.On call
+//   - ctx context.Context
+//   - accessToken string
+//   - params MeasureGetmeasParams
+func (_e *MockRepo_Expecter) MeasureGetmeas(ctx interface{}, accessToken interface{}, params interface{}) *MockRepo_MeasureGetmeas_Call {
+	return &MockRepo_MeasureGetmeas_Call{Call: _e.mock.On("MeasureGetmeas", ctx, accessToken, params)}
+}
+
+func (_c *MockRepo_MeasureGetmeas_Call) Run(run func(ctx context.Context, accessToken string, params MeasureGetmeasParams)) *MockRepo_MeasureGetmeas_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(MeasureGetmeasParams))
+	})
+	return _c
+}
+
+func (_c *MockRepo_MeasureGetmeas_Call) Return(_a0 *MeasureGetmeasResponse, _a1 error) *MockRepo_MeasureGetmeas_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockRepo_MeasureGetmeas_Call) RunAndReturn(run func(context.Context, string, MeasureGetmeasParams) (*MeasureGetmeasResponse, error)) *MockRepo_MeasureGetmeas_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NotifyList provides a mock function with given fields: ctx, accessToken, params
 func (_m *MockRepo) NotifyList(ctx context.Context, accessToken string, params NotifyListParams) (*NotifyListResponse, error) {
 	ret := _m.Called(ctx, accessToken, params)

@@ -3,6 +3,8 @@ package subscription
 import (
 	"fmt"
 	"github.com/google/uuid"
+	"net/url"
+	"strconv"
 	"time"
 )
 
@@ -29,6 +31,13 @@ type RawNotification struct {
 	// processedAt is the time the notification was processed.
 	// If the notification has not been processed yet, it is nil.
 	processedAt *time.Time
+}
+
+type RawNotificationData struct {
+	WithingsUserID string
+	StartDate      time.Time
+	EndDate        time.Time
+	Appli          int
 }
 
 // RawNotificationStatus represents the status of a RawNotification.
@@ -99,6 +108,36 @@ func (r RawNotification) Source() string {
 // Data returns the data.
 func (r RawNotification) Data() string {
 	return r.data
+}
+
+func (r RawNotification) ParsedData() (RawNotificationData, error) {
+	queryStr := r.data
+	params, err := url.ParseQuery(queryStr)
+	if err != nil {
+		return RawNotificationData{}, fmt.Errorf("failed to parse data: %w", err)
+	}
+
+	startUnix, err := strconv.ParseInt(params.Get("startdate"), 10, 64)
+	if err != nil {
+		return RawNotificationData{}, fmt.Errorf("failed to parse startdate: %w", err)
+	}
+
+	endUnix, err := strconv.ParseInt(params.Get("enddate"), 10, 64)
+	if err != nil {
+		return RawNotificationData{}, fmt.Errorf("failed to parse enddate: %w", err)
+	}
+
+	appli, err := strconv.Atoi(params.Get("appli"))
+	if err != nil {
+		return RawNotificationData{}, fmt.Errorf("failed to parse appli: %w", err)
+	}
+
+	return RawNotificationData{
+		WithingsUserID: params.Get("userid"),
+		StartDate:      time.Unix(startUnix, 0),
+		EndDate:        time.Unix(endUnix, 0),
+		Appli:          appli,
+	}, nil
 }
 
 // Status returns the status.
