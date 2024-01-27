@@ -1,6 +1,8 @@
 package withings
 
 import (
+	"encoding/json"
+	"fmt"
 	"math"
 	"time"
 )
@@ -61,6 +63,12 @@ var meastypeInfos = map[Meastype]meastypeInfo{
 	196: meastypeInfo{196, "Electrodermal activity feet", ""},
 }
 
+var AllMeastypes = []Meastype{
+	1, 4, 5, 6, 8, 9, 10, 11, 12, 54, 71, 73, 76, 77, 88, 91, 123, 130, 135, 136, 137, 138, 139, 155, 167, 168, 169, 170, 174, 175, 196,
+}
+
+var AllMeasTypesQuery = "1,4,5,6,8,9,10,11,12,54,71,73,76,77,88,91,123,130,135,136,137,138,139,155,167,168,169,170,174,175,196"
+
 func MustMeastypeFromValue(value int) Meastype {
 	if _, ok := meastypeInfos[Meastype(value)]; ok {
 		return Meastype(value)
@@ -69,7 +77,8 @@ func MustMeastypeFromValue(value int) Meastype {
 }
 
 // MeasureGetmeasParams are the urlencoded parameters for the Measure - Getmeas API.
-// Example: `userid=133337&startdate=1684260295&enddate=1684260296&appli=4`s
+// Example: `userid=133337&startdate=1684260295&enddate=1684260296`
+// Without appli!
 type MeasureGetmeasParams string
 
 // NewMeasureGetmeasParams creates new NewMeasureGetmeasParams.
@@ -91,8 +100,22 @@ type MeasureGetmeasResponse struct {
 	Raw    []byte
 }
 
+func MustNewMeasureGetmeasResponse(raw []byte) *MeasureGetmeasResponse {
+	var resp MeasureGetmeasResponse
+	err := json.Unmarshal(raw, &resp)
+	resp.Raw = raw
+
+	if err != nil {
+		panic(fmt.Errorf(`couldn't unmarshal MeasureGetmeas response: %w`, err))
+	}
+
+	return &resp
+}
+
+//
+
 type MeasureGetmeasBody struct {
-	Updatetime  string `json:"updatetime"`
+	Updatetime  int    `json:"updatetime"`
 	Timezone    string `json:"timezone"`
 	Measuregrps []MeasureGetmeasMeasuregrp
 	More        int `json:"more"`
@@ -144,7 +167,7 @@ type MeasureGetmeasMeasure struct {
 	Value int `json:"value"`
 
 	// Type of the measure. See meastype input parameter.
-	Type meastypeInfo `json:"type"`
+	Type Meastype `json:"type"`
 
 	// Power of ten to multiply the value field to get the real value.
 	// Formula: value * 10^unit = real value.

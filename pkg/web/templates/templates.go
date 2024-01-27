@@ -189,20 +189,39 @@ func (t *Templates) RenderTemplateTest(ctx context.Context, w io.Writer) error {
 }
 
 type MeasureGetmeasPageVars struct {
-	Context         TemplateContext
-	Error           string
-	GetmeasResponse *withings.MeasureGetmeasResponse
+	Context             TemplateContext
+	Error               string
+	GetmeasResponseBody string
 }
 
-func (t *Templates) RenderMeasureGetmeas(ctx context.Context, w io.Writer, resp *withings.MeasureGetmeasResponse, errMsg string) error {
+func (t *Templates) RenderMeasureGetmeas(ctx context.Context, w io.Writer, rawResp string, errMsg string) error {
 	tmpl, err := template.New("base.gohtml").ParseFS(t.FS, "base.gohtml", "measuregetmeaspage.gohtml")
 	if err != nil {
 		panic(err.Error())
 	}
 	tmpl.Option("missingkey=error")
 	return tmpl.ExecuteTemplate(w, "base.gohtml", MeasureGetmeasPageVars{
-		Context:         extractTemplateContext(ctx),
-		GetmeasResponse: resp,
-		Error:           errMsg,
+		Context:             extractTemplateContext(ctx),
+		GetmeasResponseBody: rawResp,
+		Error:               errMsg,
+	})
+}
+
+type NotificationsPageVars struct {
+	Context       TemplateContext
+	Error         string
+	Notifications []*subscription.Notification
+}
+
+func (t *Templates) RenderNotifications(ctx context.Context, w io.Writer, notifications []*subscription.Notification, errMsg string) error {
+	tmpl, err := template.New("base.gohtml").ParseFS(t.FS, "base.gohtml", "notifications.gohtml")
+	if err != nil {
+		panic(err.Error())
+	}
+	tmpl.Option("missingkey=error")
+	return tmpl.ExecuteTemplate(w, "base.gohtml", NotificationsPageVars{
+		Context:       extractTemplateContext(ctx),
+		Notifications: notifications,
+		Error:         errMsg,
 	})
 }

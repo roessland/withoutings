@@ -2,6 +2,7 @@ package withings
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
@@ -79,7 +80,7 @@ func executeWithRetry[P any, R any](s *service, fn func(ctx context.Context, acc
 	if err == nil {
 		return resp, nil
 	}
-	if err != withings.ErrInvalidToken {
+	if !errors.Is(err, withings.ErrInvalidToken) {
 		return nil, fmt.Errorf("unexpected error from Withings API: %w", err)
 	}
 

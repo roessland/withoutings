@@ -104,3 +104,9 @@ SET source       = $1,
     received_at  = $4,
     processed_at = $5
 WHERE raw_notification_uuid = $6;
+
+-- name: GetNotificationsByAccountUUID :many
+SELECT *
+FROM notification
+WHERE account_uuid = $1
+ORDER BY received_at DESC;

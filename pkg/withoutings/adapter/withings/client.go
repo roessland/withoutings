@@ -69,14 +69,21 @@ func (c *HTTPClient) WithAccessToken(accessToken string) *AuthenticatedClient {
 }
 
 // NewRequest creates a standard request to the Withings API.
-func (c *HTTPClient) NewRequest(endpoint string, params any) (*http.Request, error) {
+// Params can be either a struct, as accepted by github.com/google/go-querystring/query,
+// or a string, which will be used directly, without further encoding.
+func (c *HTTPClient) NewRequest(endpoint string, params any, body []byte) (*http.Request, error) {
+	var encodedParams string
+
 	q, err := query.Values(params)
 	if err != nil {
-		return nil, err
+		fmt.Println("error encoding params", err)
+		encodedParams = fmt.Sprintf("%v", params)
+	} else {
+		encodedParams = q.Encode()
 	}
 
-	url := fmt.Sprintf("%s%s?%s", c.APIBase, endpoint, q.Encode())
-	req, err := http.NewRequest(http.MethodPost, url, nil)
+	url := fmt.Sprintf("%s%s?%s", c.APIBase, endpoint, encodedParams)
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(body))
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +107,7 @@ func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 
 	log.WithFields(logrus.Fields{
 		"event":           "withings-api-request.started",
-		"url":             req.URL,
+		"url":             req.URL.String(),
 		"request.body":    string(reqBody),
 		"request.headers": req.Header,
 		"request.method":  req.Method,

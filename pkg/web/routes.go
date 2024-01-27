@@ -33,6 +33,7 @@ func Router(svc *app.App) *mux.Router {
 
 	r.Path("/subscriptions/subscribe/{appli}").Methods("POST").Handler(port.Subscribe(svc))
 	r.Path("/withings/webhooks/{webhook_secret}").Methods("HEAD", "POST").Handler(port.WithingsWebhook(svc))
+	r.Path("/withings/measure/getmeas").Methods("POST").Handler(port.MeasureGetmeas(svc))
 
 	r.Use(Middleware(svc)...)
 	return r

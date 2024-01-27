@@ -23,7 +23,7 @@ func MeasureGetmeas(svc *app.App) http.HandlerFunc {
 		if acc == nil {
 			w.Header().Set("Content-Type", "text/html")
 			w.WriteHeader(403)
-			err := svc.Templates.RenderMeasureGetmeas(ctx, w, nil, "You must be logged in to view this page.")
+			err := svc.Templates.RenderMeasureGetmeas(ctx, w, "", "You must be logged in to view this page.")
 			if err != nil {
 				log.WithError(err).WithField("event", "error.render.template").Error()
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -39,7 +39,7 @@ func MeasureGetmeas(svc *app.App) http.HandlerFunc {
 		if err := validateQuery(query); err != nil {
 			w.Header().Set("Content-Type", "text/html")
 			w.WriteHeader(400)
-			err = svc.Templates.RenderMeasureGetmeas(ctx, w, nil, err.Error())
+			err = svc.Templates.RenderMeasureGetmeas(ctx, w, "", err.Error())
 			if err != nil {
 				log.WithError(err).WithField("event", "error.render.template").Error()
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -57,7 +57,7 @@ func MeasureGetmeas(svc *app.App) http.HandlerFunc {
 
 		w.Header().Set("Content-Type", "text/html")
 		w.WriteHeader(200)
-		err = svc.Templates.RenderMeasureGetmeas(ctx, w, getmeasBody, "")
+		err = svc.Templates.RenderMeasureGetmeas(ctx, w, string(getmeasBody.Raw), "")
 		if err != nil {
 			log.WithError(err).WithField("event", "error.render.template").Error()
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

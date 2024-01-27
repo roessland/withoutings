@@ -54,7 +54,7 @@ type CreateNotificationParams struct {
 	NotificationUuid    uuid.UUID
 	AccountUuid         uuid.UUID
 	ReceivedAt          time.Time
-	Params              []byte
+	Params              string
 	Data                []byte
 	FetchedAt           time.Time
 	RawNotificationUuid uuid.UUID
@@ -154,6 +154,43 @@ WHERE subscription_uuid = $1
 func (q *Queries) DeleteSubscription(ctx context.Context, subscriptionUuid uuid.UUID) error {
 	_, err := q.db.Exec(ctx, deleteSubscription, subscriptionUuid)
 	return err
+}
+
+const getNotificationsByAccountUUID = `-- name: GetNotificationsByAccountUUID :many
+SELECT notification_uuid, account_uuid, received_at, params_json, data, fetched_at, raw_notification_uuid, source, params
+FROM notification
+WHERE account_uuid = $1
+ORDER BY received_at DESC
+`
+
+func (q *Queries) GetNotificationsByAccountUUID(ctx context.Context, accountUuid uuid.UUID) ([]Notification, error) {
+	rows, err := q.db.Query(ctx, getNotificationsByAccountUUID, accountUuid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Notification
+	for rows.Next() {
+		var i Notification
+		if err := rows.Scan(
+			&i.NotificationUuid,
+			&i.AccountUuid,
+			&i.ReceivedAt,
+			&i.ParamsJson,
+			&i.Data,
+			&i.FetchedAt,
+			&i.RawNotificationUuid,
+			&i.Source,
+			&i.Params,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getPendingRawNotifications = `-- name: GetPendingRawNotifications :many

@@ -3,13 +3,13 @@
 {{define "content"}}
   <div class="py-4">
     <div class="">
-        {{if not .GetmeasResponse}}
+        {{if not .GetmeasResponseBody}}
           <p>No data</p>
           <p>{{ .Error }}</p>
         {{else}}
           <pre>
             <code>
-              {{ printf "%s" .GetmeasResponse.Raw}}
+              {{ printf "%s" .GetmeasResponseBody}}
             </code>
           </pre>
         {{end}}

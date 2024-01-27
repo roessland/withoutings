@@ -1,10 +1,13 @@
 package port
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/roessland/withoutings/pkg/logging"
+	"github.com/roessland/withoutings/pkg/withoutings/adapter/topic"
 	"github.com/roessland/withoutings/pkg/withoutings/app"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 	"io"
@@ -42,15 +45,16 @@ func WithingsWebhook(svc *app.App) http.HandlerFunc {
 		// TODO log more headers
 		// TODO use a command instead of directly calling the repo
 		source := fmt.Sprintf("ip=%s", r.Header.Get("X-Forwarded-For"))
+		rawNotification := subscription.NewRawNotification(
+			uuid.New(),
+			source,
+			string(data),
+			subscription.RawNotificationStatusPending,
+			time.Now(),
+			nil,
+		)
 		err = svc.SubscriptionRepo.CreateRawNotification(ctx,
-			subscription.NewRawNotification(
-				uuid.New(),
-				source,
-				string(data),
-				subscription.RawNotificationStatusPending,
-				time.Now(),
-				nil,
-			),
+			rawNotification,
 		)
 		if err != nil {
 			log.WithError(err).
@@ -59,6 +63,28 @@ func WithingsWebhook(svc *app.App) http.HandlerFunc {
 			w.WriteHeader(500)
 			return
 		}
+
+		// Emit event that notification was received
+		rawNotificationReceived := subscription.RawNotificationReceived{
+			RawNotificationUUID: rawNotification.UUID(),
+		}
+		msg, err := json.Marshal(rawNotificationReceived)
+		if err != nil {
+			log.WithError(err).
+				WithField("event", "error.command.ProcessRawNotification.event.Marshal.failed").
+				Error()
+			w.WriteHeader(500)
+		}
+		log.Debug("Publishing event: ", string(msg))
+
+		err = svc.Publisher.Publish(topic.WithingsRawNotificationReceived, message.NewMessage(uuid.NewString(), msg))
+		if err != nil {
+			log.WithError(err).
+				WithField("event", "error.command.ProcessRawNotification.event.Publish.failed").
+				Error()
+			w.WriteHeader(500)
+		}
+		log.Debug("Published event: ", string(msg))
 
 		w.WriteHeader(200)
 	}

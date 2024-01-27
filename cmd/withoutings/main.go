@@ -3,7 +3,9 @@ package main
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
+	"github.com/roessland/withoutings/pkg/logging"
 	"github.com/roessland/withoutings/pkg/worker"
 	"net/http"
 	"os"
@@ -29,6 +31,7 @@ func withoutingsServer() {
 	g, ctx := errgroup.WithContext(ctx)
 
 	svc := app.NewApplication(ctx, cfg)
+	ctx = logging.AddLoggerToContext(ctx, svc.Log)
 
 	webserver := web.Server(svc)
 
@@ -40,7 +43,7 @@ func withoutingsServer() {
 	// Start server
 	g.Go(func() error {
 		svc.Log.WithField("event", "info.webserver.started").WithField("addr", webserver.Addr).Info()
-		if err := webserver.ListenAndServe(); err != http.ErrServerClosed {
+		if err := webserver.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 			return err
 		}
 		return nil

@@ -1,14 +1,17 @@
 package port_test
 
 import (
-	"github.com/google/uuid"
+	"context"
+	"fmt"
 	"github.com/roessland/withoutings/pkg/integrationtest"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
+	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"io"
+	"github.com/stretchr/testify/mock"
+	"html"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 )
@@ -18,58 +21,83 @@ func TestNotificationsPage(t *testing.T) {
 	// It should be converted to a unit test.
 	it := integrationtest.WithFreshDatabase(t)
 
-	var accountUUID uuid.UUID
-	var withingsUserID string
+	var acc *account.Account
 
-	loggedInRequest := func() *http.Request {
+	newListNotificationsReq := func() *http.Request {
 		req := httptest.NewRequest(http.MethodGet, "/notifications", nil)
-
-		// TODO deduplicate this
-		req = req.WithContext(account.AddToContext(it.Ctx,
-			account.NewAccountOrPanic(
-				accountUUID,
-				withingsUserID,
-				"bob",
-				"kåre",
-				time.Now().Add(-time.Hour),
-				"whatever",
-			),
-		))
+		req = req.WithContext(account.AddToContext(it.Ctx, acc))
 		return req
 	}
 
-	// TODO move into integrationtest package
-	doRequest := func(req *http.Request) (*httptest.ResponseRecorder, string) {
-		resp := httptest.NewRecorder()
-		it.Router.ServeHTTP(resp, req)
-		respBody, _ := io.ReadAll(resp.Body)
-		return resp, string(respBody)
+	simulateIncomingWebhook := func(payload string) {
+		req := httptest.NewRequest(http.MethodPost,
+			"/withings/webhooks/qwerty1234",
+			strings.NewReader(payload))
+		resp, _ := it.DoRequest(req)
+		assert.Equal(t, 200, resp.Code)
 	}
 
 	beforeEach := func(t *testing.T) {
 		it.ResetMocks(t)
-
-		// Insert a user with an expired access token.
-		accountUUID = uuid.New()
-		withingsUserID = uuid.NewString()
-		acc, err := account.NewAccount(
-			accountUUID,
-			withingsUserID,
-			"bob",
-			"kåre",
-			time.Now().Add(-time.Hour),
-			"whatever",
-		)
-		require.NoError(t, err)
-		require.NoError(t, it.App.AccountRepo.CreateAccount(it.Ctx, acc))
-
+		acc = it.MakeNewAccount(t)
 	}
 
-	t.Run("should respond with 200 OK", func(t *testing.T) {
+	t.Run("should respond with 200 OK listing notifications", func(t *testing.T) {
 		beforeEach(t)
-		req := loggedInRequest()
 
-		resp, body := doRequest(req)
-		assert.Equal(t, 200, resp.Code, body)
+		workerCtx, cancelWorker := context.WithCancel(it.Ctx)
+		defer cancelWorker()
+		go it.Worker.Work(workerCtx)
+
+		// TODO: real response
+		it.Mocks.MockWithingsSvc.EXPECT().MeasureGetmeas(mock.Anything, mock.Anything, mock.Anything).Return(withings.MustNewMeasureGetmeasResponse(
+			[]byte(`
+				{
+					"status": 0,
+					"body": {
+						"updatetime": "string",
+						"timezone": "string",
+						"measuregrps": [
+							{
+								"grpid": 12,
+								"attrib": 1,
+								"date": 1594245600,
+								"created": 1594246600,
+								"modified": 1594257200,
+								"category": 1594257200,
+								"deviceid": "892359876fd8805ac45bab078c4828692f0276b1",
+								"measures": [
+									{
+										"value": 65750,
+										"type": 1,
+										"unit": -3,
+										"algo": 3425,
+										"fm": 0,
+										"position": 1
+									}
+								],
+								"comment": "A measurement comment",
+								"timezone": "Europe/Paris"
+							}
+						],
+						"more": 0,
+						"offset": 0
+					}
+				}
+			`),
+		), nil)
+
+		// give worker time to register subscriptions, since gochannel pubsub is used for now.
+		// TODO: replace with SQL-based pubsub
+		time.Sleep(100 * time.Millisecond)
+		weighInNotificationParams := fmt.Sprintf(`userid=%s&startdate=1684738999&enddate=1684739000&appli=1`, acc.WithingsUserID())
+		simulateIncomingWebhook(weighInNotificationParams)
+		escapedParams := html.EscapeString(weighInNotificationParams)
+
+		assert.EventuallyWithT(t, func(c *assert.CollectT) {
+			resp, body := it.DoRequest(newListNotificationsReq())
+			assert.Equal(c, 200, resp.Code)
+			assert.Contains(c, body, escapedParams)
+		}, 1*time.Second, 100*time.Millisecond, "should show received notifications")
 	})
 }

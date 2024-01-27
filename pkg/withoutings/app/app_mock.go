@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
 	"testing"
 
 	"github.com/alexedwards/scs/pgxstore"
@@ -22,7 +23,7 @@ import (
 	withingsService "github.com/roessland/withoutings/pkg/withoutings/app/service/withings"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
-	withings "github.com/roessland/withoutings/pkg/withoutings/domain/withings"
+	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
 )
 
 func NewTestApplication(t *testing.T, ctx context.Context, database *pgxpool.Pool) *MockApp {
@@ -43,6 +44,11 @@ func NewTestApplication(t *testing.T, ctx context.Context, database *pgxpool.Poo
 	mockWithingsRepo := withings.NewMockRepo(t)
 	mockWithingsSvc := withingsService.NewMockService(t)
 
+	// TODO replace with SQL-based pubsub
+	wipPubsub := gochannel.NewGoChannel(gochannel.Config{}, nil)
+	publisher := wipPubsub
+	subscriber := wipPubsub
+
 	queries := Queries{
 		AccountByAccountUUID:    query.NewAccountByUUIDHandler(accountRepo),
 		AccountByWithingsUserID: query.NewAccountByWithingsUserIDHandler(accountRepo),
@@ -53,7 +59,7 @@ func NewTestApplication(t *testing.T, ctx context.Context, database *pgxpool.Poo
 		CreateOrUpdateAccount:    command.NewCreateOrUpdateAccountHandler(accountRepo),
 		RefreshAccessToken:       command.NewRefreshAccessTokenHandler(accountRepo, mockWithingsRepo),
 		SyncRevokedSubscriptions: command.NewSyncRevokedSubscriptionsHandler(subscriptionRepo, mockWithingsSvc),
-		ProcessRawNotification:   command.NewProcessRawNotificationHandler(subscriptionRepo, mockWithingsSvc),
+		ProcessRawNotification:   command.NewProcessRawNotificationHandler(subscriptionRepo, mockWithingsSvc, accountRepo, publisher),
 	}
 
 	sleepSvc := sleep.NewSleep(nil) // no http client for now
@@ -80,6 +86,8 @@ func NewTestApplication(t *testing.T, ctx context.Context, database *pgxpool.Poo
 			WithingsSvc:      mockWithingsSvc,
 			Commands:         commands,
 			Queries:          queries,
+			Publisher:        publisher,
+			Subscriber:       subscriber,
 		},
 		MockWithingsRepo: mockWithingsRepo,
 		MockWithingsSvc:  mockWithingsSvc,
@@ -107,7 +115,7 @@ func NewMockApplication(t *testing.T) *App {
 		CreateOrUpdateAccount:    command.NewCreateOrUpdateAccountHandler(svc.AccountRepo),
 		RefreshAccessToken:       command.NewRefreshAccessTokenHandler(svc.AccountRepo, svc.WithingsRepo),
 		SyncRevokedSubscriptions: command.NewSyncRevokedSubscriptionsHandler(svc.SubscriptionRepo, svc.WithingsSvc),
-		ProcessRawNotification:   command.NewProcessRawNotificationHandler(svc.SubscriptionRepo, svc.WithingsSvc),
+		ProcessRawNotification:   command.NewProcessRawNotificationHandler(svc.SubscriptionRepo, svc.WithingsSvc, svc.AccountRepo, svc.Publisher),
 	}
 	svc.Queries = Queries{
 		AccountByWithingsUserID: query.NewAccountByWithingsUserIDHandler(svc.AccountRepo),

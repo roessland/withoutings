@@ -15,7 +15,7 @@ func (c *HTTPClient) NotifySubscribe(ctx context.Context, accessToken string, pa
 
 // NewNotifySubscribeRequest creates a new NotifySubscribeRequest request.
 func (c *HTTPClient) NewNotifySubscribeRequest(params withings.NotifySubscribeParams) (*http.Request, error) {
-	return c.NewRequest("/notify", params)
+	return c.NewRequest("/notify", params, nil)
 }
 
 // NotifySubscribe subscribes to health data events for the current user.

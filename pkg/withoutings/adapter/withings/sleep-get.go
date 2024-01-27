@@ -15,7 +15,7 @@ func (c *HTTPClient) SleepGet(ctx context.Context, accessToken string, params wi
 
 // NewSleepGetRequest creates a new SleepGet request.
 func (c *HTTPClient) NewSleepGetRequest(params withings.SleepGetParams) (*http.Request, error) {
-	return c.NewRequest("/v2/sleep", params)
+	return c.NewRequest("/v2/sleep", params, nil)
 }
 
 // SleepGet gets a sleep summary

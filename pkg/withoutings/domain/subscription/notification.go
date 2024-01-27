@@ -1,7 +1,9 @@
 package subscription
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/google/uuid"
 	"net/url"
 	"time"
@@ -78,24 +80,28 @@ type NewNotificationParams struct {
 }
 
 // NewNotification validates input and returns a new RawNotification
-func NewNotification(p NewNotificationParams) (Notification, error) {
+func NewNotification(p NewNotificationParams) (*Notification, error) {
 	if p.NotificationUUID == uuid.Nil {
-		return Notification{}, errors.New("notificationUUID cannot be nil")
+		return nil, errors.New("notificationUUID cannot be nil")
 	}
 
 	if p.AccountUUID == uuid.Nil {
-		return Notification{}, errors.New("accountUUID cannot be nil")
+		return nil, errors.New("accountUUID cannot be nil")
 	}
 
 	if p.ReceivedAt.IsZero() {
-		return Notification{}, errors.New("zero receivedAt")
+		return nil, errors.New("zero receivedAt")
 	}
 
 	if p.FetchedAt.IsZero() {
-		return Notification{}, errors.New("zero fetchedAt")
+		return nil, errors.New("zero fetchedAt")
 	}
 
-	return Notification{
+	if err := json.Unmarshal(p.Data, new(map[string]any)); err != nil {
+		return nil, fmt.Errorf("notification data is not valid JSON: %w", err)
+	}
+
+	return &Notification{
 		notificationUUID:    p.NotificationUUID,
 		accountUUID:         p.AccountUUID,
 		receivedAt:          p.ReceivedAt,

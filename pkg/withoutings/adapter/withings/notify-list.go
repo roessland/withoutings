@@ -15,7 +15,7 @@ func (c *HTTPClient) NotifyList(ctx context.Context, accessToken string, params 
 
 // NewNotifyListRequest creates a new NotifyListRequest request.
 func (c *HTTPClient) NewNotifyListRequest(params withings.NotifyListParams) (*http.Request, error) {
-	return c.NewRequest("/notify", params)
+	return c.NewRequest("/notify", params, nil)
 }
 
 // NotifyList gets all webhook subscriptions for a given notification category.

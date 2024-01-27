@@ -36,8 +36,14 @@ type RawNotification struct {
 type RawNotificationData struct {
 	WithingsUserID string
 	StartDate      time.Time
+	StartDateStr   string
 	EndDate        time.Time
+	EndDateStr     string
 	Appli          int
+	AppliStr       string
+	Date           time.Time
+	DateStr        string
+	DeviceID       string
 }
 
 // RawNotificationStatus represents the status of a RawNotification.
@@ -68,7 +74,7 @@ func MustRawNotificationStatusFromString(s string) RawNotificationStatus {
 }
 
 // NewRawNotification validates input and returns a new RawNotification
-func NewRawNotification(rawNotificationUUID uuid.UUID, source string, data string, status RawNotificationStatus, receivedAt time.Time, processedAt *time.Time) RawNotification {
+func NewRawNotification(rawNotificationUUID uuid.UUID, source string, data string, status RawNotificationStatus, receivedAt time.Time, processedAt *time.Time) *RawNotification {
 	if rawNotificationUUID == uuid.Nil {
 		panic("rawNotificationUUID cannot be nil")
 	}
@@ -85,7 +91,7 @@ func NewRawNotification(rawNotificationUUID uuid.UUID, source string, data strin
 		panic("processedAt cannot be nil if status is processed")
 	}
 
-	return RawNotification{
+	return &RawNotification{
 		rawNotificationUUID: rawNotificationUUID,
 		source:              source,
 		data:                data,
@@ -96,60 +102,52 @@ func NewRawNotification(rawNotificationUUID uuid.UUID, source string, data strin
 }
 
 // UUID returns the UUID.
-func (r RawNotification) UUID() uuid.UUID {
+func (r *RawNotification) UUID() uuid.UUID {
 	return r.rawNotificationUUID
 }
 
 // Source returns the source.
-func (r RawNotification) Source() string {
+func (r *RawNotification) Source() string {
 	return r.source
 }
 
 // Data returns the data.
-func (r RawNotification) Data() string {
+func (r *RawNotification) Data() string {
 	return r.data
 }
 
-func (r RawNotification) ParsedData() (RawNotificationData, error) {
+func (r *RawNotification) ParsedData() (RawNotificationData, error) {
 	queryStr := r.data
-	params, err := url.ParseQuery(queryStr)
-	if err != nil {
-		return RawNotificationData{}, fmt.Errorf("failed to parse data: %w", err)
-	}
-
-	startUnix, err := strconv.ParseInt(params.Get("startdate"), 10, 64)
-	if err != nil {
-		return RawNotificationData{}, fmt.Errorf("failed to parse startdate: %w", err)
-	}
-
-	endUnix, err := strconv.ParseInt(params.Get("enddate"), 10, 64)
-	if err != nil {
-		return RawNotificationData{}, fmt.Errorf("failed to parse enddate: %w", err)
-	}
-
-	appli, err := strconv.Atoi(params.Get("appli"))
-	if err != nil {
-		return RawNotificationData{}, fmt.Errorf("failed to parse appli: %w", err)
-	}
+	params, _ := url.ParseQuery(queryStr)
+	startUnix, _ := strconv.ParseInt(params.Get("startdate"), 10, 64)
+	endUnix, _ := strconv.ParseInt(params.Get("enddate"), 10, 64)
+	appli, _ := strconv.Atoi(params.Get("appli"))
+	date, _ := strconv.ParseInt(params.Get("date"), 10, 64)
 
 	return RawNotificationData{
 		WithingsUserID: params.Get("userid"),
 		StartDate:      time.Unix(startUnix, 0),
+		StartDateStr:   params.Get("startdate"),
 		EndDate:        time.Unix(endUnix, 0),
+		EndDateStr:     params.Get("enddate"),
 		Appli:          appli,
+		AppliStr:       params.Get("appli"),
+		Date:           time.Unix(date, 0),
+		DateStr:        params.Get("date"),
+		DeviceID:       params.Get("deviceid"),
 	}, nil
 }
 
 // Status returns the status.
-func (r RawNotification) Status() RawNotificationStatus {
+func (r *RawNotification) Status() RawNotificationStatus {
 	return r.status
 }
 
-func (r RawNotification) ReceivedAt() time.Time {
+func (r *RawNotification) ReceivedAt() time.Time {
 	return r.receivedAt
 }
 
-func (r RawNotification) ProcessedAt() *time.Time {
+func (r *RawNotification) ProcessedAt() *time.Time {
 	return r.processedAt
 }
 

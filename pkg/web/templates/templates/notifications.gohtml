@@ -1,0 +1,32 @@
+{{define "title"}}Sleep data{{end}}
+
+{{define "content"}}
+  <div class="py-4">
+    <div class="">
+        {{if not .Notifications}}
+          <p>No data</p>
+            <p>{{ .Error }}</p>
+        {{else}}
+          <ul>
+              {{ range $_, $value := .Notifications }}
+                <li>
+                  <strong>{{ $value }}</strong>:
+                  <div class="sleepscore-hbar"
+                       style="width: px;">
+                  </div>
+                  <i>$value.Params</i>
+
+                </li>
+              {{ end }}
+          </ul>
+
+          <pre>
+        <code>
+        {{ printf "%s" .Notifications }}
+        </code>
+    </pre>
+
+        {{end}}
+    </div>
+  </div>
+{{end}}

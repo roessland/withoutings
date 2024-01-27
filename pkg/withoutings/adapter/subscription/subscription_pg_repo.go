@@ -2,11 +2,11 @@ package subscription
 
 import (
 	"context"
-	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/pkg/errors"
 	"github.com/roessland/withoutings/pkg/db"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 )
@@ -32,11 +32,11 @@ func (r PgRepo) WithTx(tx pgx.Tx) PgRepo {
 
 func (r PgRepo) GetSubscriptionByUUID(ctx context.Context, subscriptionUUID uuid.UUID) (*subscription.Subscription, error) {
 	dbSub, err := r.queries.GetSubscriptionByUUID(ctx, subscriptionUUID)
-	if err == pgx.ErrNoRows {
+	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, subscription.ErrSubscriptionNotFound
 	}
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to retrieve subscription")
+		return nil, fmt.Errorf("unable to retrieve subscription: %w", err)
 	}
 	return toDomainSubscription(dbSub), nil
 }
@@ -51,11 +51,11 @@ func (r PgRepo) GetSubscriptionsByAccountUUID(ctx context.Context, accountUUID u
 
 func (r PgRepo) GetSubscriptionByWebhookSecret(ctx context.Context, webhookSecret string) (*subscription.Subscription, error) {
 	dbSub, err := r.queries.GetSubscriptionByWebhookSecret(ctx, webhookSecret)
-	if err == pgx.ErrNoRows {
+	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, subscription.ErrSubscriptionNotFound
 	}
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to retrieve subscription")
+		return nil, fmt.Errorf("unable to retrieve subscription: %w", err)
 	}
 	return toDomainSubscription(dbSub), nil
 }
@@ -136,7 +136,7 @@ func toDomainSubscription(dbSub db.Subscription) *subscription.Subscription {
 	)
 }
 
-func (r PgRepo) CreateRawNotification(ctx context.Context, rawNotification subscription.RawNotification) error {
+func (r PgRepo) CreateRawNotification(ctx context.Context, rawNotification *subscription.RawNotification) error {
 	return r.queries.CreateRawNotification(ctx, db.CreateRawNotificationParams{
 		RawNotificationUuid: rawNotification.UUID(),
 		Source:              rawNotification.Source(),
@@ -145,19 +145,19 @@ func (r PgRepo) CreateRawNotification(ctx context.Context, rawNotification subsc
 	})
 }
 
-func (r PgRepo) GetRawNotificationByUUID(ctx context.Context, rawNotificationUUID uuid.UUID) (subscription.RawNotification, error) {
+func (r PgRepo) GetRawNotificationByUUID(ctx context.Context, rawNotificationUUID uuid.UUID) (*subscription.RawNotification, error) {
 	dbRawNotification, err := r.queries.GetRawNotification(ctx, rawNotificationUUID)
-	if err == pgx.ErrNoRows {
-		return subscription.RawNotification{}, subscription.ErrRawNotificationNotFound
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, subscription.ErrRawNotificationNotFound
 	}
 	if err != nil {
-		return subscription.RawNotification{}, errors.Wrap(err, "unable to retrieve raw notification")
+		return nil, fmt.Errorf("unable to retrieve raw notification: %w", err)
 	}
 	return toDomainRawNotification(dbRawNotification), nil
 }
 
-func (r PgRepo) GetPendingRawNotifications(ctx context.Context) ([]subscription.RawNotification, error) {
-	var rawNotifications []subscription.RawNotification
+func (r PgRepo) GetPendingRawNotifications(ctx context.Context) ([]*subscription.RawNotification, error) {
+	var rawNotifications []*subscription.RawNotification
 	dbRawNotifications, err := r.queries.GetPendingRawNotifications(ctx)
 	if err != nil {
 		return nil, err
@@ -175,11 +175,11 @@ func (r PgRepo) GetPendingRawNotifications(ctx context.Context) ([]subscription.
 	return rawNotifications, nil
 }
 
-func (r PgRepo) DeleteRawNotification(ctx context.Context, rawNotification subscription.RawNotification) error {
+func (r PgRepo) DeleteRawNotification(ctx context.Context, rawNotification *subscription.RawNotification) error {
 	return r.queries.DeleteRawNotification(ctx, rawNotification.UUID())
 }
 
-func toDomainRawNotification(dbRawNotification db.RawNotification) subscription.RawNotification {
+func toDomainRawNotification(dbRawNotification db.RawNotification) *subscription.RawNotification {
 	return subscription.NewRawNotification(
 		dbRawNotification.RawNotificationUuid,
 		dbRawNotification.Source,
@@ -262,7 +262,7 @@ func (r PgRepo) UpdateRawNotification(ctx context.Context, rawNotificationUUID u
 	if err != nil {
 		return err
 	}
-	updatedRawNotification, err := updateFn(ctx, &rawNotification)
+	updatedRawNotification, err := updateFn(ctx, rawNotification)
 	err = inTransaction.queries.UpdateRawNotification(ctx, db.UpdateRawNotificationParams{
 		RawNotificationUuid: updatedRawNotification.UUID(),
 		Source:              updatedRawNotification.Source(),
@@ -290,31 +290,12 @@ type DbNotificationParams struct {
 	Appli     string `json:"appli"`
 }
 
-func encodeDBNotificationParams(p subscription.NotificationParams) []byte {
-	buf, err := json.Marshal(struct {
-		UserID    string `json:"userid"`
-		StartDate string `json:"startdate"`
-		EndDate   string `json:"enddate"`
-		Appli     string `json:"appli"`
-	}{
-		UserID:    p.UserID,
-		StartDate: p.StartDate,
-		EndDate:   p.EndDate,
-		Appli:     p.Appli,
-	})
-
-	if err != nil {
-		panic(err)
-	}
-	return buf
-}
-
 // TODO: Make unique index on raw_notification.data.
 // TODO: Make idempotent, should return success if notification already exists.
 
 // CreateNotification creates a notification in the database,
 // and marks the corresponding raw notification as processed.
-func (r PgRepo) CreateNotification(ctx context.Context, notification subscription.Notification) error {
+func (r PgRepo) CreateNotification(ctx context.Context, notification *subscription.Notification) error {
 	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return err
@@ -327,7 +308,7 @@ func (r PgRepo) CreateNotification(ctx context.Context, notification subscriptio
 		NotificationUuid:    notification.UUID(),
 		AccountUuid:         notification.AccountUUID(),
 		ReceivedAt:          notification.ReceivedAt(),
-		Params:              []byte(notification.Params()),
+		Params:              notification.Params(),
 		Data:                notification.Data(),
 		FetchedAt:           notification.FetchedAt(),
 		RawNotificationUuid: notification.RawNotificationUUID(),
@@ -347,4 +328,37 @@ func (r PgRepo) CreateNotification(ctx context.Context, notification subscriptio
 		return err
 	}
 	return nil
+}
+
+func (r PgRepo) GetNotificationsByAccountUUID(ctx context.Context, accountUUID uuid.UUID) ([]*subscription.Notification, error) {
+	dbNotifications, err := r.queries.GetNotificationsByAccountUUID(ctx, accountUUID)
+	if err != nil {
+		return nil, err
+	}
+	return toDomainNotifications(dbNotifications), nil
+}
+
+func toDomainNotifications(dbNotifications []db.Notification) []*subscription.Notification {
+	var notifications []*subscription.Notification
+	for _, dbNotification := range dbNotifications {
+		notifications = append(notifications, toDomainNotification(dbNotification))
+	}
+	return notifications
+}
+
+func toDomainNotification(dbNotification db.Notification) *subscription.Notification {
+	n, err := subscription.NewNotification(subscription.NewNotificationParams{
+		NotificationUUID:    dbNotification.NotificationUuid,
+		AccountUUID:         dbNotification.AccountUuid,
+		ReceivedAt:          dbNotification.ReceivedAt,
+		Params:              dbNotification.Params,
+		Data:                dbNotification.Data,
+		FetchedAt:           dbNotification.FetchedAt,
+		RawNotificationUUID: dbNotification.RawNotificationUuid,
+		Source:              dbNotification.Source,
+	})
+	if err != nil {
+		panic(err)
+	}
+	return n
 }

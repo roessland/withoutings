@@ -4,12 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/google/uuid"
 	"github.com/roessland/withoutings/pkg/logging"
 	withingsSvc "github.com/roessland/withoutings/pkg/withoutings/app/service/withings"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
+	"net/url"
 	"time"
 )
 
@@ -23,6 +25,9 @@ type ProcessRawNotificationHandler interface {
 
 func (h processRawNotificationHandler) Handle(ctx context.Context, cmd ProcessRawNotification) error {
 	log := logging.MustGetLoggerFromContext(ctx)
+	log.Info("Processing raw notification: ", cmd.RawNotification.UUID())
+
+	log.Debug("raw notification: ", cmd.RawNotification)
 
 	if cmd.RawNotification.Status() != subscription.RawNotificationStatusPending {
 		log.WithField("event", "error.command.ProcessRawNotification.invalidStatus").
@@ -52,9 +57,18 @@ func (h processRawNotificationHandler) Handle(ctx context.Context, cmd ProcessRa
 		return fmt.Errorf("failed to get account by withings user id: %w", err)
 	}
 
+	if parsedParams.Appli != 1 {
+		panic("not implemented - can only handle weigh-ins")
+	}
+
 	// Fetch data from Withings API
+	params := url.Values{
+		"action":    {"getmeas"},
+		"startdate": {parsedParams.StartDateStr},
+		"enddate":   {parsedParams.EndDateStr},
+	}
 	getmeasResponse, err := h.withingsSvc.MeasureGetmeas(ctx, acc,
-		withings.MeasureGetmeasParams(cmd.RawNotification.Data()),
+		withings.MeasureGetmeasParams(params.Encode()),
 	)
 	if err != nil {
 		log.WithError(err).
@@ -90,6 +104,7 @@ func (h processRawNotificationHandler) Handle(ctx context.Context, cmd ProcessRa
 	)
 	if err != nil {
 		log.WithError(err).
+			WithField("data", string(getmeasResponse.Raw)).
 			WithField("event", "error.command.ProcessRawNotification.NewNotification.failed").
 			Error()
 		return fmt.Errorf("failed to make notification: %w", err)
@@ -104,18 +119,20 @@ func (h processRawNotificationHandler) Handle(ctx context.Context, cmd ProcessRa
 		return fmt.Errorf("failed to persist notification: %w", err)
 	}
 
-	// TODO: Emit NotificationReceived event to withings_notification_received topic
-
 	return nil
 }
 
 func NewProcessRawNotificationHandler(
 	subscriptionsRepo subscription.Repo,
 	withingsSvc withingsSvc.Service,
+	accountRepo account.Repo,
+	publisher message.Publisher,
 ) ProcessRawNotificationHandler {
 	return processRawNotificationHandler{
 		subscriptionRepo: subscriptionsRepo,
 		withingsSvc:      withingsSvc,
+		accountRepo:      accountRepo,
+		publisher:        publisher,
 	}
 }
 
@@ -123,4 +140,5 @@ type processRawNotificationHandler struct {
 	subscriptionRepo subscription.Repo
 	withingsSvc      withingsSvc.Service
 	accountRepo      account.Repo
+	publisher        message.Publisher
 }

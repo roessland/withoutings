@@ -24,11 +24,12 @@ type Notification struct {
 	NotificationUuid    uuid.UUID
 	AccountUuid         uuid.UUID
 	ReceivedAt          time.Time
-	Params              []byte
+	ParamsJson          []byte
 	Data                []byte
 	FetchedAt           time.Time
 	RawNotificationUuid uuid.UUID
 	Source              string
+	Params              string
 }
 
 type NotificationCategory struct {

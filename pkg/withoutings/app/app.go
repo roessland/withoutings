@@ -6,6 +6,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/ThreeDotsLabs/watermill/message"
+	"github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
 	"time"
 
 	"github.com/alexedwards/scs/postgresstore"
@@ -46,6 +48,8 @@ type App struct {
 	SubscriptionRepo subscription.Repo
 	Commands         Commands
 	Queries          Queries
+	Publisher        message.Publisher
+	Subscriber       message.Subscriber
 }
 
 type MockApp struct {
@@ -106,6 +110,11 @@ func NewApplication(ctx context.Context, cfg *config.Config) *App {
 		WithField("template-source", templateSvc.Source()).
 		Info()
 
+	// TODO replace with SQL-based pubsub
+	wipPubsub := gochannel.NewGoChannel(gochannel.Config{}, nil)
+	publisher := wipPubsub
+	subscriber := wipPubsub
+
 	return &App{
 		Log:              log,
 		WithingsRepo:     withingsHttpClient,
@@ -118,12 +127,14 @@ func NewApplication(ctx context.Context, cfg *config.Config) *App {
 		AccountRepo:      accountRepo,
 		SubscriptionRepo: subscriptionRepo,
 		WithingsSvc:      withingsSvc,
+		Publisher:        publisher,
+		Subscriber:       subscriber,
 		Commands: Commands{
 			SubscribeAccount:         command.NewSubscribeAccountHandler(accountRepo, subscriptionRepo, withingsSvc, cfg),
 			CreateOrUpdateAccount:    command.NewCreateOrUpdateAccountHandler(accountRepo),
 			RefreshAccessToken:       command.NewRefreshAccessTokenHandler(accountRepo, withingsHttpClient),
 			SyncRevokedSubscriptions: command.NewSyncRevokedSubscriptionsHandler(subscriptionRepo, withingsSvc),
-			ProcessRawNotification:   command.NewProcessRawNotificationHandler(subscriptionRepo, withingsSvc),
+			ProcessRawNotification:   command.NewProcessRawNotificationHandler(subscriptionRepo, withingsSvc, accountRepo, publisher),
 		},
 		Queries: Queries{
 			AccountByWithingsUserID: query.NewAccountByWithingsUserIDHandler(accountRepo),

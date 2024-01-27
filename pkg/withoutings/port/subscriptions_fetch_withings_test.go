@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -78,14 +77,6 @@ func TestSubscriptionsWithingsPage(t *testing.T) {
 		return req
 	}
 
-	doRequest := func(req *http.Request) (*httptest.ResponseRecorder, string) {
-		// Should be success
-		resp := httptest.NewRecorder()
-		it.Router.ServeHTTP(resp, req)
-		respBody, _ := io.ReadAll(resp.Body)
-		return resp, string(respBody)
-	}
-
 	beforeEach := func(t *testing.T) {
 		it.ResetMocks(t)
 
@@ -110,7 +101,7 @@ func TestSubscriptionsWithingsPage(t *testing.T) {
 		mockBeingSubscribedToEverything()
 		req := loggedInRequest()
 
-		resp, body := doRequest(req)
+		resp, body := it.DoRequest(req)
 		assert.Equal(t, 200, resp.Code, body)
 
 		require.Equal(t, strings.Count(body, "✅"), len(notificationCategories))
@@ -121,7 +112,7 @@ func TestSubscriptionsWithingsPage(t *testing.T) {
 		mockBeingSubscribedToNothing()
 		req := loggedInRequest()
 
-		resp, body := doRequest(req)
+		resp, body := it.DoRequest(req)
 		assert.Equal(t, 200, resp.Code, body)
 
 		require.Equal(t, strings.Count(body, "❌"), len(notificationCategories))
