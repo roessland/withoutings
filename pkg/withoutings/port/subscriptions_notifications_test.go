@@ -55,7 +55,7 @@ func TestNotificationsPage(t *testing.T) {
 				{
 					"status": 0,
 					"body": {
-						"updatetime": "string",
+						"updatetime": 12341234,
 						"timezone": "string",
 						"measuregrps": [
 							{
