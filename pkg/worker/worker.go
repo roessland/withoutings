@@ -3,7 +3,7 @@ package worker
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"github.com/roessland/withoutings/pkg/logging"
 	"github.com/roessland/withoutings/pkg/withoutings/adapter/topic"
 	"github.com/roessland/withoutings/pkg/withoutings/app"
 	"github.com/roessland/withoutings/pkg/withoutings/app/command"
@@ -28,6 +28,7 @@ func (wrk *Worker) close() {
 }
 
 func (wrk *Worker) Work(ctx context.Context) {
+	log := logging.MustGetLoggerFromContext(ctx)
 
 	messages, err := wrk.App.Subscriber.Subscribe(ctx, topic.WithingsRawNotificationReceived)
 	if err != nil {
@@ -37,25 +38,29 @@ func (wrk *Worker) Work(ctx context.Context) {
 	// TODO refactor to watermill router, avoid acking immediately
 
 	for msg := range messages {
-		fmt.Printf("Received message: %s - %s\n", msg.UUID, msg.Payload)
+		log = log.WithField("message_uuid", msg.UUID).WithField("message_payload", msg.Payload).WithField("message_metadata", msg.Metadata)
+		log.WithField("event", "info.worker.message.received")
 		var rawNotificationReceived subscription.RawNotificationReceived
 		err := json.Unmarshal(msg.Payload, &rawNotificationReceived)
 		if err != nil {
-			panic(err)
+			log.WithError(err).WithField("event", "error.worker.unmarshal.failed").Error()
+			continue
 		}
 
 		rawNotification, err := wrk.SubscriptionRepo.GetRawNotificationByUUID(ctx,
 			rawNotificationReceived.RawNotificationUUID,
 		)
 		if err != nil {
-			panic(err)
+			log.WithError(err).WithField("event", "error.worker.GetRawNotificationByUUID.failed").Error()
+			continue
 		}
 
 		err = wrk.Commands.ProcessRawNotification.Handle(ctx, command.ProcessRawNotification{
 			RawNotification: rawNotification,
 		})
 		if err != nil {
-			panic(err)
+			log.WithError(err).WithField("event", "error.worker.ProcessRawNotification.failed").Error()
+			continue
 		}
 	}
 	//asyncSrv := asynq.NewServer(

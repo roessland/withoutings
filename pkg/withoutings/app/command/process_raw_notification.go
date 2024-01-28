@@ -25,9 +25,8 @@ type ProcessRawNotificationHandler interface {
 
 func (h processRawNotificationHandler) Handle(ctx context.Context, cmd ProcessRawNotification) error {
 	log := logging.MustGetLoggerFromContext(ctx)
-	log.Info("Processing raw notification: ", cmd.RawNotification.UUID())
-
-	log.Debug("raw notification: ", cmd.RawNotification)
+	log = log.WithField("raw_notification_uuid", "cmd.RawNotification.UUID()")
+	log.WithField("event", "info.command.ProcessRawNotification.started").Info()
 
 	if cmd.RawNotification.Status() != subscription.RawNotificationStatusPending {
 		log.WithField("event", "error.command.ProcessRawNotification.invalidStatus").
@@ -58,7 +57,7 @@ func (h processRawNotificationHandler) Handle(ctx context.Context, cmd ProcessRa
 	}
 
 	if parsedParams.Appli != 1 {
-		panic("not implemented - can only handle weigh-ins")
+		return fmt.Errorf("not yet able to handle appli: %d", parsedParams.Appli)
 	}
 
 	// Fetch data from Withings API
