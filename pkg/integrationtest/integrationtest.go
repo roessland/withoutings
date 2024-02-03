@@ -27,20 +27,22 @@ type IntegrationTest struct {
 	Router   *mux.Router
 	Database testdb.TestDatabase
 	Worker   *worker.Worker
+	Cleanup  func()
 }
 
 // WithFreshDatabase returns a new Context.
 func WithFreshDatabase(t *testing.T) IntegrationTest {
 	ctx := testctx.New()
 	database := testdb.New(ctx)
-	t.Cleanup(func() {
-		database.Drop(ctx)
-	})
 
 	it := IntegrationTest{
 		Ctx:      ctx,
 		Logger:   ctx.Logger,
 		Database: database,
+		Cleanup: func() {
+			ctx.CancelContext()
+			database.Drop(ctx)
+		},
 	}
 
 	it.ResetMocks(t)
@@ -49,7 +51,7 @@ func WithFreshDatabase(t *testing.T) IntegrationTest {
 
 // ResetMocks resets all mocks in the test.
 func (it *IntegrationTest) ResetMocks(t *testing.T) {
-	mockApp := app.NewTestApplication(t, it.Ctx, it.Database.Pool)
+	mockApp := app.NewTestApplication(t, it.Ctx, it.Database.Pool, it.Database.Std)
 	it.App = mockApp.App
 	it.Mocks = mockApp
 	it.Router = web.Router(it.App)

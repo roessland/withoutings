@@ -6,8 +6,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	wmSql "github.com/ThreeDotsLabs/watermill-sql/v2/pkg/sql"
 	"github.com/ThreeDotsLabs/watermill/message"
-	"github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
 	"time"
 
 	"github.com/alexedwards/scs/postgresstore"
@@ -61,6 +61,8 @@ type MockApp struct {
 func NewApplication(ctx context.Context, cfg *config.Config) *App {
 	log := logging.NewLogger(cfg.LogFormat)
 
+	// Two separate pools, because the watermill SQL PubSub
+	// requires a *sql.DB, while the rest of the application uses a *pgxpool.Pool.
 	stdDB, err := sql.Open("pgx", cfg.DatabaseURL)
 	if err != nil {
 		panic(fmt.Sprintf("create DB connection: %s", err))
@@ -110,10 +112,32 @@ func NewApplication(ctx context.Context, cfg *config.Config) *App {
 		WithField("template-source", templateSvc.Source()).
 		Info()
 
-	// TODO replace with SQL-based pubsub
-	wipPubsub := gochannel.NewGoChannel(gochannel.Config{}, nil)
-	publisher := wipPubsub
-	subscriber := wipPubsub
+	watermillLogger := logging.NewLogrusWatermill(log)
+
+	// Watermill SQL PubSub
+	sqlPublisher, err := wmSql.NewPublisher(
+		stdDB,
+		wmSql.PublisherConfig{
+			SchemaAdapter: wmSql.DefaultPostgreSQLSchema{},
+		},
+		watermillLogger,
+	)
+	if err != nil {
+		panic(err)
+	}
+	sqlSubscriber, err := wmSql.NewSubscriber(
+		stdDB,
+		wmSql.SubscriberConfig{
+			SchemaAdapter:  wmSql.DefaultPostgreSQLSchema{},
+			OffsetsAdapter: wmSql.DefaultPostgreSQLOffsetsAdapter{},
+		},
+		watermillLogger,
+	)
+	if err != nil {
+		panic(err)
+	}
+	publisher := sqlPublisher
+	subscriber := sqlSubscriber
 
 	return &App{
 		Log:              log,

@@ -48,6 +48,7 @@ INSERT INTO notification(notification_uuid,
                          raw_notification_uuid,
                          source)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+ON CONFLICT (notification_uuid) DO NOTHING
 `
 
 type CreateNotificationParams struct {

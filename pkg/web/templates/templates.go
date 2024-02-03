@@ -3,6 +3,8 @@ package templates
 import (
 	"context"
 	"embed"
+	"fmt"
+	"github.com/roessland/withoutings/pkg/logging"
 	"html/template"
 	"io"
 	"io/fs"
@@ -219,6 +221,8 @@ func (t *Templates) RenderNotifications(ctx context.Context, w io.Writer, notifi
 		panic(err.Error())
 	}
 	tmpl.Option("missingkey=error")
+	log := logging.GetOrCreateLoggerFromContext(ctx)
+	log.WithField("notifications", fmt.Sprintf(`%v`, notifications)).Debug("Rendering notifications")
 	return tmpl.ExecuteTemplate(w, "base.gohtml", NotificationsPageVars{
 		Context:       extractTemplateContext(ctx),
 		Notifications: notifications,

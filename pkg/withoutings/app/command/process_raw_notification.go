@@ -25,7 +25,7 @@ type ProcessRawNotificationHandler interface {
 
 func (h processRawNotificationHandler) Handle(ctx context.Context, cmd ProcessRawNotification) error {
 	log := logging.MustGetLoggerFromContext(ctx)
-	log = log.WithField("raw_notification_uuid", "cmd.RawNotification.UUID()")
+	log = log.WithField("raw_notification_uuid", cmd.RawNotification.UUID())
 	log.WithField("event", "info.command.ProcessRawNotification.started").Info()
 
 	if cmd.RawNotification.Status() != subscription.RawNotificationStatusPending {

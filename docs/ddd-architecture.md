@@ -10,15 +10,19 @@ subgraph handlers
     direction LR
     Homepage
     Health
-    Callback
-    Logout
-    Login
+    AuthCallback
+    AuthLogout
+    AuthLogin
     RefreshWithingsAccessToken
-    SleepSummaries
-    Webhook
-    Subscribe
+    SubscriptionsFetch
+    SubscriptionsList
+    SubscriptionsSubscribe
+    SubscriptionsSyncRevoked
+    SubscriptionsWebhook
     SubscriptionsWithingsPage
     SubscriptionsPage
+    WithingsGetmeas
+    WithingsSleepGetSummary
 end
 handlers-->App
 
@@ -60,8 +64,9 @@ adapters-->domain
 subgraph commands
     direction LR
     CreateOrUpdateAccount
-    SubscribeAccount
+    ProcessRawNotification
     RefreshAccessToken
+    SubscribeAccount
     SyncSubscriptions
 end
 commands-->domain

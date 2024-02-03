@@ -16,6 +16,7 @@ type TestDatabase struct {
 	*pgxpool.Pool               // Connection with wotrw user (read/write)
 	postgresPool  *pgxpool.Pool // Connection with postgres user (superuser)
 	dbName        string
+	Std           *sql.DB
 }
 
 // New creates a new test database.
@@ -97,11 +98,18 @@ func New(ctx context.Context) TestDatabase {
 		panic(err)
 	}
 
+	// Coonect to test DB using wotrw user, using stdlib
+	stdDB, err := sql.Open("pgx", "postgres://?host=localhost&user=wotrw&password=wotrw&database="+dbName)
+	if err != nil {
+		panic(fmt.Sprintf("create DB connection: %s", err))
+	}
+
 	// Return wotrw user connection
 	return TestDatabase{
 		Pool:         wotrwPool,
 		postgresPool: postgresPool,
 		dbName:       dbName,
+		Std:          stdDB,
 	}
 }
 

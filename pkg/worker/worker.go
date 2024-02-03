@@ -30,6 +30,8 @@ func (wrk *Worker) close() {
 func (wrk *Worker) Work(ctx context.Context) {
 	log := logging.MustGetLoggerFromContext(ctx)
 
+	log.WithField("event", "info.worker.started").Info()
+
 	messages, err := wrk.App.Subscriber.Subscribe(ctx, topic.WithingsRawNotificationReceived)
 	if err != nil {
 		panic(err)
@@ -62,6 +64,7 @@ func (wrk *Worker) Work(ctx context.Context) {
 			log.WithError(err).WithField("event", "error.worker.ProcessRawNotification.failed").Error()
 			continue
 		}
+		msg.Ack()
 	}
 	//asyncSrv := asynq.NewServer(
 	//	asynq.RedisClientOpt{

@@ -3,7 +3,10 @@ package templates_test
 import (
 	"bytes"
 	"context"
+	"github.com/google/uuid"
+	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 	"testing"
+	"time"
 
 	"github.com/roessland/withoutings/pkg/service/sleep"
 	"github.com/roessland/withoutings/pkg/web/templates"
@@ -109,5 +112,31 @@ func TestRenderTemplates(t *testing.T) {
 		err := tmpls.RenderMeasureGetmeas(context.Background(), buf, "", "")
 		require.NoError(t, err)
 		require.Contains(t, buf.String(), "Measure - Getmeas")
+	})
+
+	t.Run("Notifications handles nil vars", func(t *testing.T) {
+		beforeEach(t)
+		err := tmpls.RenderNotifications(context.Background(), buf, nil, "")
+		require.NoError(t, err)
+		require.Contains(t, buf.String(), "No data")
+	})
+
+	t.Run("Notifications lists notifications", func(t *testing.T) {
+		beforeEach(t)
+		notifications := []*subscription.Notification{
+			subscription.MustNewNotification(subscription.NewNotificationParams{
+				NotificationUUID:    uuid.New(),
+				AccountUUID:         uuid.New(),
+				ReceivedAt:          time.Now(),
+				Params:              "yolo",
+				Data:                []byte(`{}`),
+				FetchedAt:           time.Now(),
+				RawNotificationUUID: uuid.New(),
+				Source:              "",
+			})}
+		err := tmpls.RenderNotifications(context.Background(), buf, notifications, "")
+		require.NoError(t, err)
+		require.NotContains(t, buf.String(), "No data")
+		require.Contains(t, buf.String(), "yolo")
 	})
 }

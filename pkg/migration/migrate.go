@@ -41,11 +41,26 @@ func Run(db *sql.DB) {
 		os.Exit(1)
 	}
 
-	// Run watermill migrations, create topic tables
-	watermillSchema := wmSql.DefaultPostgreSQLSchema{}
+	// Run watermill migrations, create topic tables.
+	// These tables store the messages for each topic.
 	topicNames := []string{"withings_raw_notification_received"}
+	watermillSchema := wmSql.DefaultPostgreSQLSchema{}
 	for _, topicName := range topicNames {
 		initQueries := watermillSchema.SchemaInitializingQueries(topicName)
+		for _, q := range initQueries {
+			_, err = db.Exec(q)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Unable to create topic table: %v\n", err)
+				os.Exit(1)
+			}
+		}
+	}
+
+	// Run watermill migrations, create offset tables.
+	// These store the last processed message offset for each topic, for each consumer group.
+	watermillOffsetsSchema := wmSql.DefaultPostgreSQLOffsetsAdapter{}
+	for _, topicName := range topicNames {
+		initQueries := watermillOffsetsSchema.SchemaInitializingQueries(topicName)
 		for _, q := range initQueries {
 			_, err = db.Exec(q)
 			if err != nil {

@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/roessland/withoutings/pkg/db"
+	"github.com/roessland/withoutings/pkg/logging"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 )
 
@@ -292,6 +293,7 @@ type DbNotificationParams struct {
 
 // TODO: Make unique index on raw_notification.data.
 // TODO: Make idempotent, should return success if notification already exists.
+// TODO: Return error when account does not exist.
 
 // CreateNotification creates a notification in the database,
 // and marks the corresponding raw notification as processed.
@@ -331,6 +333,8 @@ func (r PgRepo) CreateNotification(ctx context.Context, notification *subscripti
 }
 
 func (r PgRepo) GetNotificationsByAccountUUID(ctx context.Context, accountUUID uuid.UUID) ([]*subscription.Notification, error) {
+	log := logging.MustGetLoggerFromContext(ctx)
+	log.WithField("event", "debug.GetNotificationsByAccountUUID").WithField("account_uuid", accountUUID).Debug()
 	dbNotifications, err := r.queries.GetNotificationsByAccountUUID(ctx, accountUUID)
 	if err != nil {
 		return nil, err

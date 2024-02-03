@@ -1,4 +1,4 @@
-{{define "title"}}Sleep data{{end}}
+{{define "title"}}Notifications{{end}}
 
 {{define "content"}}
   <div class="py-4">
@@ -7,7 +7,7 @@
           <p>No data</p>
             <p>{{ .Error }}</p>
         {{else}}
-          <ul>
+          <ul data-test-id="notifications-list-ul">
               {{ range $_, $value := .Notifications }}
                 <li>
                   <strong>{{ $value }}</strong>:

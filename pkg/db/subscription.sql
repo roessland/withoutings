@@ -93,7 +93,8 @@ INSERT INTO notification(notification_uuid,
                          fetched_at,
                          raw_notification_uuid,
                          source)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+ON CONFLICT (notification_uuid) DO NOTHING;
 
 
 -- name: UpdateRawNotification :exec

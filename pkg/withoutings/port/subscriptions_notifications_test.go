@@ -17,8 +17,6 @@ import (
 )
 
 func TestNotificationsPage(t *testing.T) {
-	// TODO this is not really an integration test, since it doesn't use the database.
-	// It should be converted to a unit test.
 	it := integrationtest.WithFreshDatabase(t)
 
 	var acc *account.Account
@@ -47,7 +45,6 @@ func TestNotificationsPage(t *testing.T) {
 
 		workerCtx, cancelWorker := context.WithCancel(it.Ctx)
 		defer cancelWorker()
-		go it.Worker.Work(workerCtx)
 
 		// TODO: real response
 		it.Mocks.MockWithingsSvc.EXPECT().MeasureGetmeas(mock.Anything, mock.Anything, mock.Anything).Return(withings.MustNewMeasureGetmeasResponse(
@@ -87,6 +84,8 @@ func TestNotificationsPage(t *testing.T) {
 			`),
 		), nil)
 
+		go it.Worker.Work(workerCtx)
+
 		// give worker time to register subscriptions, since gochannel pubsub is used for now.
 		// TODO: replace with SQL-based pubsub
 		time.Sleep(100 * time.Millisecond)
@@ -98,6 +97,6 @@ func TestNotificationsPage(t *testing.T) {
 			resp, body := it.DoRequest(newListNotificationsReq())
 			assert.Equal(c, 200, resp.Code)
 			assert.Contains(c, body, escapedParams)
-		}, 1*time.Second, 100*time.Millisecond, "should show received notifications")
+		}, 10*time.Second, 300*time.Millisecond, "should show received notifications")
 	})
 }

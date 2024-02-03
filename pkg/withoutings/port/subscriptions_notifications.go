@@ -23,6 +23,7 @@ func NotificationsPage(svc *app.App) http.HandlerFunc {
 			fmt.Fprintf(w, "You must be logged in to show notifications.")
 			return
 		}
+		log = log.WithField("account_uuid", acc.UUID())
 
 		notifications, err := svc.SubscriptionRepo.GetNotificationsByAccountUUID(ctx, acc.UUID())
 		if err != nil {
@@ -33,6 +34,8 @@ func NotificationsPage(svc *app.App) http.HandlerFunc {
 			fmt.Fprintf(w, "An error occurred when trying to get notifications.")
 			return
 		}
+
+		log.WithField("notifications", notifications).WithField("event", "debug.NotificationsPage.got-notifications").Debug()
 
 		err = svc.Templates.RenderNotifications(ctx, w, notifications, "")
 		if err != nil {

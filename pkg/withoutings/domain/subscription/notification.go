@@ -113,6 +113,20 @@ func NewNotification(p NewNotificationParams) (*Notification, error) {
 	}, nil
 }
 
+// MustNewNotification returns a new Notification or panics if it fails. For testing.
+func MustNewNotification(p NewNotificationParams) *Notification {
+	n, err := NewNotification(p)
+	if err != nil {
+		panic(err)
+	}
+	return n
+}
+
+func (r Notification) String() string {
+	return fmt.Sprintf("Notification{UUID: %s, AccountUUID: %s, ReceivedAt: %s, Params: %s, FetchedAt: %s, RawNotificationUUID: %s, Source: %s}",
+		r.notificationUUID, r.accountUUID, r.receivedAt, r.params, r.fetchedAt, r.rawNotificationUUID, r.source)
+}
+
 // UUID returns the UUID.
 func (r Notification) UUID() uuid.UUID {
 	return r.rawNotificationUUID

@@ -2,7 +2,8 @@ package app
 
 import (
 	"context"
-	"github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
+	"database/sql"
+	wmSql "github.com/ThreeDotsLabs/watermill-sql/v2/pkg/sql"
 	"testing"
 
 	"github.com/alexedwards/scs/pgxstore"
@@ -26,7 +27,9 @@ import (
 	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
 )
 
-func NewTestApplication(t *testing.T, ctx context.Context, database *pgxpool.Pool) *MockApp {
+func NewTestApplication(t *testing.T, ctx context.Context, database *pgxpool.Pool, stdDB *sql.DB) *MockApp {
+	// TODO pass in config, instead of database connections.
+	// TODO: Merge with NewApplication, avoid code duplication
 	cfg := &config.Config{
 		ListenAddr:            "<test-listen-addr>",
 		SessionSecret:         []byte("abc123"),
@@ -38,16 +41,38 @@ func NewTestApplication(t *testing.T, ctx context.Context, database *pgxpool.Poo
 		DatabaseURL:           "<test-database-url>",
 	}
 	log := logging.MustGetLoggerFromContext(ctx)
+
 	dbQueries := db.New(database)
 	accountRepo := accountAdapter.NewPgRepo(database, dbQueries)
 	subscriptionRepo := subscriptionAdapter.NewPgRepo(database, dbQueries)
 	mockWithingsRepo := withings.NewMockRepo(t)
 	mockWithingsSvc := withingsService.NewMockService(t)
 
-	// TODO replace with SQL-based pubsub
-	wipPubsub := gochannel.NewGoChannel(gochannel.Config{}, nil)
-	publisher := wipPubsub
-	subscriber := wipPubsub
+	// Watermill SQL PubSub
+	watermillLogger := logging.NewLogrusWatermill(log)
+	sqlPublisher, err := wmSql.NewPublisher(
+		stdDB,
+		wmSql.PublisherConfig{
+			SchemaAdapter: wmSql.DefaultPostgreSQLSchema{},
+		},
+		watermillLogger,
+	)
+	if err != nil {
+		panic(err)
+	}
+	sqlSubscriber, err := wmSql.NewSubscriber(
+		stdDB,
+		wmSql.SubscriberConfig{
+			SchemaAdapter:  wmSql.DefaultPostgreSQLSchema{},
+			OffsetsAdapter: wmSql.DefaultPostgreSQLOffsetsAdapter{},
+		},
+		watermillLogger,
+	)
+	if err != nil {
+		panic(err)
+	}
+	publisher := sqlPublisher
+	subscriber := sqlSubscriber
 
 	queries := Queries{
 		AccountByAccountUUID:    query.NewAccountByUUIDHandler(accountRepo),

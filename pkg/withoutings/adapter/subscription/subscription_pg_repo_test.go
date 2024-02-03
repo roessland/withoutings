@@ -89,4 +89,24 @@ func TestSubscriptionPgRepo(t *testing.T) {
 		_, err = repo.GetRawNotificationByUUID(ctx, rawNotification.UUID())
 		require.Error(t, err)
 	})
+
+	t.Run("GetNotificationsByAccountUUID works", func(t *testing.T) {
+		notification :=
+			subscription.MustNewNotification(subscription.NewNotificationParams{
+				NotificationUUID:    uuid.New(),
+				AccountUUID:         accountUUID,
+				ReceivedAt:          time.Now(),
+				Params:              "yolo",
+				Data:                []byte(`{}`),
+				FetchedAt:           time.Now(),
+				RawNotificationUUID: uuid.New(),
+				Source:              "",
+			})
+		err := repo.CreateNotification(ctx, notification)
+		require.NoError(t, err)
+
+		notifications, err := repo.GetNotificationsByAccountUUID(ctx, accountUUID)
+		require.NoError(t, err)
+		require.Len(t, notifications, 1)
+	})
 }
