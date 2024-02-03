@@ -26,10 +26,11 @@ type Notification struct {
 	ReceivedAt          time.Time
 	ParamsJson          []byte
 	Data                []byte
-	FetchedAt           time.Time
+	FetchedAt           *time.Time
 	RawNotificationUuid uuid.UUID
 	Source              string
 	Params              string
+	DataStatus          string
 }
 
 type NotificationCategory struct {

@@ -158,7 +158,8 @@ func NewApplication(ctx context.Context, cfg *config.Config) *App {
 			CreateOrUpdateAccount:    command.NewCreateOrUpdateAccountHandler(accountRepo),
 			RefreshAccessToken:       command.NewRefreshAccessTokenHandler(accountRepo, withingsHttpClient),
 			SyncRevokedSubscriptions: command.NewSyncRevokedSubscriptionsHandler(subscriptionRepo, withingsSvc),
-			ProcessRawNotification:   command.NewProcessRawNotificationHandler(subscriptionRepo, withingsSvc, accountRepo, publisher),
+			ProcessRawNotification:   command.NewProcessRawNotificationHandler(subscriptionRepo, withingsSvc, accountRepo),
+			FetchNotificationData:    command.NewFetchNotificationDataHandler(subscriptionRepo, withingsSvc, accountRepo, publisher),
 		},
 		Queries: Queries{
 			AccountByWithingsUserID: query.NewAccountByWithingsUserIDHandler(accountRepo),
@@ -206,6 +207,7 @@ type Commands struct {
 	RefreshAccessToken       command.RefreshAccessTokenHandler
 	SyncRevokedSubscriptions command.SyncRevokedSubscriptionsHandler
 	ProcessRawNotification   command.ProcessRawNotificationHandler
+	FetchNotificationData    command.FetchNotificationDataHandler
 }
 
 func (cs Commands) Validate() {
@@ -223,6 +225,9 @@ func (cs Commands) Validate() {
 	}
 	if cs.ProcessRawNotification == nil {
 		panic("Commands.ProcessRawNotification was nil")
+	}
+	if cs.FetchNotificationData == nil {
+		panic("Commands.FetchNotificationData was nil")
 	}
 }
 

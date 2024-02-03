@@ -2,31 +2,24 @@
 
 {{define "content"}}
   <div class="py-4">
-    <div class="">
-        {{if not .Notifications}}
-          <p>No data</p>
-            <p>{{ .Error }}</p>
-        {{else}}
-          <ul data-test-id="notifications-list-ul">
-              {{ range $_, $value := .Notifications }}
-                <li>
-                  <strong>{{ $value }}</strong>:
-                  <div class="sleepscore-hbar"
-                       style="width: px;">
-                  </div>
-                  <i>$value.Params</i>
+    {{if not .Notifications}}
+      <p>No data</p>
+      <p>{{ .Error }}</p>
+    {{else}}
+      <div data-test-id="notifications-div" class="space-y-12">
+        {{ range $_, $value := .Notifications }}
+          <div data-test-id="notification-div" class="space-y-1">
+            <h2 class="text-lg ">{{ $value.AppliDescription }}</h2>
+            <h3>🗓️ {{ $value.ReceivedAt }}</h3>
 
-                </li>
-              {{ end }}
-          </ul>
+            <h3 class="pt-2">Webhook params:</h3>
+            <pre class="whitespace-break-spaces overflow-x-scroll text-xs" >{{ $value.Params }}</pre>
 
-          <pre>
-        <code>
-        {{ printf "%s" .Notifications }}
-        </code>
-    </pre>
-
-        {{end}}
-    </div>
+            <h3 class="pt-2">Data:</h3>
+            <pre class="whitespace-break-spaces overflow-x-scroll text-xs" >{{ $value.DataPretty  }}</pre>
+          </div>
+        {{ end }}
+      </div>
+    {{end}}
   </div>
 {{end}}

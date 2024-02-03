@@ -97,8 +97,9 @@ func TestSubscriptionPgRepo(t *testing.T) {
 				AccountUUID:         accountUUID,
 				ReceivedAt:          time.Now(),
 				Params:              "yolo",
-				Data:                []byte(`{}`),
-				FetchedAt:           time.Now(),
+				Data:                nil,
+				DataStatus:          subscription.NotificationDataStatusAwaitingFetch,
+				FetchedAt:           nil,
 				RawNotificationUUID: uuid.New(),
 				Source:              "",
 			})

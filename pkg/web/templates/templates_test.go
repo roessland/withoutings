@@ -129,8 +129,9 @@ func TestRenderTemplates(t *testing.T) {
 				AccountUUID:         uuid.New(),
 				ReceivedAt:          time.Now(),
 				Params:              "yolo",
-				Data:                []byte(`{}`),
-				FetchedAt:           time.Now(),
+				Data:                nil,
+				DataStatus:          subscription.NotificationDataStatusAwaitingFetch,
+				FetchedAt:           nil,
 				RawNotificationUUID: uuid.New(),
 				Source:              "",
 			})}

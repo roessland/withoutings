@@ -1,8 +1,10 @@
 package templates
 
 import (
+	"bytes"
 	"context"
 	"embed"
+	"encoding/json"
 	"fmt"
 	"github.com/roessland/withoutings/pkg/logging"
 	"html/template"
@@ -11,6 +13,7 @@ import (
 	"os"
 	"path"
 	"runtime"
+	"time"
 
 	"github.com/roessland/withoutings/pkg/service/sleep"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
@@ -212,7 +215,19 @@ func (t *Templates) RenderMeasureGetmeas(ctx context.Context, w io.Writer, rawRe
 type NotificationsPageVars struct {
 	Context       TemplateContext
 	Error         string
-	Notifications []*subscription.Notification
+	Notifications []NotificationPageNotification
+}
+
+type NotificationPageNotification struct {
+	NotificationUUID string
+	ReceivedAt       string
+	Params           string
+	DataStatus       string
+	FetchedAt        string
+	Data             string
+	DataPretty       string
+	Appli            string
+	AppliDescription string
 }
 
 func (t *Templates) RenderNotifications(ctx context.Context, w io.Writer, notifications []*subscription.Notification, errMsg string) error {
@@ -223,9 +238,38 @@ func (t *Templates) RenderNotifications(ctx context.Context, w io.Writer, notifi
 	tmpl.Option("missingkey=error")
 	log := logging.GetOrCreateLoggerFromContext(ctx)
 	log.WithField("notifications", fmt.Sprintf(`%v`, notifications)).Debug("Rendering notifications")
+	tmplNotifications := make([]NotificationPageNotification, 0)
+
+	for _, n := range notifications {
+		tn := NotificationPageNotification{
+			NotificationUUID: n.UUID().String(),
+			ReceivedAt:       n.ReceivedAt().Format(time.RFC3339),
+			Params:           n.Params(),
+			DataStatus:       string(n.DataStatus()),
+			FetchedAt:        "see below",
+			Data:             string(n.Data()),
+			DataPretty:       "<DataPretty missing>",
+			Appli:            "<appli missing>",
+			AppliDescription: "<AppliDescription missing>",
+		}
+		if n.FetchedAt() != nil {
+			tn.FetchedAt = n.FetchedAt().Format(time.RFC3339)
+		}
+		if n.Data() != nil {
+			var out bytes.Buffer
+			_ = json.Indent(&out, n.Data(), "", "  ")
+			tn.DataPretty = out.String()
+		}
+		if params, err := subscription.ParseNotificationParams(n.Params()); err == nil {
+			desc := subscription.NotificationCategoryByAppli[params.Appli].Description
+			tn.Appli = params.AppliStr
+			tn.AppliDescription = desc
+		}
+		tmplNotifications = append(tmplNotifications, tn)
+	}
 	return tmpl.ExecuteTemplate(w, "base.gohtml", NotificationsPageVars{
 		Context:       extractTemplateContext(ctx),
-		Notifications: notifications,
+		Notifications: tmplNotifications,
 		Error:         errMsg,
 	})
 }

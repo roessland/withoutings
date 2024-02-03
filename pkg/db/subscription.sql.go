@@ -44,10 +44,11 @@ INSERT INTO notification(notification_uuid,
                          received_at,
                          params,
                          data,
+                         data_status,
                          fetched_at,
                          raw_notification_uuid,
                          source)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 ON CONFLICT (notification_uuid) DO NOTHING
 `
 
@@ -57,7 +58,8 @@ type CreateNotificationParams struct {
 	ReceivedAt          time.Time
 	Params              string
 	Data                []byte
-	FetchedAt           time.Time
+	DataStatus          string
+	FetchedAt           *time.Time
 	RawNotificationUuid uuid.UUID
 	Source              string
 }
@@ -69,6 +71,7 @@ func (q *Queries) CreateNotification(ctx context.Context, arg CreateNotification
 		arg.ReceivedAt,
 		arg.Params,
 		arg.Data,
+		arg.DataStatus,
 		arg.FetchedAt,
 		arg.RawNotificationUuid,
 		arg.Source,
@@ -157,8 +160,32 @@ func (q *Queries) DeleteSubscription(ctx context.Context, subscriptionUuid uuid.
 	return err
 }
 
+const getNotificationByUUID = `-- name: GetNotificationByUUID :one
+SELECT notification_uuid, account_uuid, received_at, params_json, data, fetched_at, raw_notification_uuid, source, params, data_status
+FROM notification
+WHERE notification_uuid = $1
+`
+
+func (q *Queries) GetNotificationByUUID(ctx context.Context, notificationUuid uuid.UUID) (Notification, error) {
+	row := q.db.QueryRow(ctx, getNotificationByUUID, notificationUuid)
+	var i Notification
+	err := row.Scan(
+		&i.NotificationUuid,
+		&i.AccountUuid,
+		&i.ReceivedAt,
+		&i.ParamsJson,
+		&i.Data,
+		&i.FetchedAt,
+		&i.RawNotificationUuid,
+		&i.Source,
+		&i.Params,
+		&i.DataStatus,
+	)
+	return i, err
+}
+
 const getNotificationsByAccountUUID = `-- name: GetNotificationsByAccountUUID :many
-SELECT notification_uuid, account_uuid, received_at, params_json, data, fetched_at, raw_notification_uuid, source, params
+SELECT notification_uuid, account_uuid, received_at, params_json, data, fetched_at, raw_notification_uuid, source, params, data_status
 FROM notification
 WHERE account_uuid = $1
 ORDER BY received_at DESC
@@ -183,6 +210,7 @@ func (q *Queries) GetNotificationsByAccountUUID(ctx context.Context, accountUuid
 			&i.RawNotificationUuid,
 			&i.Source,
 			&i.Params,
+			&i.DataStatus,
 		); err != nil {
 			return nil, err
 		}
@@ -433,6 +461,46 @@ func (q *Queries) ListSubscriptions(ctx context.Context) ([]Subscription, error)
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateNotification = `-- name: UpdateNotification :exec
+UPDATE notification
+SET account_uuid          = $1,
+    received_at           = $2,
+    params                = $3,
+    data                  = $4,
+    data_status           = $5,
+    fetched_at            = $6,
+    raw_notification_uuid = $7,
+    source                = $8
+    WHERE notification_uuid = $9
+`
+
+type UpdateNotificationParams struct {
+	AccountUuid         uuid.UUID
+	ReceivedAt          time.Time
+	Params              string
+	Data                []byte
+	DataStatus          string
+	FetchedAt           *time.Time
+	RawNotificationUuid uuid.UUID
+	Source              string
+	NotificationUuid    uuid.UUID
+}
+
+func (q *Queries) UpdateNotification(ctx context.Context, arg UpdateNotificationParams) error {
+	_, err := q.db.Exec(ctx, updateNotification,
+		arg.AccountUuid,
+		arg.ReceivedAt,
+		arg.Params,
+		arg.Data,
+		arg.DataStatus,
+		arg.FetchedAt,
+		arg.RawNotificationUuid,
+		arg.Source,
+		arg.NotificationUuid,
+	)
+	return err
 }
 
 const updateRawNotification = `-- name: UpdateRawNotification :exec

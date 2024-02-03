@@ -84,7 +84,8 @@ func NewTestApplication(t *testing.T, ctx context.Context, database *pgxpool.Poo
 		CreateOrUpdateAccount:    command.NewCreateOrUpdateAccountHandler(accountRepo),
 		RefreshAccessToken:       command.NewRefreshAccessTokenHandler(accountRepo, mockWithingsRepo),
 		SyncRevokedSubscriptions: command.NewSyncRevokedSubscriptionsHandler(subscriptionRepo, mockWithingsSvc),
-		ProcessRawNotification:   command.NewProcessRawNotificationHandler(subscriptionRepo, mockWithingsSvc, accountRepo, publisher),
+		ProcessRawNotification:   command.NewProcessRawNotificationHandler(subscriptionRepo, mockWithingsSvc, accountRepo),
+		FetchNotificationData:    command.NewFetchNotificationDataHandler(subscriptionRepo, mockWithingsSvc, accountRepo, publisher),
 	}
 
 	sleepSvc := sleep.NewSleep(nil) // no http client for now
@@ -140,7 +141,8 @@ func NewMockApplication(t *testing.T) *App {
 		CreateOrUpdateAccount:    command.NewCreateOrUpdateAccountHandler(svc.AccountRepo),
 		RefreshAccessToken:       command.NewRefreshAccessTokenHandler(svc.AccountRepo, svc.WithingsRepo),
 		SyncRevokedSubscriptions: command.NewSyncRevokedSubscriptionsHandler(svc.SubscriptionRepo, svc.WithingsSvc),
-		ProcessRawNotification:   command.NewProcessRawNotificationHandler(svc.SubscriptionRepo, svc.WithingsSvc, svc.AccountRepo, svc.Publisher),
+		ProcessRawNotification:   command.NewProcessRawNotificationHandler(svc.SubscriptionRepo, svc.WithingsSvc, svc.AccountRepo),
+		FetchNotificationData:    command.NewFetchNotificationDataHandler(svc.SubscriptionRepo, svc.WithingsSvc, svc.AccountRepo, svc.Publisher),
 	}
 	svc.Queries = Queries{
 		AccountByWithingsUserID: query.NewAccountByWithingsUserIDHandler(svc.AccountRepo),

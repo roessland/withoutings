@@ -97,6 +97,8 @@ func TestNotificationsPage(t *testing.T) {
 			resp, body := it.DoRequest(newListNotificationsReq())
 			assert.Equal(c, 200, resp.Code)
 			assert.Contains(c, body, escapedParams)
+			assert.Contains(c, body, "A measurement comment")
+
 		}, 10*time.Second, 300*time.Millisecond, "should show received notifications")
 	})
 }

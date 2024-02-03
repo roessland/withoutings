@@ -15,18 +15,17 @@ create table if not exists notification_category
     description text not null
 );
 
-
-
 insert into notification_category (appli, scope, description)
 values (1, 'user.metrics', 'New weight-related data'),
        (2, 'user.metrics', 'New temperature related data'),
        (4, 'user.metrics', 'New pressure related data'),
-       (16, 'user.metrics', 'New activity-related data'),
-       (44, 'user.metrics', 'New sleep-related data'),
-       (46, 'user.metrics', 'New action on user profile'),
-       (50, 'user.metrics', 'New bed in event'),
-       (51, 'user.metrics', 'New bed out event'),
-       (52, 'user.metrics', 'New inflate done event'),
+       (16, 'users.activity', 'New activity-related data'),
+       (44, 'users.activity', 'New sleep-related data'),
+       (46, 'user.info', 'New action on user profile'),
+       (50, 'user.sleepevents', 'New bed in event'),
+       (51, 'user.sleepevents', 'New bed out event'),
+       (52, 'user.sleepevents', 'New inflate done event'),
+       (53, 'n/a', 'No account associated'),
        (54, 'user.metrics', 'New ECG data'),
        (55, 'user.metrics', 'ECG measure failed event'),
        (58, 'user.metrics', 'New glucose data')

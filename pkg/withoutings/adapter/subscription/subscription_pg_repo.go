@@ -312,6 +312,7 @@ func (r PgRepo) CreateNotification(ctx context.Context, notification *subscripti
 		ReceivedAt:          notification.ReceivedAt(),
 		Params:              notification.Params(),
 		Data:                notification.Data(),
+		DataStatus:          string(notification.DataStatus()),
 		FetchedAt:           notification.FetchedAt(),
 		RawNotificationUuid: notification.RawNotificationUUID(),
 		Source:              notification.Source(),
@@ -342,6 +343,55 @@ func (r PgRepo) GetNotificationsByAccountUUID(ctx context.Context, accountUUID u
 	return toDomainNotifications(dbNotifications), nil
 }
 
+func (r PgRepo) GetNotificationByUUID(ctx context.Context, notificationUUID uuid.UUID) (*subscription.Notification, error) {
+	dbNotification, err := r.queries.GetNotificationByUUID(ctx, notificationUUID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, subscription.ErrNotificationNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve notification: %w", err)
+	}
+	return toDomainNotification(dbNotification), nil
+}
+
+// UpdateNotification updates a notification in the database.
+func (r PgRepo) UpdateNotification(ctx context.Context, notificationUUID uuid.UUID, updateFn func(ctx context.Context, notification *subscription.Notification) (*subscription.Notification, error)) error {
+	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	inTransaction := r.WithTx(tx)
+
+	notification, err := inTransaction.GetNotificationByUUID(ctx, notificationUUID)
+	if err != nil {
+		return err
+	}
+	updatedNotification, err := updateFn(ctx, notification)
+	err = inTransaction.queries.UpdateNotification(ctx, db.UpdateNotificationParams{
+		NotificationUuid:    updatedNotification.UUID(),
+		AccountUuid:         updatedNotification.AccountUUID(),
+		ReceivedAt:          updatedNotification.ReceivedAt(),
+		Params:              updatedNotification.Params(),
+		Data:                updatedNotification.Data(),
+		DataStatus:          string(updatedNotification.DataStatus()),
+		FetchedAt:           updatedNotification.FetchedAt(),
+		RawNotificationUuid: updatedNotification.RawNotificationUUID(),
+		Source:              updatedNotification.Source(),
+	})
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func toDomainNotifications(dbNotifications []db.Notification) []*subscription.Notification {
 	var notifications []*subscription.Notification
 	for _, dbNotification := range dbNotifications {
@@ -351,16 +401,18 @@ func toDomainNotifications(dbNotifications []db.Notification) []*subscription.No
 }
 
 func toDomainNotification(dbNotification db.Notification) *subscription.Notification {
-	n, err := subscription.NewNotification(subscription.NewNotificationParams{
+	params := subscription.NewNotificationParams{
 		NotificationUUID:    dbNotification.NotificationUuid,
 		AccountUUID:         dbNotification.AccountUuid,
 		ReceivedAt:          dbNotification.ReceivedAt,
 		Params:              dbNotification.Params,
 		Data:                dbNotification.Data,
+		DataStatus:          subscription.NotificationDataStatus(dbNotification.DataStatus),
 		FetchedAt:           dbNotification.FetchedAt,
 		RawNotificationUUID: dbNotification.RawNotificationUuid,
 		Source:              dbNotification.Source,
-	})
+	}
+	n, err := subscription.NewNotification(params)
 	if err != nil {
 		panic(err)
 	}

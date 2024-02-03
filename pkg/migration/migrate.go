@@ -7,6 +7,7 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	migratepgx "github.com/golang-migrate/migrate/v4/database/pgx"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
+	"github.com/roessland/withoutings/pkg/withoutings/adapter/topic"
 	"os"
 )
 
@@ -43,9 +44,8 @@ func Run(db *sql.DB) {
 
 	// Run watermill migrations, create topic tables.
 	// These tables store the messages for each topic.
-	topicNames := []string{"withings_raw_notification_received"}
 	watermillSchema := wmSql.DefaultPostgreSQLSchema{}
-	for _, topicName := range topicNames {
+	for _, topicName := range topic.AllTopics {
 		initQueries := watermillSchema.SchemaInitializingQueries(topicName)
 		for _, q := range initQueries {
 			_, err = db.Exec(q)
@@ -59,7 +59,7 @@ func Run(db *sql.DB) {
 	// Run watermill migrations, create offset tables.
 	// These store the last processed message offset for each topic, for each consumer group.
 	watermillOffsetsSchema := wmSql.DefaultPostgreSQLOffsetsAdapter{}
-	for _, topicName := range topicNames {
+	for _, topicName := range topic.AllTopics {
 		initQueries := watermillOffsetsSchema.SchemaInitializingQueries(topicName)
 		for _, q := range initQueries {
 			_, err = db.Exec(q)

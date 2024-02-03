@@ -33,7 +33,7 @@ type RawNotification struct {
 	processedAt *time.Time
 }
 
-type RawNotificationData struct {
+type ParsedNotificationParams struct {
 	WithingsUserID string
 	StartDate      time.Time
 	StartDateStr   string
@@ -116,15 +116,14 @@ func (r *RawNotification) Data() string {
 	return r.data
 }
 
-func (r *RawNotification) ParsedData() (RawNotificationData, error) {
-	queryStr := r.data
-	params, _ := url.ParseQuery(queryStr)
+func ParseNotificationParams(query string) (ParsedNotificationParams, error) {
+	params, _ := url.ParseQuery(query)
 	startUnix, _ := strconv.ParseInt(params.Get("startdate"), 10, 64)
 	endUnix, _ := strconv.ParseInt(params.Get("enddate"), 10, 64)
 	appli, _ := strconv.Atoi(params.Get("appli"))
 	date, _ := strconv.ParseInt(params.Get("date"), 10, 64)
 
-	return RawNotificationData{
+	return ParsedNotificationParams{
 		WithingsUserID: params.Get("userid"),
 		StartDate:      time.Unix(startUnix, 0),
 		StartDateStr:   params.Get("startdate"),
