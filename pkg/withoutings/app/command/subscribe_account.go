@@ -2,6 +2,7 @@ package command
 
 import (
 	"context"
+
 	"github.com/google/uuid"
 	"github.com/roessland/withoutings/pkg/config"
 	withingsSvc "github.com/roessland/withoutings/pkg/withoutings/app/service/withings"

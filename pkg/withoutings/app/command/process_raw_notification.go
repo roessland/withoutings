@@ -11,8 +11,11 @@ import (
 	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 )
 
+var ErrRawNotificationPermanentlyUnprocessable = errors.New("raw notification is unprocessable")
+
 type ProcessRawNotification struct {
-	RawNotification *subscription.RawNotification
+	RawNotification  *subscription.RawNotification
+	NotificationUUID uuid.UUID // Caller picks ID of created notification
 }
 
 type ProcessRawNotificationHandler interface {
@@ -24,11 +27,17 @@ func (h processRawNotificationHandler) Handle(ctx context.Context, cmd ProcessRa
 	log = log.WithField("raw_notification_uuid", cmd.RawNotification.UUID())
 	log.WithField("event", "info.command.ProcessRawNotification.started").Info()
 
+	if cmd.RawNotification.Data() == "" {
+		log.WithField("event", "error.command.ProcessRawNotification.emptyData").
+			Error()
+		return ErrRawNotificationPermanentlyUnprocessable
+	}
+
 	if cmd.RawNotification.Status() != subscription.RawNotificationStatusPending {
 		log.WithField("event", "error.command.ProcessRawNotification.invalidStatus").
 			WithField("status", cmd.RawNotification.Status()).
 			Error()
-		return nil
+		return ErrRawNotificationPermanentlyUnprocessable
 	}
 
 	// Get account corresponding to the raw notification
@@ -37,14 +46,14 @@ func (h processRawNotificationHandler) Handle(ctx context.Context, cmd ProcessRa
 		log.WithError(err).
 			WithField("event", "error.command.ProcessRawNotification.parseData.failed").
 			Error()
-		return nil
+		return errors.New("failed to parse notification data")
 	}
 	acc, err := h.accountRepo.GetAccountByWithingsUserID(ctx, parsedParams.WithingsUserID)
 	if errors.Is(err, account.ErrAccountNotFound) {
 		log.WithField("event", "warn.command.ProcessRawNotification.account_not_found").
 			WithField("withings_user_id", parsedParams.WithingsUserID).
 			Warn()
-		return nil
+		return ErrRawNotificationPermanentlyUnprocessable
 	} else if err != nil {
 		log.WithError(err).
 			WithField("event", "error.command.ProcessRawNotification.GetAccountByWithingsUserID.failed").
@@ -55,7 +64,7 @@ func (h processRawNotificationHandler) Handle(ctx context.Context, cmd ProcessRa
 	// Make notification
 	notification, err := subscription.NewNotification(
 		subscription.NewNotificationParams{
-			NotificationUUID:    uuid.New(),
+			NotificationUUID:    cmd.NotificationUUID,
 			AccountUUID:         acc.UUID(),
 			ReceivedAt:          cmd.RawNotification.ReceivedAt(),
 			Params:              cmd.RawNotification.Data(),

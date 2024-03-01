@@ -91,6 +91,10 @@ func NewNotification(p NewNotificationParams) (*Notification, error) {
 		}
 	}
 
+	if p.RawNotificationUUID == uuid.Nil {
+		return nil, errors.New("rawNotificationUUID cannot be nil")
+	}
+
 	return &Notification{
 		notificationUUID:    p.NotificationUUID,
 		accountUUID:         p.AccountUUID,
@@ -120,7 +124,7 @@ func (r *Notification) String() string {
 
 // UUID returns the UUID.
 func (r *Notification) UUID() uuid.UUID {
-	return r.rawNotificationUUID
+	return r.notificationUUID
 }
 
 // AccountUUID returns the UUID of the account that received the notification.

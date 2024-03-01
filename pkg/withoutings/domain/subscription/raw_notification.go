@@ -82,11 +82,6 @@ func NewRawNotification(rawNotificationUUID uuid.UUID, source string, data strin
 		panic(fmt.Sprintf("invalid status: %s", status))
 	}
 
-	if status == RawNotificationStatusPending && processedAt != nil {
-		msg := fmt.Sprintf("processedAt must be nil if status is pending, got %s / %v", status, processedAt)
-		panic(msg)
-	}
-
 	if status == RawNotificationStatusProcessed && processedAt == nil {
 		panic("processedAt cannot be nil if status is processed")
 	}

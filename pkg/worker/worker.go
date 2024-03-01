@@ -3,6 +3,7 @@ package worker
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/google/uuid"
@@ -44,6 +45,7 @@ func (wrk *Worker) Work(ctx context.Context) {
 		panic(msg)
 	}
 
+	// Processes a raw notification, creating a notification.
 	// TODO: Refactor into struct handler
 	router.AddHandler(
 		"process_raw_notification",
@@ -75,16 +77,34 @@ func (wrk *Worker) Work(ctx context.Context) {
 				return nil, err
 			}
 
+			if rawNotification.Status() != subscription.RawNotificationStatusPending {
+				log.WithField("event", "warn.msghandler.process_raw_notification.invalidStatus").
+					WithField("status", rawNotification.Status()).
+					Warn()
+				return nil, nil
+			}
+
+			if rawNotification.Data() == "" {
+				log.WithField("event", "info.msghandler.process_raw_notification.emptyData").
+					Warn()
+				return nil, nil
+			}
+
+			notificationUUID := uuid.New()
 			err = wrk.Commands.ProcessRawNotification.Handle(ctx, command.ProcessRawNotification{
-				RawNotification: rawNotification,
+				RawNotification:  rawNotification,
+				NotificationUUID: notificationUUID,
 			})
-			if err != nil {
+			if errors.Is(err, command.ErrRawNotificationPermanentlyUnprocessable) {
+				log.WithError(err).WithField("event", "warn.msghandler.process_raw_notification.ProcessRawNotification.unprocessable").Warn()
+				return nil, nil
+			} else if err != nil {
 				log.WithError(err).WithField("event", "error.msghandler.process_raw_notification.ProcessRawNotification.failed").Error()
 				return nil, err
 			}
 
 			notificationReceived := subscription.NotificationReceived{
-				NotificationUUID: rawNotification.UUID(),
+				NotificationUUID: notificationUUID,
 			}
 
 			notificationReceivedPayload, err := json.Marshal(notificationReceived)
@@ -107,7 +127,6 @@ func (wrk *Worker) Work(ctx context.Context) {
 		topic.WithingsNotificationDataFetched,
 		wrk.Publisher,
 		func(msg *message.Message) ([]*message.Message, error) {
-
 			log = log.
 				WithField("handler_name", "fetch_notification_data").
 				WithField("message_uuid", msg.UUID).
@@ -134,7 +153,7 @@ func (wrk *Worker) Work(ctx context.Context) {
 				Notification: notification,
 			})
 			if err != nil {
-				log.WithError(err).WithField("event", "error.msghandler.fetch_notification_data.ProcessRawNotification.failed").Error()
+				log.WithError(err).WithField("event", "error.msghandler.fetch_notification_data.FetchNotificationData.failed").Error()
 				return nil, err
 			}
 
@@ -151,7 +170,6 @@ func (wrk *Worker) Work(ctx context.Context) {
 			notificationDataFetchedMsg := message.NewMessage(uuid.NewString(), notificationDataFetchedPayload)
 
 			return message.Messages{notificationDataFetchedMsg}, nil
-
 		},
 	)
 

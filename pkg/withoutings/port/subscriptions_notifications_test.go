@@ -86,10 +86,8 @@ func TestNotificationsPage(t *testing.T) {
 
 		go it.Worker.Work(workerCtx)
 
-		// give worker time to register subscriptions, since gochannel pubsub is used for now.
-		// TODO: replace with SQL-based pubsub
-		time.Sleep(100 * time.Millisecond)
 		weighInNotificationParams := fmt.Sprintf(`userid=%s&startdate=1684738999&enddate=1684739000&appli=1`, acc.WithingsUserID())
+		simulateIncomingWebhook("") // Initial heartbeat
 		simulateIncomingWebhook(weighInNotificationParams)
 		escapedParams := html.EscapeString(weighInNotificationParams)
 
@@ -98,7 +96,6 @@ func TestNotificationsPage(t *testing.T) {
 			assert.Equal(c, 200, resp.Code)
 			assert.Contains(c, body, escapedParams)
 			assert.Contains(c, body, "A measurement comment")
-
-		}, 10*time.Second, 300*time.Millisecond, "should show received notifications")
+		}, 10*time.Second, 300*time.Millisecond, "should show received notifications with fetched payloads")
 	})
 }
