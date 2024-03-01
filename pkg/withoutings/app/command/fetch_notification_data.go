@@ -87,6 +87,8 @@ func (h fetchNotificationDataHandler) getAvailableData(ctx context.Context, acc 
 	switch parsedParams.Appli {
 	case 1:
 		return h.getAvailableData1(ctx, acc, parsedParams)
+	case 44:
+		return h.getAvailableData44(ctx, acc, parsedParams)
 	case 50:
 		return h.getAvailableData50(ctx, acc, parsedParams)
 	case 51:
@@ -104,6 +106,7 @@ func (h fetchNotificationDataHandler) getAvailableData1(ctx context.Context, acc
 	}
 
 	log := logging.MustGetLoggerFromContext(ctx)
+	log = log.WithField("appli", parsedParams.Appli)
 
 	// Fetch data from Withings API
 	params := url.Values{
@@ -123,6 +126,38 @@ func (h fetchNotificationDataHandler) getAvailableData1(ctx context.Context, acc
 	}
 
 	return getmeasResponse.Raw, nil
+}
+
+// getAvailableData44 fetches data from Withings API for appli 44:
+// New sleep-related data
+func (h fetchNotificationDataHandler) getAvailableData44(ctx context.Context, acc *account.Account, parsedParams subscription.ParsedNotificationParams) ([]byte, error) {
+	if parsedParams.Appli != 44 {
+		panic("getAvailableData44 called with wrong application ID")
+	}
+
+	log := logging.MustGetLoggerFromContext(ctx)
+	log = log.WithField("appli", parsedParams.Appli)
+	// Fetch data from Withings API
+
+	// TODO: Should also fetch Sleep v2 - Get (high frequency data)
+	// How to store multiple data sources in the same notification?
+	// Just shove it in a JSON object?
+
+	// userid=25559988&startdate=1684797540&enddate=1684820880&appli=44
+	params := withings.NewSleepGetsummaryParams()
+	params.Startdateymd = parsedParams.StartDate.Format("2006-01-02")
+	params.Enddateymd = parsedParams.EndDate.Format("2006-01-02")
+
+	sleepGetsummaryResponse, err := h.withingsSvc.SleepGetsummary(ctx, acc, params)
+	if err != nil {
+		log.WithError(err).
+			WithField("event", "error.command.FetchNotificationData.SleepGetsummary.failed").
+			WithField("SleepGetsummaryResponse", sleepGetsummaryResponse).
+			Error()
+		return nil, fmt.Errorf("failed to call Withings API SleepGetsummary: %w", err)
+	}
+
+	return sleepGetsummaryResponse.Raw, nil
 }
 
 // getAvailableData50 fetches data from Withings API for appli 50:
