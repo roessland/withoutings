@@ -87,6 +87,8 @@ func (h fetchNotificationDataHandler) getAvailableData(ctx context.Context, acc 
 	switch parsedParams.Appli {
 	case 1:
 		return h.getAvailableData1(ctx, acc, parsedParams)
+	case 4:
+		return h.getAvailableData4(ctx, acc, parsedParams)
 	case 44:
 		return h.getAvailableData44(ctx, acc, parsedParams)
 	case 50:
@@ -113,6 +115,41 @@ func (h fetchNotificationDataHandler) getAvailableData1(ctx context.Context, acc
 		"action":    {"getmeas"},
 		"startdate": {parsedParams.StartDateStr},
 		"enddate":   {parsedParams.EndDateStr},
+	}
+	getmeasResponse, err := h.withingsSvc.MeasureGetmeas(ctx, acc,
+		withings.MeasureGetmeasParams(params.Encode()),
+	)
+	if err != nil {
+		log.WithError(err).
+			WithField("event", "error.command.FetchNotificationData.measuregetmeas.failed").
+			WithField("getmeasresponse", getmeasResponse).
+			Error()
+		return nil, fmt.Errorf("failed to call Withings API measuregetmeas: %w", err)
+	}
+
+	return getmeasResponse.Raw, nil
+}
+
+// getAvailableData4 fetches data from Withings API for appli 4:
+// New pressure related data
+func (h fetchNotificationDataHandler) getAvailableData4(ctx context.Context, acc *account.Account, parsedParams subscription.ParsedNotificationParams) ([]byte, error) {
+	if parsedParams.Appli != 4 {
+		panic("getAvailableData4 called with wrong application ID")
+	}
+
+	log := logging.MustGetLoggerFromContext(ctx)
+	log = log.WithField("appli", parsedParams.Appli)
+
+	// Fetch data from Withings API
+	params := url.Values{
+		"action":    {"getmeas"},
+		"startdate": {parsedParams.StartDateStr},
+		"enddate":   {parsedParams.EndDateStr},
+		"meastypes": {"9,10,11,54"},
+		// 9	Diastolic Blood Pressure (mmHg)
+		// 10	Systolic Blood Pressure (mmHg)
+		// 11	Heart Pulse (bpm) - only for BPM and scale devices
+		// 54	SP02 (%)
 	}
 	getmeasResponse, err := h.withingsSvc.MeasureGetmeas(ctx, acc,
 		withings.MeasureGetmeasParams(params.Encode()),
