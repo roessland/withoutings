@@ -1,0 +1,31 @@
+{
+  "status": 0,
+  "body": {
+    "updatetime": 1709368685,
+    "timezone": "Europe/Oslo",
+    "measuregrps": [
+      {
+        "grpid": 5207274273,
+        "attrib": 0,
+        "date": 1706376730,
+        "created": 1706376751,
+        "modified": 1706376751,
+        "category": 1,
+        "deviceid": "0f8468678a411f018eea9e743a3cea4e54f74e0a",
+        "hash_deviceid": "0f8468678a411f018eea9e743a3cea4e54f74e0a",
+        "measures": [
+          {
+            "value": 80094,
+            "type": 1,
+            "unit": -3,
+            "algo": 0,
+            "fm": 131
+          }
+        ],
+        "modelid": 5,
+        "model": "Body+",
+        "comment": null
+      }
+    ]
+  }
+}

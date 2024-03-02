@@ -224,13 +224,24 @@ type NotificationPageNotification struct {
 	Params           string
 	DataStatus       string
 	FetchedAt        string
-	Data             string
-	DataPretty       string
+	Data             []NotificationPageNotificationData
 	Appli            string
 	AppliDescription string
 }
 
-func (t *Templates) RenderNotifications(ctx context.Context, w io.Writer, notifications []*subscription.Notification, errMsg string) error {
+type NotificationPageNotificationData struct {
+	Service    string
+	Data       string
+	DataPretty string
+}
+
+func (t *Templates) RenderNotifications(
+	ctx context.Context,
+	w io.Writer,
+	notifications []*subscription.Notification,
+	notificationData [][]*subscription.NotificationData,
+	errMsg string,
+) error {
 	tmpl, err := template.New("base.gohtml").ParseFS(t.FS, "base.gohtml", "notifications.gohtml")
 	if err != nil {
 		panic(err.Error())
@@ -240,26 +251,21 @@ func (t *Templates) RenderNotifications(ctx context.Context, w io.Writer, notifi
 	log.WithField("notifications", fmt.Sprintf(`%v`, notifications)).Debug("Rendering notifications")
 	tmplNotifications := make([]NotificationPageNotification, 0)
 
-	for _, n := range notifications {
+	for i, n := range notifications {
 		tn := NotificationPageNotification{
 			NotificationUUID: n.UUID().String(),
 			ReceivedAt:       n.ReceivedAt().Format(time.RFC3339),
 			Params:           n.Params(),
 			DataStatus:       string(n.DataStatus()),
 			FetchedAt:        "see below",
-			Data:             string(n.Data()),
-			DataPretty:       "<DataPretty missing>",
+			Data:             mapNotificationDataToTemplateData(notificationData[i]),
 			Appli:            "<appli missing>",
 			AppliDescription: "<AppliDescription missing>",
 		}
 		if n.FetchedAt() != nil {
 			tn.FetchedAt = n.FetchedAt().Format(time.RFC3339)
 		}
-		if n.Data() != nil {
-			var out bytes.Buffer
-			_ = json.Indent(&out, n.Data(), "", "  ")
-			tn.DataPretty = out.String()
-		}
+
 		if params, err := subscription.ParseNotificationParams(n.Params()); err == nil {
 			desc := subscription.NotificationCategoryByAppli[params.Appli].Description
 			tn.Appli = params.AppliStr
@@ -272,4 +278,21 @@ func (t *Templates) RenderNotifications(ctx context.Context, w io.Writer, notifi
 		Notifications: tmplNotifications,
 		Error:         errMsg,
 	})
+}
+
+func mapNotificationDataToTemplateData(data []*subscription.NotificationData) []NotificationPageNotificationData {
+	tmplData := make([]NotificationPageNotificationData, 0)
+	for _, d := range data {
+		td := NotificationPageNotificationData{
+			Service: string(d.Service()),
+			Data:    string(d.Data()),
+		}
+		if d.Data() != nil {
+			var out bytes.Buffer
+			_ = json.Indent(&out, d.Data(), "", "  ")
+			td.DataPretty = out.String()
+		}
+		tmplData = append(tmplData, td)
+	}
+	return tmplData
 }

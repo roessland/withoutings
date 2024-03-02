@@ -13,6 +13,7 @@ type Service interface {
 	NotifyList(ctx context.Context, acc *account.Account, params withings.NotifyListParams) (*withings.NotifyListResponse, error)
 	NotifySubscribe(ctx context.Context, acc *account.Account, params withings.NotifySubscribeParams) (*withings.NotifySubscribeResponse, error)
 	SleepGetsummary(ctx context.Context, acc *account.Account, params withings.SleepGetsummaryParams) (*withings.SleepGetsummaryResponse, error)
+	SleepGet(ctx context.Context, acc *account.Account, params withings.SleepGetParams) (*withings.SleepGetResponse, error)
 	MeasureGetmeas(ctx context.Context, acc *account.Account, params withings.MeasureGetmeasParams) (*withings.MeasureGetmeasResponse, error)
 }
 
@@ -108,6 +109,10 @@ func (s *service) NotifySubscribe(ctx context.Context, acc *account.Account, par
 
 func (s *service) SleepGetsummary(ctx context.Context, acc *account.Account, params withings.SleepGetsummaryParams) (*withings.SleepGetsummaryResponse, error) {
 	return executeWithRetry(s, s.repo.SleepGetsummary, ctx, acc, params)
+}
+
+func (s *service) SleepGet(ctx context.Context, acc *account.Account, params withings.SleepGetParams) (*withings.SleepGetResponse, error) {
+	return executeWithRetry(s, s.repo.SleepGet, ctx, acc, params)
 }
 
 func (s *service) MeasureGetmeas(ctx context.Context, acc *account.Account, params withings.MeasureGetmeasParams) (*withings.MeasureGetmeasResponse, error) {

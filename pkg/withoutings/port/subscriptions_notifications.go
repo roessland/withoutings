@@ -5,6 +5,7 @@ import (
 	"github.com/roessland/withoutings/pkg/logging"
 	"github.com/roessland/withoutings/pkg/withoutings/app"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
+	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 	"net/http"
 )
 
@@ -27,7 +28,7 @@ func NotificationsPage(svc *app.App) http.HandlerFunc {
 
 		notifications, err := svc.SubscriptionRepo.GetNotificationsByAccountUUID(ctx, acc.UUID())
 		if err != nil {
-			log.WithField("event", "error.NotificationsPage.GetNotificationsByAccountUUID").
+			log.WithField("event", "error.NotificationsPage.GetNotificationsByAccountUUID.failed").
 				WithError(err).
 				Error()
 			w.WriteHeader(http.StatusInternalServerError)
@@ -37,7 +38,21 @@ func NotificationsPage(svc *app.App) http.HandlerFunc {
 
 		log.WithField("notifications", notifications).WithField("event", "debug.NotificationsPage.got-notifications").Debug()
 
-		err = svc.Templates.RenderNotifications(ctx, w, notifications, "")
+		// TODO: Fix stupid 1:N query
+		notificationData := make([][]*subscription.NotificationData, len(notifications))
+		for i, n := range notifications {
+			notificationData[i], err = svc.SubscriptionRepo.GetNotificationDataByNotificationUUID(ctx, n.UUID())
+			if err != nil {
+				log.WithField("event", "error.NotificationsPage.GetNotificationDataByNotificationUUID.failed").
+					WithError(err).
+					Error()
+				w.WriteHeader(http.StatusInternalServerError)
+				fmt.Fprintf(w, "An error occurred when trying to get notification data.")
+				return
+			}
+		}
+
+		err = svc.Templates.RenderNotifications(ctx, w, notifications, notificationData, "")
 		if err != nil {
 			log.WithField("event", "error.NotificationsPage.RenderNotifications").
 				WithError(err).

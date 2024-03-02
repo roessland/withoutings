@@ -68,7 +68,6 @@ func (h processRawNotificationHandler) Handle(ctx context.Context, cmd ProcessRa
 			AccountUUID:         acc.UUID(),
 			ReceivedAt:          cmd.RawNotification.ReceivedAt(),
 			Params:              cmd.RawNotification.Data(),
-			Data:                nil,
 			DataStatus:          subscription.NotificationDataStatusAwaitingFetch,
 			FetchedAt:           nil,
 			RawNotificationUUID: cmd.RawNotification.UUID(),

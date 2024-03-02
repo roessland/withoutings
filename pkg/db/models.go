@@ -25,7 +25,6 @@ type Notification struct {
 	AccountUuid         uuid.UUID
 	ReceivedAt          time.Time
 	ParamsJson          []byte
-	Data                []byte
 	FetchedAt           *time.Time
 	RawNotificationUuid uuid.UUID
 	Source              string
@@ -37,6 +36,15 @@ type NotificationCategory struct {
 	Appli       int32
 	Scope       string
 	Description string
+}
+
+type NotificationDatum struct {
+	NotificationDataUuid uuid.UUID
+	AccountUuid          uuid.UUID
+	NotificationUuid     uuid.UUID
+	Service              string
+	Data                 []byte
+	FetchedAt            time.Time
 }
 
 type RawNotification struct {

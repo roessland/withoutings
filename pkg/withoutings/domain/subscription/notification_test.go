@@ -16,7 +16,6 @@ func TestMustNewNotification(t *testing.T) {
 		ReceivedAt:          time.Now(),
 		Params:              "",
 		DataStatus:          subscription.NotificationDataStatusAwaitingFetch,
-		Data:                nil,
 		FetchedAt:           nil,
 		RawNotificationUUID: uuid.New(),
 		Source:              "",

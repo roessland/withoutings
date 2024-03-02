@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/roessland/withoutings/pkg/integrationtest"
+	"github.com/roessland/withoutings/pkg/withoutings/adapter/withings/withingstestdata"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
 	"github.com/stretchr/testify/assert"
@@ -46,43 +47,11 @@ func TestNotificationsPage(t *testing.T) {
 		workerCtx, cancelWorker := context.WithCancel(it.Ctx)
 		defer cancelWorker()
 
-		// TODO: real response
-		it.Mocks.MockWithingsSvc.EXPECT().MeasureGetmeas(mock.Anything, mock.Anything, mock.Anything).Return(withings.MustNewMeasureGetmeasResponse(
-			[]byte(`
-				{
-					"status": 0,
-					"body": {
-						"updatetime": 12341234,
-						"timezone": "string",
-						"measuregrps": [
-							{
-								"grpid": 12,
-								"attrib": 1,
-								"date": 1594245600,
-								"created": 1594246600,
-								"modified": 1594257200,
-								"category": 1594257200,
-								"deviceid": "892359876fd8805ac45bab078c4828692f0276b1",
-								"measures": [
-									{
-										"value": 65750,
-										"type": 1,
-										"unit": -3,
-										"algo": 3425,
-										"fm": 0,
-										"position": 1
-									}
-								],
-								"comment": "A measurement comment",
-								"timezone": "Europe/Paris"
-							}
-						],
-						"more": 0,
-						"offset": 0
-					}
-				}
-			`),
-		), nil)
+		it.Mocks.MockWithingsSvc.EXPECT().
+			MeasureGetmeas(mock.Anything, mock.Anything, mock.Anything).
+			Return(withings.MustNewMeasureGetmeasResponse(withingstestdata.MeasureGetmeasSuccess), nil)
+
+		defer it.Mocks.MockWithingsSvc.AssertExpectations(t)
 
 		go it.Worker.Work(workerCtx)
 
@@ -95,7 +64,50 @@ func TestNotificationsPage(t *testing.T) {
 			resp, body := it.DoRequest(newListNotificationsReq())
 			assert.Equal(c, 200, resp.Code)
 			assert.Contains(c, body, escapedParams)
-			assert.Contains(c, body, "A measurement comment")
+			assert.Contains(c, body, "measuregrps") // From MeasureGetmeas response
 		}, 10*time.Second, 300*time.Millisecond, "should show received notifications with fetched payloads")
+	})
+
+	t.Run("should fetch new available data from multiple services", func(t *testing.T) {
+		// Some notification categories have multiple services to call,
+		// in order to retrieve all the relevant data.
+		// For example appli=44 (New sleep-related data) has these services
+		// to call:
+		// - Sleep v2 - Get
+		// - Sleep v2 - Getsummary
+
+		beforeEach(t)
+
+		workerCtx, cancelWorker := context.WithCancel(it.Ctx)
+		defer cancelWorker()
+
+		it.Mocks.MockWithingsSvc.EXPECT().
+			SleepGetsummary(mock.Anything, mock.Anything, mock.Anything).
+			Return(withings.MustNewSleepGetsummaryResponse(withingstestdata.Sleepv2GetsummarySuccess), nil)
+		sleepGetParams := withings.SleepGetParams{
+			Action:     "get",
+			Startdate:  1709336580,
+			Enddate:    1709368500,
+			DataFields: withings.SleepGetAllDataFields,
+		}
+		it.Mocks.MockWithingsSvc.EXPECT().
+			SleepGet(mock.Anything, mock.Anything, sleepGetParams).
+			Return(withings.MustNewSleepGetResponse(withingstestdata.Sleepv2GetSuccess), nil)
+
+		defer it.Mocks.MockWithingsSvc.AssertExpectations(t)
+
+		go it.Worker.Work(workerCtx)
+
+		sleep44WebhookParams := fmt.Sprintf(`userid=%s&startdate=1709336580&enddate=1709368500&appli=44`, acc.WithingsUserID())
+		simulateIncomingWebhook(sleep44WebhookParams)
+		escapedParams := html.EscapeString(sleep44WebhookParams)
+
+		assert.EventuallyWithT(t, func(c *assert.CollectT) {
+			resp, body := it.DoRequest(newListNotificationsReq())
+			assert.Equal(c, 200, resp.Code)
+			assert.Contains(c, body, escapedParams)
+			assert.Contains(c, body, "out_of_bed_count") // From SleepGetsummary response
+			assert.Contains(c, body, "sdnn_1")           // From SleepGet response
+		}, 10*time.Second, 300*time.Millisecond, "should show received notifications with multiple fetched payloads")
 	})
 }

@@ -30,4 +30,6 @@ type Repo interface {
 	GetNotificationsByAccountUUID(ctx context.Context, accountUUID uuid.UUID) ([]*Notification, error)
 	GetNotificationByUUID(ctx context.Context, notificationUUID uuid.UUID) (*Notification, error)
 	UpdateNotification(ctx context.Context, notificationUUID uuid.UUID, updateFn func(ctx context.Context, notification *Notification) (*Notification, error)) error
+	StoreNotificationData(ctx context.Context, notificationData *NotificationData) error
+	GetNotificationDataByNotificationUUID(ctx context.Context, notificationUUID uuid.UUID) ([]*NotificationData, error)
 }

@@ -193,6 +193,62 @@ func (_c *MockService_NotifySubscribe_Call) RunAndReturn(run func(context.Contex
 	return _c
 }
 
+// SleepGet provides a mock function with given fields: ctx, acc, params
+func (_m *MockService) SleepGet(ctx context.Context, acc *account.Account, params domainwithings.SleepGetParams) (*domainwithings.SleepGetResponse, error) {
+	ret := _m.Called(ctx, acc, params)
+
+	var r0 *domainwithings.SleepGetResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *account.Account, domainwithings.SleepGetParams) (*domainwithings.SleepGetResponse, error)); ok {
+		return rf(ctx, acc, params)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *account.Account, domainwithings.SleepGetParams) *domainwithings.SleepGetResponse); ok {
+		r0 = rf(ctx, acc, params)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domainwithings.SleepGetResponse)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *account.Account, domainwithings.SleepGetParams) error); ok {
+		r1 = rf(ctx, acc, params)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockService_SleepGet_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SleepGet'
+type MockService_SleepGet_Call struct {
+	*mock.Call
+}
+
+// SleepGet is a helper method to define mock.On call
+//   - ctx context.Context
+//   - acc *account.Account
+//   - params domainwithings.SleepGetParams
+func (_e *MockService_Expecter) SleepGet(ctx interface{}, acc interface{}, params interface{}) *MockService_SleepGet_Call {
+	return &MockService_SleepGet_Call{Call: _e.mock.On("SleepGet", ctx, acc, params)}
+}
+
+func (_c *MockService_SleepGet_Call) Run(run func(ctx context.Context, acc *account.Account, params domainwithings.SleepGetParams)) *MockService_SleepGet_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*account.Account), args[2].(domainwithings.SleepGetParams))
+	})
+	return _c
+}
+
+func (_c *MockService_SleepGet_Call) Return(_a0 *domainwithings.SleepGetResponse, _a1 error) *MockService_SleepGet_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockService_SleepGet_Call) RunAndReturn(run func(context.Context, *account.Account, domainwithings.SleepGetParams) (*domainwithings.SleepGetResponse, error)) *MockService_SleepGet_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SleepGetsummary provides a mock function with given fields: ctx, acc, params
 func (_m *MockService) SleepGetsummary(ctx context.Context, acc *account.Account, params domainwithings.SleepGetsummaryParams) (*domainwithings.SleepGetsummaryResponse, error) {
 	ret := _m.Called(ctx, acc, params)

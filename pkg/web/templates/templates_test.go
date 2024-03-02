@@ -116,12 +116,12 @@ func TestRenderTemplates(t *testing.T) {
 
 	t.Run("Notifications handles nil vars", func(t *testing.T) {
 		beforeEach(t)
-		err := tmpls.RenderNotifications(context.Background(), buf, nil, "")
+		err := tmpls.RenderNotifications(context.Background(), buf, nil, nil, "")
 		require.NoError(t, err)
 		require.Contains(t, buf.String(), "No data")
 	})
 
-	t.Run("Notifications lists notifications", func(t *testing.T) {
+	t.Run("Notifications lists notifications with data", func(t *testing.T) {
 		beforeEach(t)
 		notifications := []*subscription.Notification{
 			subscription.MustNewNotification(subscription.NewNotificationParams{
@@ -129,15 +129,28 @@ func TestRenderTemplates(t *testing.T) {
 				AccountUUID:         uuid.New(),
 				ReceivedAt:          time.Now(),
 				Params:              "yolo",
-				Data:                nil,
 				DataStatus:          subscription.NotificationDataStatusAwaitingFetch,
 				FetchedAt:           nil,
 				RawNotificationUUID: uuid.New(),
 				Source:              "",
 			})}
-		err := tmpls.RenderNotifications(context.Background(), buf, notifications, "")
+		notificationData := [][]*subscription.NotificationData{
+			{
+				subscription.MustNewNotificationData(subscription.NewNotificationDataParams{
+					NotificationDataUUID: uuid.New(),
+					NotificationUUID:     uuid.New(),
+					AccountUUID:          uuid.New(),
+					Service:              subscription.NotificationDataServiceMeasureGetMeas,
+					Data:                 []byte(`{}`),
+					FetchedAt:            time.Now(),
+				}),
+			},
+		}
+
+		err := tmpls.RenderNotifications(context.Background(), buf, notifications, notificationData, "")
 		require.NoError(t, err)
 		require.NotContains(t, buf.String(), "No data")
 		require.Contains(t, buf.String(), "yolo")
+		require.Contains(t, buf.String(), "Measure - Getmeas")
 	})
 }

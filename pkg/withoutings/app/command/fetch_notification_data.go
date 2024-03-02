@@ -5,12 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ThreeDotsLabs/watermill/message"
+	"github.com/google/uuid"
 	"github.com/roessland/withoutings/pkg/logging"
 	withingsSvc "github.com/roessland/withoutings/pkg/withoutings/app/service/withings"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
 	"net/url"
+	"time"
 )
 
 type FetchNotificationData struct {
@@ -54,7 +56,7 @@ func (h fetchNotificationDataHandler) Handle(ctx context.Context, cmd FetchNotif
 		return fmt.Errorf("failed to get account by uuid: %w", err)
 	}
 
-	data, err := h.getAvailableData(ctx, acc, parsedParams)
+	datas, err := h.getAvailableData(ctx, acc, parsedParams)
 	if err != nil {
 		log.WithError(err).
 			WithField("event", "error.command.FetchNotificationData.getAvailableData.failed").
@@ -62,12 +64,37 @@ func (h fetchNotificationDataHandler) Handle(ctx context.Context, cmd FetchNotif
 		return fmt.Errorf("failed to get available data: %w", err)
 	}
 
-	// Update notification with fetched data
+	for _, data := range datas {
+		notificationData, err := subscription.NewNotificationData(subscription.NewNotificationDataParams{
+			NotificationDataUUID: uuid.New(),
+			NotificationUUID:     cmd.Notification.UUID(),
+			AccountUUID:          cmd.Notification.AccountUUID(),
+			Service:              subscription.NotificationDataService(data.service),
+			Data:                 data.data,
+			FetchedAt:            data.fetchedAt,
+		})
+		if err != nil {
+			log.WithError(err).
+				WithField("event", "error.command.FetchNotificationData.NewNotificationData.failed").
+				Error()
+			return fmt.Errorf("failed to create notification data: %w", err)
+		}
+
+		err = h.subscriptionRepo.StoreNotificationData(ctx, notificationData)
+		if err != nil {
+			log.WithError(err).
+				WithField("event", "error.command.FetchNotificationData.StoreNotificationData.failed").
+				Error()
+			return fmt.Errorf("failed to store notification data: %w", err)
+		}
+	}
+
+	// Update notification, marking data status as fetched
 	err = h.subscriptionRepo.UpdateNotification(
 		ctx,
 		cmd.Notification.UUID(),
 		func(ctx context.Context, notification *subscription.Notification) (*subscription.Notification, error) {
-			notification.FetchedData(data)
+			notification.FetchedData()
 			return notification, nil
 		},
 	)
@@ -81,9 +108,17 @@ func (h fetchNotificationDataHandler) Handle(ctx context.Context, cmd FetchNotif
 	return nil
 }
 
+type availableDatas []availableData
+
+type availableData struct {
+	data      []byte
+	fetchedAt time.Time
+	service   string
+}
+
 // getAvailableData fetches data from Withings API corresponding to the notification category.
 // See https://developer.withings.com/developer-guide/v3/data-api/keep-user-data-up-to-date/
-func (h fetchNotificationDataHandler) getAvailableData(ctx context.Context, acc *account.Account, parsedParams subscription.ParsedNotificationParams) ([]byte, error) {
+func (h fetchNotificationDataHandler) getAvailableData(ctx context.Context, acc *account.Account, parsedParams subscription.ParsedNotificationParams) (availableDatas, error) {
 	switch parsedParams.Appli {
 	case 1:
 		return h.getAvailableData1(ctx, acc, parsedParams)
@@ -102,7 +137,11 @@ func (h fetchNotificationDataHandler) getAvailableData(ctx context.Context, acc 
 
 // getAvailableData1 fetches data from Withings API for appli 1:
 // New weight-related data
-func (h fetchNotificationDataHandler) getAvailableData1(ctx context.Context, acc *account.Account, parsedParams subscription.ParsedNotificationParams) ([]byte, error) {
+func (h fetchNotificationDataHandler) getAvailableData1(
+	ctx context.Context,
+	acc *account.Account,
+	parsedParams subscription.ParsedNotificationParams,
+) (availableDatas, error) {
 	if parsedParams.Appli != 1 {
 		panic("getAvailableData1 called with wrong application ID")
 	}
@@ -127,12 +166,24 @@ func (h fetchNotificationDataHandler) getAvailableData1(ctx context.Context, acc
 		return nil, fmt.Errorf("failed to call Withings API measuregetmeas: %w", err)
 	}
 
-	return getmeasResponse.Raw, nil
+	ad := availableDatas{
+		{
+			data:      getmeasResponse.Raw,
+			fetchedAt: time.Now(),
+			service:   "Measure - Getmeas",
+		},
+	}
+
+	return ad, nil
 }
 
 // getAvailableData4 fetches data from Withings API for appli 4:
 // New pressure related data
-func (h fetchNotificationDataHandler) getAvailableData4(ctx context.Context, acc *account.Account, parsedParams subscription.ParsedNotificationParams) ([]byte, error) {
+func (h fetchNotificationDataHandler) getAvailableData4(
+	ctx context.Context,
+	acc *account.Account,
+	parsedParams subscription.ParsedNotificationParams,
+) (availableDatas, error) {
 	if parsedParams.Appli != 4 {
 		panic("getAvailableData4 called with wrong application ID")
 	}
@@ -162,30 +213,36 @@ func (h fetchNotificationDataHandler) getAvailableData4(ctx context.Context, acc
 		return nil, fmt.Errorf("failed to call Withings API measuregetmeas: %w", err)
 	}
 
-	return getmeasResponse.Raw, nil
+	ad := availableDatas{
+		{
+			data:      getmeasResponse.Raw,
+			fetchedAt: time.Now(),
+			service:   "Measure - Getmeas",
+		},
+	}
+
+	return ad, nil
 }
 
 // getAvailableData44 fetches data from Withings API for appli 44:
 // New sleep-related data
-func (h fetchNotificationDataHandler) getAvailableData44(ctx context.Context, acc *account.Account, parsedParams subscription.ParsedNotificationParams) ([]byte, error) {
+func (h fetchNotificationDataHandler) getAvailableData44(
+	ctx context.Context,
+	acc *account.Account,
+	parsedParams subscription.ParsedNotificationParams,
+) (availableDatas, error) {
 	if parsedParams.Appli != 44 {
 		panic("getAvailableData44 called with wrong application ID")
 	}
 
 	log := logging.MustGetLoggerFromContext(ctx)
 	log = log.WithField("appli", parsedParams.Appli)
-	// Fetch data from Withings API
+	ad := availableDatas{}
 
-	// TODO: Should also fetch Sleep v2 - Get (high frequency data)
-	// How to store multiple data sources in the same notification?
-	// Just shove it in a JSON object?
-
-	// userid=25559988&startdate=1684797540&enddate=1684820880&appli=44
-	params := withings.NewSleepGetsummaryParams()
-	params.Startdateymd = parsedParams.StartDate.Format("2006-01-02")
-	params.Enddateymd = parsedParams.EndDate.Format("2006-01-02")
-
-	sleepGetsummaryResponse, err := h.withingsSvc.SleepGetsummary(ctx, acc, params)
+	getSummaryParams := withings.NewSleepGetsummaryParams()
+	getSummaryParams.Startdateymd = parsedParams.StartDate.Format("2006-01-02")
+	getSummaryParams.Enddateymd = parsedParams.EndDate.Format("2006-01-02")
+	sleepGetsummaryResponse, err := h.withingsSvc.SleepGetsummary(ctx, acc, getSummaryParams)
 	if err != nil {
 		log.WithError(err).
 			WithField("event", "error.command.FetchNotificationData.SleepGetsummary.failed").
@@ -193,28 +250,59 @@ func (h fetchNotificationDataHandler) getAvailableData44(ctx context.Context, ac
 			Error()
 		return nil, fmt.Errorf("failed to call Withings API SleepGetsummary: %w", err)
 	}
+	ad = append(ad, availableData{
+		data:      sleepGetsummaryResponse.Raw,
+		fetchedAt: time.Now(),
+		service:   "Sleep v2 - Getsummary", // todo use const
+	})
 
-	return sleepGetsummaryResponse.Raw, nil
+	getParams := withings.NewSleepGetParams()
+	getParams.Startdate = parsedParams.StartDate.Unix()
+	getParams.Enddate = parsedParams.EndDate.Unix()
+	sleepGetResponse, err := h.withingsSvc.SleepGet(ctx, acc, getParams)
+	if err != nil {
+		log.WithError(err).
+			WithField("event", "error.command.FetchNotificationData.SleepGet.failed").
+			WithField("SleepGetResponse", sleepGetResponse).
+			Error()
+		return nil, fmt.Errorf("failed to call Withings API SleepGet: %w", err)
+	}
+
+	ad = append(ad, availableData{
+		data:      sleepGetResponse.Raw,
+		fetchedAt: time.Now(),
+		service:   "Sleep v2 - Get",
+	})
+
+	return ad, nil
 }
 
 // getAvailableData50 fetches data from Withings API for appli 50:
 // New bed in event (user lies on bed)
-func (h fetchNotificationDataHandler) getAvailableData50(_ context.Context, _ *account.Account, parsedParams subscription.ParsedNotificationParams) ([]byte, error) {
+func (h fetchNotificationDataHandler) getAvailableData50(
+	_ context.Context,
+	_ *account.Account,
+	parsedParams subscription.ParsedNotificationParams,
+) (availableDatas, error) {
 	if parsedParams.Appli != 50 {
 		panic("getAvailableData50 called with wrong application ID")
 	}
 	// No service to call
-	return []byte("{}"), nil
+	return availableDatas{}, nil
 }
 
 // getAvailableData51 fetches data from Withings API for appli 51:
 // New bed out event (user gets out of bed)
-func (h fetchNotificationDataHandler) getAvailableData51(_ context.Context, _ *account.Account, parsedParams subscription.ParsedNotificationParams) ([]byte, error) {
+func (h fetchNotificationDataHandler) getAvailableData51(
+	_ context.Context,
+	_ *account.Account,
+	parsedParams subscription.ParsedNotificationParams,
+) (availableDatas, error) {
 	if parsedParams.Appli != 51 {
 		panic("getAvailableData51 called with wrong application ID")
 	}
 	// No service to call
-	return []byte("{}"), nil
+	return availableDatas{}, nil
 }
 
 func NewFetchNotificationDataHandler(

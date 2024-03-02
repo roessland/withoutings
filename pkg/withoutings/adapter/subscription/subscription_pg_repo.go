@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -312,7 +311,6 @@ func (r PgRepo) CreateNotification(ctx context.Context, notification *subscripti
 		AccountUuid:         notification.AccountUUID(),
 		ReceivedAt:          notification.ReceivedAt(),
 		Params:              notification.Params(),
-		Data:                notification.Data(),
 		DataStatus:          string(notification.DataStatus()),
 		FetchedAt:           notification.FetchedAt(),
 		RawNotificationUuid: notification.RawNotificationUUID(),
@@ -375,7 +373,6 @@ func (r PgRepo) UpdateNotification(ctx context.Context, notificationUUID uuid.UU
 		AccountUuid:         updatedNotification.AccountUUID(),
 		ReceivedAt:          updatedNotification.ReceivedAt(),
 		Params:              updatedNotification.Params(),
-		Data:                updatedNotification.Data(),
 		DataStatus:          string(updatedNotification.DataStatus()),
 		FetchedAt:           updatedNotification.FetchedAt(),
 		RawNotificationUuid: updatedNotification.RawNotificationUUID(),
@@ -407,7 +404,6 @@ func toDomainNotification(dbNotification db.Notification) *subscription.Notifica
 		AccountUUID:         dbNotification.AccountUuid,
 		ReceivedAt:          dbNotification.ReceivedAt,
 		Params:              dbNotification.Params,
-		Data:                dbNotification.Data,
 		DataStatus:          subscription.NotificationDataStatus(dbNotification.DataStatus),
 		FetchedAt:           dbNotification.FetchedAt,
 		RawNotificationUUID: dbNotification.RawNotificationUuid,
@@ -418,4 +414,73 @@ func toDomainNotification(dbNotification db.Notification) *subscription.Notifica
 		panic(err)
 	}
 	return n
+}
+
+// StoreNotificationData creates a notification in the database,
+// and marks the corresponding raw notification as processed.
+func (r PgRepo) StoreNotificationData(ctx context.Context, notificationData *subscription.NotificationData) error {
+	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	inTransaction := r.WithTx(tx)
+
+	err = inTransaction.queries.CreateNotificationData(ctx, db.CreateNotificationDataParams{
+		NotificationDataUuid: notificationData.UUID(),
+		AccountUuid:          notificationData.AccountUUID(),
+		NotificationUuid:     notificationData.NotificationUUID(),
+		Service:              string(notificationData.Service()),
+		Data:                 notificationData.Data(),
+		FetchedAt:            notificationData.FetchedAt(),
+	})
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r PgRepo) GetNotificationDataByNotificationUUID(ctx context.Context, notificationUUID uuid.UUID) ([]*subscription.NotificationData, error) {
+	log := logging.MustGetLoggerFromContext(ctx)
+	log.WithField("event", "debug.GetNotificationDataByNotificationUUID").WithField("notification_uuid", notificationUUID).Debug()
+	dbNotificationData, err := r.queries.GetNotificationDataByNotificationUUID(ctx, notificationUUID)
+	if err != nil {
+		return nil, err
+	}
+	return toDomainNotificationData(dbNotificationData)
+}
+
+func toDomainNotificationDatum(dbNotificationData db.NotificationDatum) (*subscription.NotificationData, error) {
+	service, err := subscription.NewNotificationDataService(dbNotificationData.Service)
+	if err != nil {
+		return nil, err
+	}
+
+	params := subscription.NewNotificationDataParams{
+		NotificationDataUUID: dbNotificationData.NotificationDataUuid,
+		NotificationUUID:     dbNotificationData.NotificationUuid,
+		AccountUUID:          dbNotificationData.AccountUuid,
+		Service:              service,
+		Data:                 dbNotificationData.Data,
+		FetchedAt:            dbNotificationData.FetchedAt,
+	}
+	return subscription.NewNotificationData(params)
+}
+
+func toDomainNotificationData(dbNotificationData []db.NotificationDatum) ([]*subscription.NotificationData, error) {
+	var notificationData []*subscription.NotificationData
+	for _, dbNotificationDatum := range dbNotificationData {
+		domainDatum, err := toDomainNotificationDatum(dbNotificationDatum)
+		if err != nil {
+			return nil, err
+		}
+		notificationData = append(notificationData, domainDatum)
+	}
+	return notificationData, nil
 }

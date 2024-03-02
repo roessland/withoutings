@@ -106,7 +106,7 @@ func MustNewMeasureGetmeasResponse(raw []byte) *MeasureGetmeasResponse {
 	resp.Raw = raw
 
 	if err != nil {
-		panic(fmt.Errorf(`couldn't unmarshal MeasureGetmeas response: %w`, err))
+		panic(fmt.Errorf(`couldn't unmarshal MeasureGetmeasResponse: %w`, err))
 	}
 
 	return &resp
@@ -152,6 +152,7 @@ type MeasureGetmeasMeasuregrp struct {
 	DeviceID string                  `json:"deviceid"` // ID of device that tracked the data. To retrieve information about this device, refer to : User v2 - Getdevice.
 	Measures []MeasureGetmeasMeasure `json:"measures"` // List of measures in the group.
 	Timezone string                  `json:"timezone"` // Timezone for the date.
+	// Comment  string                  `json:"comment"`  // Deprecated. This property will always be empty.
 }
 
 // MeasureGetmeasMeasure is a measure in a measure group.

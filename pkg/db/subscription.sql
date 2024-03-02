@@ -89,12 +89,11 @@ INSERT INTO notification(notification_uuid,
                          account_uuid,
                          received_at,
                          params,
-                         data,
                          data_status,
                          fetched_at,
                          raw_notification_uuid,
                          source)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 ON CONFLICT (notification_uuid) DO NOTHING;
 
 
@@ -124,9 +123,23 @@ UPDATE notification
 SET account_uuid          = $1,
     received_at           = $2,
     params                = $3,
-    data                  = $4,
-    data_status           = $5,
-    fetched_at            = $6,
-    raw_notification_uuid = $7,
-    source                = $8
-    WHERE notification_uuid = $9;
+    data_status           = $4,
+    fetched_at            = $5,
+    raw_notification_uuid = $6,
+    source                = $7
+WHERE notification_uuid = $8;
+
+-- name: CreateNotificationData :exec
+INSERT INTO notification_data(notification_data_uuid,
+                              account_uuid,
+                              notification_uuid,
+                              service,
+                              data,
+                              fetched_at)
+VALUES ($1, $2, $3, $4, $5, $6)
+ON CONFLICT (notification_uuid, service) DO NOTHING;
+
+-- name: GetNotificationDataByNotificationUUID :many
+SELECT *
+FROM notification_data
+WHERE notification_uuid = $1;

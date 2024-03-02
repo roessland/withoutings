@@ -1,7 +1,6 @@
 package subscription
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
@@ -27,9 +26,6 @@ type Notification struct {
 	// Example: {UserID: "133337", StartDate: "1682809920", EndDate: "1682837220", Appli: "44"}
 	params string
 
-	// data is the response body from the Withings API using the provided query parameters.
-	data []byte
-
 	// dataStatus is the status of the corresponding data that should be/was fetched from the Withings API.
 	dataStatus NotificationDataStatus
 
@@ -49,7 +45,6 @@ type NewNotificationParams struct {
 	ReceivedAt          time.Time
 	Params              string
 	DataStatus          NotificationDataStatus
-	Data                []byte
 	FetchedAt           *time.Time
 	RawNotificationUUID uuid.UUID
 	Source              string
@@ -78,17 +73,11 @@ func NewNotification(p NewNotificationParams) (*Notification, error) {
 	}
 
 	if p.DataStatus == NotificationDataStatusAwaitingFetch && p.FetchedAt != nil {
-		return nil, fmt.Errorf("fetchedAt must be nil when dataStatus is awaiting_fetch, but was %s", *p.FetchedAt)
+		p.FetchedAt = nil
 	}
 
 	if p.DataStatus == NotificationDataStatusFetched && p.FetchedAt == nil {
 		return nil, errors.New("fetchedAt cannot be nil when dataStatus is fetched")
-	}
-
-	if p.Data != nil {
-		if err := json.Unmarshal(p.Data, new(map[string]any)); err != nil {
-			return nil, fmt.Errorf("notification data is not valid JSON: %w", err)
-		}
 	}
 
 	if p.RawNotificationUUID == uuid.Nil {
@@ -100,7 +89,6 @@ func NewNotification(p NewNotificationParams) (*Notification, error) {
 		accountUUID:         p.AccountUUID,
 		receivedAt:          p.ReceivedAt,
 		params:              p.Params,
-		data:                p.Data,
 		fetchedAt:           p.FetchedAt,
 		dataStatus:          p.DataStatus,
 		rawNotificationUUID: p.RawNotificationUUID,
@@ -165,11 +153,6 @@ func (r *RawNotification) ParsedParams() (ParsedNotificationParams, error) {
 	}, nil
 }
 
-// Data returns the response body from the Withings API using the provided query parameters.
-func (r *Notification) Data() []byte {
-	return r.data
-}
-
 // DataStatus returns the status of the corresponding data that should be/was fetched from the Withings API.
 func (r *Notification) DataStatus() NotificationDataStatus {
 	return r.dataStatus
@@ -190,14 +173,12 @@ func (r *Notification) Source() string {
 	return r.source
 }
 
-func (r *Notification) FetchedData(data []byte) {
+func (r *Notification) FetchedData() {
 	r.fetchedAt = ptrof.Time(time.Now())
 	r.dataStatus = NotificationDataStatusFetched
-	r.data = data
 }
 
 func (r *Notification) FetchFailed() {
 	r.fetchedAt = ptrof.Time(time.Now())
 	r.dataStatus = NotificationDataStatusFetchFailed
-	r.data = nil
 }

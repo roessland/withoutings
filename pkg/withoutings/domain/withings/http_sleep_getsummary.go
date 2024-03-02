@@ -2,6 +2,7 @@ package withings
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 )
 
@@ -60,6 +61,18 @@ type SleepGetsummaryResponse struct {
 	Status int `json:"status"`
 	Body   SleepGetsummaryBody
 	Raw    []byte
+}
+
+func MustNewSleepGetsummaryResponse(raw []byte) *SleepGetsummaryResponse {
+	var resp SleepGetsummaryResponse
+	err := json.Unmarshal(raw, &resp)
+	resp.Raw = raw
+
+	if err != nil {
+		panic(fmt.Errorf(`couldn't unmarshal SleepGetsummaryResponse: %w`, err))
+	}
+
+	return &resp
 }
 
 type SleepGetsummaryBody struct {

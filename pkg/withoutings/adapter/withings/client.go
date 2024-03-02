@@ -88,6 +88,8 @@ func (c *HTTPClient) NewRequest(endpoint string, params any, body []byte) (*http
 		return nil, err
 	}
 
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
 	return req, nil
 }
 

@@ -7,16 +7,19 @@
       <p>{{ .Error }}</p>
     {{else}}
       <div data-test-id="notifications-div" class="space-y-12">
-        {{ range $_, $value := .Notifications }}
+        {{ range .Notifications }}
           <div data-test-id="notification-div" class="space-y-1">
-            <h2 class="text-lg ">{{ $value.AppliDescription }}</h2>
-            <h3>🗓️ {{ $value.ReceivedAt }}</h3>
+            <h2 class="text-lg ">{{ .AppliDescription }}</h2>
+            <h3>🗓️ {{ .ReceivedAt }}</h3>
 
             <h3 class="pt-2">Webhook params:</h3>
-            <pre class="whitespace-break-spaces overflow-x-scroll text-xs" >{{ $value.Params }}</pre>
+            <pre class="whitespace-break-spaces overflow-x-scroll text-xs" >{{ .Params }}</pre>
 
             <h3 class="pt-2">Data:</h3>
-            <pre class="whitespace-break-spaces overflow-x-scroll text-xs" >{{ $value.DataPretty  }}</pre>
+            {{ range .Data }}
+              <i>{{ .Service }}</i>
+              <pre class="whitespace-break-spaces overflow-x-scroll text-xs" >{{ .DataPretty }}</pre>
+            {{ end }}
           </div>
         {{ end }}
       </div>
