@@ -4,7 +4,7 @@ go 1.22
 
 require (
 	cloud.google.com/go v0.110.9
-	github.com/ThreeDotsLabs/watermill v1.2.0
+	github.com/ThreeDotsLabs/watermill v1.3.5
 	github.com/ThreeDotsLabs/watermill-sql/v2 v2.0.0
 	github.com/alexedwards/scs/pgxstore v0.0.0-20231019082033-4c4a69f4f7d4
 	github.com/alexedwards/scs/v2 v2.5.1
@@ -64,7 +64,7 @@ require (
 	golang.org/x/sync v0.4.0
 	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
-	golang.org/x/time v0.3.0 // indirect
+	golang.org/x/time v0.5.0
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

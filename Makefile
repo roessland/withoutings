@@ -24,3 +24,7 @@ migrate:
 .PHONY: run-dev
 run-dev: generate-all migrate
 	source env.dev.sh && go run cmd/withoutings/*.go server
+
+.PHONY: clean
+clean:
+	go clean -testcache

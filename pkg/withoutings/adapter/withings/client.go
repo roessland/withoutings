@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/go-querystring/query"
 	"github.com/roessland/withoutings/pkg/logging"
+	"github.com/roessland/withoutings/pkg/ratelimit"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 )
@@ -20,6 +21,7 @@ const DefaultAPIBase = "https://wbsapi.withings.net"
 type HTTPClient struct {
 	HTTPClient   *http.Client
 	OAuth2Config *oauth2.Config
+	rateLimiter  RateLimiter
 	APIBase      string
 }
 
@@ -32,6 +34,8 @@ type AuthenticatedClient struct {
 // NewClient returns a client.
 func NewClient(clientID, clientSecret, redirectURL string) *HTTPClient {
 	c := HTTPClient{}
+
+	c.rateLimiter = ratelimit.DefaultWithingsAPIRateLimiter
 
 	c.HTTPClient = &http.Client{
 		Transport: &http.Transport{
@@ -114,6 +118,16 @@ func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 		"request.headers": req.Header,
 		"request.method":  req.Method,
 	}).Info()
+
+	// Obey Withings rate limits
+	t := time.Now()
+	if err := c.rateLimiter.Wait(req.Context()); err != nil {
+		return nil, err
+	}
+	waited := time.Since(t)
+	if waited > 200*time.Millisecond {
+		log.WithField("event", "info.withings.HTTPClient.Do.outbound-rate-limited").WithField("wait_ms", waited.Milliseconds()).Info()
+	}
 
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {

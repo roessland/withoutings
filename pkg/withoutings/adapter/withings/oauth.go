@@ -5,20 +5,23 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/roessland/withoutings/pkg/logging"
-	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
-	"golang.org/x/oauth2"
 	"io"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/roessland/withoutings/pkg/logging"
+	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
+	"golang.org/x/oauth2"
 )
 
-var OAuth2Scopes = []string{"user.info,user.activity,user.metrics,user.sleepevents"}
-var OAuth2AuthURL = "https://account.withings.com/oauth2_user/authorize2"
-var OAuth2TokenURL = "https://wbsapi.withings.net/v2/oauth2"
+var (
+	OAuth2Scopes   = []string{"user.info,user.activity,user.metrics,user.sleepevents"}
+	OAuth2AuthURL  = "https://account.withings.com/oauth2_user/authorize2"
+	OAuth2TokenURL = "https://wbsapi.withings.net/v2/oauth2"
+)
 
 type commonTokenFields struct {
 	AccessToken  string `json:"access_token,omitempty"`
@@ -90,6 +93,10 @@ func (c *HTTPClient) GetAccessToken(ctx context.Context, authCode string) (*with
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
+	if err := c.rateLimiter.Wait(ctx); err != nil {
+		return nil, err
+	}
+
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -143,6 +150,10 @@ func (c *HTTPClient) RefreshAccessToken(ctx context.Context, refreshToken string
 		return nil, fmt.Errorf("creating token refresh request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	if err := c.rateLimiter.Wait(ctx); err != nil {
+		return nil, err
+	}
 
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
