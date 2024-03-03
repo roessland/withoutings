@@ -4,7 +4,10 @@ Demo application for talking with Withings API. It is written in Go with few dep
 database. The code is organized using DDD-ish / Clean Architecture-ish principles, based on the book and articles
 by https://threedots.tech/.
 
-<img alt="screenshot" src="./docs/screenshot-2023-05-01.png" width="751" >
+![screenshot-2024-03-03.png](docs/screenshot-2024-03-03.png)
+
+![screenshot-2023-05-01.png](docs/screenshot-2023-05-01.png)
+
 
 ## Features
 
@@ -13,11 +16,24 @@ by https://threedots.tech/.
 - Lets users log in with Withings OAuth and stores their access token in the database.
 - Lets users subscribe to notifications from Withings.
 - Stores received notifications in the database.
+- Downloads available data relevant to the received notifications and stores it in the database.
 
 ### Planned features
 
 - Forward received notifications and their payloads to webhooks, IFTTT, Dropbox, Google Drive, etc.
 - Download historical data, not just data corresponding to notifications.
+
+## Technologies used
+Withoutings uses a pragmatic stack that is simple to maintain and deploy:
+- Go
+- PostgreSQL
+- Server-side rendering with Go's html/template
+- No JavaScript so far. But might add HTMX.
+
+### ...and not used
+- Redis (unlogged tables are good enough)
+- ORM (sqlc is superior)
+- Dedicated queue/pubsub (Postgres all the way!)
 
 # Installation and setup
 
