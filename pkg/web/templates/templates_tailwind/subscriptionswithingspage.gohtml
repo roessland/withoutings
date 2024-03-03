@@ -1,0 +1,26 @@
+{{define "title"}}Withings subscriptions{{end}}
+
+{{define "content"}}
+  {{if not .WithingsSubscriptions}}
+      <p>You don't have any subscriptions with Withings yet.</p>
+  {{else}}
+      <table>
+          <thead>
+            <th>Subscribed</th>
+            <th>Appli</th>
+            <th>Description</th>
+            <th>Comment</th>
+          </thead>
+          {{ range $_, $value := .WithingsSubscriptions }}
+            <tbody>
+              <tr>
+                <td>{{ if $value.Exists }}✅{{else}}❌{{end}}</td>
+                <td>{{ $value.Appli }}</td>
+                <td>{{ $value.AppliDescription }}</td>
+                <td>{{ $value.Comment }}</td>
+              </tr>
+            </tbody>
+          {{ end }}
+      </table>
+  {{end}}
+{{end}}

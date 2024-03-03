@@ -12,6 +12,6 @@ module.exports = {
   },
   variants: {},
   content: [
-    './templates/templates/**/*.gohtml',
+    './templates/**/*.gohtml',
   ]
 }

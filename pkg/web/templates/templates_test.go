@@ -121,7 +121,7 @@ func TestRenderTemplates(t *testing.T) {
 		require.Contains(t, buf.String(), "No data")
 	})
 
-	t.Run("Notifications lists notifications with data", func(t *testing.T) {
+	t.Run("Notifications lists notifications with available data", func(t *testing.T) {
 		beforeEach(t)
 		notifications := []*subscription.Notification{
 			subscription.MustNewNotification(subscription.NewNotificationParams{
@@ -150,7 +150,6 @@ func TestRenderTemplates(t *testing.T) {
 		err := tmpls.RenderNotifications(context.Background(), buf, notifications, notificationData, "")
 		require.NoError(t, err)
 		require.NotContains(t, buf.String(), "No data")
-		require.Contains(t, buf.String(), "yolo")
 		require.Contains(t, buf.String(), "Measure - Getmeas")
 	})
 }

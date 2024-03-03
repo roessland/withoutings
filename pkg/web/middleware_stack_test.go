@@ -13,7 +13,8 @@ import (
 func TestMiddlewareConfig(t *testing.T) {
 	svc := app.NewMockApplication(t)
 	router := mux.NewRouter()
-	router.Use(web.Middleware(svc)...)
+	router.Use(web.GlobalMiddlewares(svc)...)
+	router.Use(web.AuthMiddlewares(svc)...)
 
 	var handler http.HandlerFunc
 

@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "dev": "npx tailwindcss -i ./static/static/style.template.css -o ./static/static/style.css --jit -w",
+    "dev": "npx tailwindcss -i ./static/static/style.template.css -o ./static/static/style.css --watch",
     "build": "npx tailwindcss -i ./static/static/style.template.css -o ./static/static/style.css --minify"
   },
   "devDependencies": {

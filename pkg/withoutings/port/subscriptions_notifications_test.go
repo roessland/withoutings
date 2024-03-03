@@ -9,7 +9,6 @@ import (
 	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"html"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -58,14 +57,12 @@ func TestNotificationsPage(t *testing.T) {
 		weighInNotificationParams := fmt.Sprintf(`userid=%s&startdate=1684738999&enddate=1684739000&appli=1`, acc.WithingsUserID())
 		simulateIncomingWebhook("") // Initial heartbeat
 		simulateIncomingWebhook(weighInNotificationParams)
-		escapedParams := html.EscapeString(weighInNotificationParams)
 
 		assert.EventuallyWithT(t, func(c *assert.CollectT) {
 			resp, body := it.DoRequest(newListNotificationsReq())
 			assert.Equal(c, 200, resp.Code)
-			assert.Contains(c, body, escapedParams)
-			assert.Contains(c, body, "measuregrps") // From MeasureGetmeas response
-		}, 10*time.Second, 300*time.Millisecond, "should show received notifications with fetched payloads")
+			assert.Contains(c, body, "Measure - Getmeas")
+		}, 10*time.Second, 300*time.Millisecond, "should show received notifications with links to fetched payloads")
 	})
 
 	t.Run("should fetch new available data from multiple services", func(t *testing.T) {
@@ -100,14 +97,13 @@ func TestNotificationsPage(t *testing.T) {
 
 		sleep44WebhookParams := fmt.Sprintf(`userid=%s&startdate=1709336580&enddate=1709368500&appli=44`, acc.WithingsUserID())
 		simulateIncomingWebhook(sleep44WebhookParams)
-		escapedParams := html.EscapeString(sleep44WebhookParams)
 
 		assert.EventuallyWithT(t, func(c *assert.CollectT) {
 			resp, body := it.DoRequest(newListNotificationsReq())
 			assert.Equal(c, 200, resp.Code)
-			assert.Contains(c, body, escapedParams)
-			assert.Contains(c, body, "out_of_bed_count") // From SleepGetsummary response
-			assert.Contains(c, body, "sdnn_1")           // From SleepGet response
+
+			assert.Contains(c, body, "Sleep v2 - Getsummary<")
+			assert.Contains(c, body, "Sleep v2 - Get<")
 		}, 10*time.Second, 300*time.Millisecond, "should show received notifications with multiple fetched payloads")
 	})
 }

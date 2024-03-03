@@ -1,0 +1,31 @@
+{{define "title"}}Sleep data{{end}}
+
+{{define "content"}}
+  <div class="py-4">
+    <div class="">
+        {{if not .SleepData}}
+          <p>No data</p>
+            <p>{{ .Error }}</p>
+        {{else}}
+          <ul>
+              {{ range $_, $value := .SleepData.Summaries }}
+                <li>
+                  <strong>{{ $value.Date }}</strong>: {{ $value.SleepScore }}
+                  <div class="sleepscore-hbar"
+                       style="width: {{ $value.SleepScore }}px;">
+                  </div>
+                    {{ $value.TotalSleepTime }}
+                </li>
+              {{ end }}
+          </ul>
+
+          <pre>
+        <code>
+        {{ printf "%s" .SleepData.Raw}}
+        </code>
+    </pre>
+
+        {{end}}
+    </div>
+  </div>
+{{end}}

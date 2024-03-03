@@ -1,0 +1,28 @@
+{{define "title"}}Notifications{{end}}
+
+{{define "content"}}
+  <div class="py-4">
+    {{if not .Notifications}}
+      <p>No data</p>
+      <p>{{ .Error }}</p>
+    {{else}}
+      <div data-test-id="notifications-div" class="space-y-12">
+        {{ range .Notifications }}
+          <div data-test-id="notification-div" class="space-y-1">
+            <h2 class="text-lg ">{{ .AppliDescription }}</h2>
+            <h3>🗓️ {{ .ReceivedAt }}</h3>
+
+            <h3 class="pt-2">Webhook params:</h3>
+            <pre class="whitespace-break-spaces overflow-x-scroll text-xs" >{{ .Params }}</pre>
+
+            <h3 class="pt-2">Data:</h3>
+            {{ range .Data }}
+              <i>{{ .Service }}</i>
+              <pre class="whitespace-break-spaces overflow-x-scroll text-xs" >{{ .DataPretty }}</pre>
+            {{ end }}
+          </div>
+        {{ end }}
+      </div>
+    {{end}}
+  </div>
+{{end}}

@@ -1,31 +1,73 @@
 {{define "title"}}Sleep data{{end}}
 
 {{define "content"}}
-  <div class="py-4">
-    <div class="">
-        {{if not .SleepData}}
-          <p>No data</p>
-            <p>{{ .Error }}</p>
-        {{else}}
-          <ul>
-              {{ range $_, $value := .SleepData.Summaries }}
-                <li>
-                  <strong>{{ $value.Date }}</strong>: {{ $value.SleepScore }}
-                  <div class="sleepscore-hbar"
-                       style="width: {{ $value.SleepScore }}px;">
-                  </div>
-                    {{ $value.TotalSleepTime }}
-                </li>
-              {{ end }}
+  <div class="columns">
+    <div class="column">
+      <article class="message">
+        <div class="message-header">
+          <p>Sleep</p>
+        </div>
+        <div class="message-body content">
+          Summary of the last 30 days
+        </div>
+      </article>
+    </div>
+    <div class="column">
+      <article class="message">
+        <div class="message-header">
+          <p>Withings APIs used</p>
+        </div>
+        <div class="message-body content">
+          <ul class="mt-0">
+            <li>
+              <a href="https://developer.withings.com/api-reference/#tag/sleep/operation/sleepv2-get">Sleep v2 - Get</a>
+            </li>
+            <li>
+              <a href="https://developer.withings.com/api-reference/#tag/sleep/operation/sleepv2-getsummary">Sleep v2 -
+                Getsummary</a>
+            </li>
           </ul>
+        </div>
+      </article>
+    </div>
+  </div>
 
-          <pre>
+  {{if not .SleepData}}
+    <p>No data</p>
+    <p>{{ .Error }}</p>
+  {{else}}
+    <table class="table is-fullwidth">
+      <thead>
+      <tr>
+        <th><abbr title="Date">📅</abbr></th>
+        <th>Duration</th>
+        <th>Score</th>
+        <th>📊&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+      </tr>
+      </thead>
+      <tbody>
+      {{ range $_, $value := .SleepData.Summaries }}
+        <tr>
+          <td>{{ $value.Date }}</td>
+          <td>{{ $value.TotalSleepTime }}</td>
+          <td>{{ $value.SleepScore }}</td>
+          <td>
+            <progress class="progress is-info" value="{{ $value.SleepScore }}"
+                      max="100">{{ $value.SleepScore }}</progress>
+          </td>
+        </tr>
+
+      {{ end }}
+
+      </tbody>
+    </table>
+
+
+    <pre>
         <code>
         {{ printf "%s" .SleepData.Raw}}
         </code>
     </pre>
 
-        {{end}}
-    </div>
-  </div>
+  {{end}}
 {{end}}

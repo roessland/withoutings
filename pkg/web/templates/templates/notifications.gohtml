@@ -1,28 +1,43 @@
 {{define "title"}}Notifications{{end}}
 
 {{define "content"}}
-  <div class="py-4">
+  <div>
     {{if not .Notifications}}
       <p>No data</p>
       <p>{{ .Error }}</p>
     {{else}}
-      <div data-test-id="notifications-div" class="space-y-12">
-        {{ range .Notifications }}
-          <div data-test-id="notification-div" class="space-y-1">
-            <h2 class="text-lg ">{{ .AppliDescription }}</h2>
-            <h3>🗓️ {{ .ReceivedAt }}</h3>
+      <table class="table is-fullwidth">
+        <thead>
+        <tr>
+          <th>Received</th>
+          <th>Event type</th>
+          <th>Available data</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{  range .Notifications  }}
+          <tr>
+            <td>🗓️ {{ .ReceivedAt }}</td>
+            <td>{{ .AppliDescription }}</td>
+{{/*            <td>{{ .Params }}}</td>*/}}
+            <td>
+              <div class="tags">
+                {{ range .Data }}
+                  <a href="/notification-data/{{ .NotificationUUID }}/{{ .Service }}.json" class="tag is-primary is-light">{{ .Service }}</a>
+                {{ end }}
+              </div>
+            </td>
+          </tr>
 
-            <h3 class="pt-2">Webhook params:</h3>
-            <pre class="whitespace-break-spaces overflow-x-scroll text-xs" >{{ .Params }}</pre>
-
-            <h3 class="pt-2">Data:</h3>
-            {{ range .Data }}
-              <i>{{ .Service }}</i>
-              <pre class="whitespace-break-spaces overflow-x-scroll text-xs" >{{ .DataPretty }}</pre>
-            {{ end }}
-          </div>
         {{ end }}
-      </div>
+
+        </tbody>
+      </table>
+
+
+
+
+
     {{end}}
   </div>
 {{end}}

@@ -6,12 +6,17 @@ import (
 	"github.com/roessland/withoutings/pkg/withoutings/app"
 )
 
-func Middleware(svc *app.App) []mux.MiddlewareFunc {
+func AuthMiddlewares(svc *app.App) []mux.MiddlewareFunc {
 	return []mux.MiddlewareFunc{
-		middleware.UseRemoteAddrFromXForwardedFor(),
-		middleware.Logging(svc),
 		svc.Sessions.LoadAndSave,
 		middleware.Account(svc),
 		middleware.FlashMessages(svc),
+	}
+}
+
+func GlobalMiddlewares(svc *app.App) []mux.MiddlewareFunc {
+	return []mux.MiddlewareFunc{
+		middleware.UseRemoteAddrFromXForwardedFor(),
+		middleware.Logging(svc),
 	}
 }

@@ -247,9 +247,10 @@ type NotificationPageNotification struct {
 }
 
 type NotificationPageNotificationData struct {
-	Service    string
-	Data       string
-	DataPretty string
+	NotificationUUID string
+	Service          string
+	Data             string
+	DataPretty       string
 }
 
 func (t *Templates) RenderNotifications(
@@ -271,7 +272,7 @@ func (t *Templates) RenderNotifications(
 	for i, n := range notifications {
 		tn := NotificationPageNotification{
 			NotificationUUID: n.UUID().String(),
-			ReceivedAt:       n.ReceivedAt().Format(time.RFC3339),
+			ReceivedAt:       n.ReceivedAt().UTC().Format(time.RFC3339),
 			Params:           n.Params(),
 			DataStatus:       string(n.DataStatus()),
 			FetchedAt:        "see below",
@@ -301,8 +302,9 @@ func mapNotificationDataToTemplateData(data []*subscription.NotificationData) []
 	tmplData := make([]NotificationPageNotificationData, 0)
 	for _, d := range data {
 		td := NotificationPageNotificationData{
-			Service: string(d.Service()),
-			Data:    string(d.Data()),
+			NotificationUUID: d.NotificationUUID().String(),
+			Service:          string(d.Service()),
+			Data:             string(d.Data()),
 		}
 		if d.Data() != nil {
 			var out bytes.Buffer
