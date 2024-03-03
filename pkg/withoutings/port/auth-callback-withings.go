@@ -10,10 +10,10 @@ import (
 	"net/http"
 )
 
-// Callback is used for OAuth2 callbacks. It is called by Withings after the user has logged in.
+// WithingsCallback is used for OAuth2 callbacks. It is called by Withings after the user has logged in.
 //
 // Methods: *
-func Callback(svc *app.App) http.HandlerFunc {
+func WithingsCallback(svc *app.App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		log := logging.MustGetLoggerFromContext(ctx)

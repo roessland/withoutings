@@ -19,6 +19,7 @@ participant Webapp
 participant Withings API
 
 User->>Webapp: GET /auth/login
+User->>Webapp: POST /auth/redirect-to-withings-login
 activate Webapp
 note over Webapp: Generates nonce.<br>Saves in session.
 Webapp-->>User: 302 Found<br>Redirect: Withings Auth URL

@@ -1,0 +1,40 @@
+{{define "title"}}Login{{end}}
+
+{{define "content"}}
+  <div class="py-4">
+    <div class="">
+      Sign or create an account in using Withings OAuth.
+      This will connect Withoutings to Withings,
+      giving the application permission to access your health data.
+    </div>
+  </div>
+
+  <div class="py-4">
+    <form action="/auth/redirect-to-withings-login" method="post">
+      <div class="form-group" style="margin-top: 20px;">
+        <button type="submit" class="btn btn-primary">Sign in using Withings</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="py-4">
+    <div class="">Login to existing account</div>
+  </div>
+
+
+  <div class="py-4">
+    <form action="/auth/login-password" method="post">
+      <div class="form-group" style="margin-top: 20px;">
+        <label>
+          Withings User ID (e.g. 13371337)
+          <input type="text" class="form-control" name="user" placeholder="Withings User ID" />
+        </label>
+        <label>
+          Withoutings password (not your Withings password!)
+          <input type="password" class="form-control" name="password" placeholder="Password" />
+        </label>
+        <button type="submit" class="btn btn-primary">Login</button>
+      </div>
+    </form>
+  </div>
+{{end}}

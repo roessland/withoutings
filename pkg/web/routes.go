@@ -17,9 +17,12 @@ func Router(svc *app.App) *mux.Router {
 	r.PathPrefix("/static/").Handler(port.Static(svc))
 	r.Path("/favicon.ico").Handler(port.Static(svc))
 
-	r.Path("/auth/login").Methods("GET").Handler(port.Login(svc))
+	//r.Path("/login").Methods("GET").Handler(port.
+
+	r.Path("/auth/login").Methods("GET").Handler(port.LoginPage(svc))
+	r.Path("/auth/redirect-to-withings-login").Methods("POST").Handler(port.RedirectToWithingsLogin(svc))
 	r.HandleFunc("/auth/logout", port.Logout(svc))
-	r.HandleFunc("/auth/callback", port.Callback(svc))
+	r.HandleFunc("/auth/callback", port.WithingsCallback(svc))
 	r.HandleFunc("/auth/refresh", port.RefreshWithingsAccessToken(svc))
 
 	r.HandleFunc("/sleepsummaries", port.SleepSummaries(svc))

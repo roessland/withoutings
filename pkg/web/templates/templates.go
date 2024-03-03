@@ -86,6 +86,23 @@ func (t *Templates) RenderHomePage(ctx context.Context, w io.Writer, account_ *a
 	})
 }
 
+type LoginPageVars struct {
+	Context TemplateContext
+	Error   string
+}
+
+func (t *Templates) RenderLoginPage(ctx context.Context, w io.Writer, errMsg string) error {
+	tmpl, err := template.New("base.gohtml").ParseFS(t.FS, "base.gohtml", "login.gohtml")
+	if err != nil {
+		panic(err.Error())
+	}
+	tmpl.Option("missingkey=error")
+	return tmpl.ExecuteTemplate(w, "base.gohtml", LoginPageVars{
+		Context: extractTemplateContext(ctx),
+		Error:   errMsg,
+	})
+}
+
 type RefreshAccessTokenVars struct {
 	Token   *withings.Token
 	Error   string

@@ -6,8 +6,9 @@ import (
 	"net/http"
 )
 
-// Login logs users in via Withings OAuth2.
-func Login(svc *app.App) http.HandlerFunc {
+// RedirectToWithingsLogin logs users in via Withings OAuth2.
+// After login, they are redirected to the Withings callback handler.
+func RedirectToWithingsLogin(svc *app.App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		// log := logging.MustGetLoggerFromContext(ctx)
