@@ -6,7 +6,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	wmSql "github.com/ThreeDotsLabs/watermill-sql/v2/pkg/sql"
+	wmSql "github.com/ThreeDotsLabs/watermill-sql/v3/pkg/sql"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"time"
 

@@ -3,7 +3,7 @@ all: generate-all test build
 
 .PHONY: test
 test:
-	go test -v -cover ./...
+	go test -v -race -cover ./...
 
 .PHONY: build
 build:

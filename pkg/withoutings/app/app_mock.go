@@ -3,7 +3,7 @@ package app
 import (
 	"context"
 	"database/sql"
-	wmSql "github.com/ThreeDotsLabs/watermill-sql/v2/pkg/sql"
+	wmSql "github.com/ThreeDotsLabs/watermill-sql/v3/pkg/sql"
 	"testing"
 
 	"github.com/alexedwards/scs/pgxstore"

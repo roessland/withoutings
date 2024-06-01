@@ -3,7 +3,7 @@ package migration
 import (
 	"database/sql"
 	"fmt"
-	wmSql "github.com/ThreeDotsLabs/watermill-sql/v2/pkg/sql"
+	wmSql "github.com/ThreeDotsLabs/watermill-sql/v3/pkg/sql"
 	"github.com/golang-migrate/migrate/v4"
 	migratepgx "github.com/golang-migrate/migrate/v4/database/pgx"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
@@ -48,7 +48,7 @@ func Run(db *sql.DB) {
 	for _, topicName := range topic.AllTopics {
 		initQueries := watermillSchema.SchemaInitializingQueries(topicName)
 		for _, q := range initQueries {
-			_, err = db.Exec(q)
+			_, err = db.Exec(q.Query)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Unable to create topic table: %v\n", err)
 				os.Exit(1)
@@ -62,7 +62,7 @@ func Run(db *sql.DB) {
 	for _, topicName := range topic.AllTopics {
 		initQueries := watermillOffsetsSchema.SchemaInitializingQueries(topicName)
 		for _, q := range initQueries {
-			_, err = db.Exec(q)
+			_, err = db.Exec(q.Query)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Unable to create topic table: %v\n", err)
 				os.Exit(1)
