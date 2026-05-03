@@ -16,6 +16,9 @@ type Service interface {
 	SleepGetsummary(ctx context.Context, acc *account.Account, params withings.SleepGetsummaryParams) (*withings.SleepGetsummaryResponse, error)
 	SleepGet(ctx context.Context, acc *account.Account, params withings.SleepGetParams) (*withings.SleepGetResponse, error)
 	MeasureGetmeas(ctx context.Context, acc *account.Account, params withings.MeasureGetmeasParams) (*withings.MeasureGetmeasResponse, error)
+	MeasureGetactivity(ctx context.Context, acc *account.Account, params withings.MeasureGetactivityParams) (*withings.MeasureGetactivityResponse, error)
+	MeasureGetintradayactivity(ctx context.Context, acc *account.Account, params withings.MeasureGetintradayactivityParams) (*withings.MeasureGetintradayactivityResponse, error)
+	MeasureGetworkouts(ctx context.Context, acc *account.Account, params withings.MeasureGetworkoutsParams) (*withings.MeasureGetworkoutsResponse, error)
 }
 
 type service struct {
@@ -118,6 +121,18 @@ func (s *service) SleepGet(ctx context.Context, acc *account.Account, params wit
 
 func (s *service) MeasureGetmeas(ctx context.Context, acc *account.Account, params withings.MeasureGetmeasParams) (*withings.MeasureGetmeasResponse, error) {
 	return executeWithRetry(s, s.repo.MeasureGetmeas, ctx, acc, params)
+}
+
+func (s *service) MeasureGetactivity(ctx context.Context, acc *account.Account, params withings.MeasureGetactivityParams) (*withings.MeasureGetactivityResponse, error) {
+	return executeWithRetry(s, s.repo.MeasureGetactivity, ctx, acc, params)
+}
+
+func (s *service) MeasureGetintradayactivity(ctx context.Context, acc *account.Account, params withings.MeasureGetintradayactivityParams) (*withings.MeasureGetintradayactivityResponse, error) {
+	return executeWithRetry(s, s.repo.MeasureGetintradayactivity, ctx, acc, params)
+}
+
+func (s *service) MeasureGetworkouts(ctx context.Context, acc *account.Account, params withings.MeasureGetworkoutsParams) (*withings.MeasureGetworkoutsResponse, error) {
+	return executeWithRetry(s, s.repo.MeasureGetworkouts, ctx, acc, params)
 }
 
 func (s *service) CallService(ctx context.Context, acc *account.Account, appli int, params string) ([]byte, error) {

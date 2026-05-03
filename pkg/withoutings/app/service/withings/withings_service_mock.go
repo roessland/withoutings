@@ -39,6 +39,154 @@ func (_m *MockService) EXPECT() *MockService_Expecter {
 	return &MockService_Expecter{mock: &_m.Mock}
 }
 
+// MeasureGetactivity provides a mock function for the type MockService
+func (_mock *MockService) MeasureGetactivity(ctx context.Context, acc *account.Account, params withings.MeasureGetactivityParams) (*withings.MeasureGetactivityResponse, error) {
+	ret := _mock.Called(ctx, acc, params)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MeasureGetactivity")
+	}
+
+	var r0 *withings.MeasureGetactivityResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *account.Account, withings.MeasureGetactivityParams) (*withings.MeasureGetactivityResponse, error)); ok {
+		return returnFunc(ctx, acc, params)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *account.Account, withings.MeasureGetactivityParams) *withings.MeasureGetactivityResponse); ok {
+		r0 = returnFunc(ctx, acc, params)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*withings.MeasureGetactivityResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *account.Account, withings.MeasureGetactivityParams) error); ok {
+		r1 = returnFunc(ctx, acc, params)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_MeasureGetactivity_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MeasureGetactivity'
+type MockService_MeasureGetactivity_Call struct {
+	*mock.Call
+}
+
+// MeasureGetactivity is a helper method to define mock.On call
+//   - ctx context.Context
+//   - acc *account.Account
+//   - params withings.MeasureGetactivityParams
+func (_e *MockService_Expecter) MeasureGetactivity(ctx interface{}, acc interface{}, params interface{}) *MockService_MeasureGetactivity_Call {
+	return &MockService_MeasureGetactivity_Call{Call: _e.mock.On("MeasureGetactivity", ctx, acc, params)}
+}
+
+func (_c *MockService_MeasureGetactivity_Call) Run(run func(ctx context.Context, acc *account.Account, params withings.MeasureGetactivityParams)) *MockService_MeasureGetactivity_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *account.Account
+		if args[1] != nil {
+			arg1 = args[1].(*account.Account)
+		}
+		var arg2 withings.MeasureGetactivityParams
+		if args[2] != nil {
+			arg2 = args[2].(withings.MeasureGetactivityParams)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_MeasureGetactivity_Call) Return(measureGetactivityResponse *withings.MeasureGetactivityResponse, err error) *MockService_MeasureGetactivity_Call {
+	_c.Call.Return(measureGetactivityResponse, err)
+	return _c
+}
+
+func (_c *MockService_MeasureGetactivity_Call) RunAndReturn(run func(ctx context.Context, acc *account.Account, params withings.MeasureGetactivityParams) (*withings.MeasureGetactivityResponse, error)) *MockService_MeasureGetactivity_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// MeasureGetintradayactivity provides a mock function for the type MockService
+func (_mock *MockService) MeasureGetintradayactivity(ctx context.Context, acc *account.Account, params withings.MeasureGetintradayactivityParams) (*withings.MeasureGetintradayactivityResponse, error) {
+	ret := _mock.Called(ctx, acc, params)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MeasureGetintradayactivity")
+	}
+
+	var r0 *withings.MeasureGetintradayactivityResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *account.Account, withings.MeasureGetintradayactivityParams) (*withings.MeasureGetintradayactivityResponse, error)); ok {
+		return returnFunc(ctx, acc, params)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *account.Account, withings.MeasureGetintradayactivityParams) *withings.MeasureGetintradayactivityResponse); ok {
+		r0 = returnFunc(ctx, acc, params)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*withings.MeasureGetintradayactivityResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *account.Account, withings.MeasureGetintradayactivityParams) error); ok {
+		r1 = returnFunc(ctx, acc, params)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_MeasureGetintradayactivity_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MeasureGetintradayactivity'
+type MockService_MeasureGetintradayactivity_Call struct {
+	*mock.Call
+}
+
+// MeasureGetintradayactivity is a helper method to define mock.On call
+//   - ctx context.Context
+//   - acc *account.Account
+//   - params withings.MeasureGetintradayactivityParams
+func (_e *MockService_Expecter) MeasureGetintradayactivity(ctx interface{}, acc interface{}, params interface{}) *MockService_MeasureGetintradayactivity_Call {
+	return &MockService_MeasureGetintradayactivity_Call{Call: _e.mock.On("MeasureGetintradayactivity", ctx, acc, params)}
+}
+
+func (_c *MockService_MeasureGetintradayactivity_Call) Run(run func(ctx context.Context, acc *account.Account, params withings.MeasureGetintradayactivityParams)) *MockService_MeasureGetintradayactivity_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *account.Account
+		if args[1] != nil {
+			arg1 = args[1].(*account.Account)
+		}
+		var arg2 withings.MeasureGetintradayactivityParams
+		if args[2] != nil {
+			arg2 = args[2].(withings.MeasureGetintradayactivityParams)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_MeasureGetintradayactivity_Call) Return(measureGetintradayactivityResponse *withings.MeasureGetintradayactivityResponse, err error) *MockService_MeasureGetintradayactivity_Call {
+	_c.Call.Return(measureGetintradayactivityResponse, err)
+	return _c
+}
+
+func (_c *MockService_MeasureGetintradayactivity_Call) RunAndReturn(run func(ctx context.Context, acc *account.Account, params withings.MeasureGetintradayactivityParams) (*withings.MeasureGetintradayactivityResponse, error)) *MockService_MeasureGetintradayactivity_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // MeasureGetmeas provides a mock function for the type MockService
 func (_mock *MockService) MeasureGetmeas(ctx context.Context, acc *account.Account, params withings.MeasureGetmeasParams) (*withings.MeasureGetmeasResponse, error) {
 	ret := _mock.Called(ctx, acc, params)
@@ -109,6 +257,80 @@ func (_c *MockService_MeasureGetmeas_Call) Return(measureGetmeasResponse *within
 }
 
 func (_c *MockService_MeasureGetmeas_Call) RunAndReturn(run func(ctx context.Context, acc *account.Account, params withings.MeasureGetmeasParams) (*withings.MeasureGetmeasResponse, error)) *MockService_MeasureGetmeas_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// MeasureGetworkouts provides a mock function for the type MockService
+func (_mock *MockService) MeasureGetworkouts(ctx context.Context, acc *account.Account, params withings.MeasureGetworkoutsParams) (*withings.MeasureGetworkoutsResponse, error) {
+	ret := _mock.Called(ctx, acc, params)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MeasureGetworkouts")
+	}
+
+	var r0 *withings.MeasureGetworkoutsResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *account.Account, withings.MeasureGetworkoutsParams) (*withings.MeasureGetworkoutsResponse, error)); ok {
+		return returnFunc(ctx, acc, params)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *account.Account, withings.MeasureGetworkoutsParams) *withings.MeasureGetworkoutsResponse); ok {
+		r0 = returnFunc(ctx, acc, params)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*withings.MeasureGetworkoutsResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *account.Account, withings.MeasureGetworkoutsParams) error); ok {
+		r1 = returnFunc(ctx, acc, params)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_MeasureGetworkouts_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MeasureGetworkouts'
+type MockService_MeasureGetworkouts_Call struct {
+	*mock.Call
+}
+
+// MeasureGetworkouts is a helper method to define mock.On call
+//   - ctx context.Context
+//   - acc *account.Account
+//   - params withings.MeasureGetworkoutsParams
+func (_e *MockService_Expecter) MeasureGetworkouts(ctx interface{}, acc interface{}, params interface{}) *MockService_MeasureGetworkouts_Call {
+	return &MockService_MeasureGetworkouts_Call{Call: _e.mock.On("MeasureGetworkouts", ctx, acc, params)}
+}
+
+func (_c *MockService_MeasureGetworkouts_Call) Run(run func(ctx context.Context, acc *account.Account, params withings.MeasureGetworkoutsParams)) *MockService_MeasureGetworkouts_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *account.Account
+		if args[1] != nil {
+			arg1 = args[1].(*account.Account)
+		}
+		var arg2 withings.MeasureGetworkoutsParams
+		if args[2] != nil {
+			arg2 = args[2].(withings.MeasureGetworkoutsParams)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_MeasureGetworkouts_Call) Return(measureGetworkoutsResponse *withings.MeasureGetworkoutsResponse, err error) *MockService_MeasureGetworkouts_Call {
+	_c.Call.Return(measureGetworkoutsResponse, err)
+	return _c
+}
+
+func (_c *MockService_MeasureGetworkouts_Call) RunAndReturn(run func(ctx context.Context, acc *account.Account, params withings.MeasureGetworkoutsParams) (*withings.MeasureGetworkoutsResponse, error)) *MockService_MeasureGetworkouts_Call {
 	_c.Call.Return(run)
 	return _c
 }

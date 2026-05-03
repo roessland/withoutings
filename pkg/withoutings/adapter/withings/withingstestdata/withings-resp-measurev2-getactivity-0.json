@@ -1,0 +1,36 @@
+{
+  "status": 0,
+  "body": {
+    "activities": [
+      {
+        "steps": 0,
+        "distance": 0,
+        "elevation": 0,
+        "soft": 0,
+        "moderate": 0,
+        "intense": 0,
+        "active": 0,
+        "calories": 0,
+        "totalcalories": 1784.49,
+        "hr_average": 0,
+        "hr_min": 0,
+        "hr_max": 0,
+        "hr_zone_0": 0,
+        "hr_zone_1": 0,
+        "hr_zone_2": 0,
+        "hr_zone_3": 0,
+        "deviceid": null,
+        "hash_deviceid": null,
+        "timezone": "Europe/Oslo",
+        "date": "2022-01-26",
+        "modified": 1741817057,
+        "brand": 18,
+        "modelid": -1,
+        "model": null,
+        "is_tracker": false
+      }
+    ],
+    "more": false,
+    "offset": 0
+  }
+}

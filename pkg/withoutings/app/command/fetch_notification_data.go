@@ -124,6 +124,8 @@ func (h fetchNotificationDataHandler) getAvailableData(ctx context.Context, acc 
 		return h.getAvailableData1(ctx, acc, parsedParams)
 	case 4:
 		return h.getAvailableData4(ctx, acc, parsedParams)
+	case 16:
+		return h.getAvailableData16(ctx, acc, parsedParams)
 	case 44:
 		return h.getAvailableData44(ctx, acc, parsedParams)
 	case 50:
@@ -220,6 +222,79 @@ func (h fetchNotificationDataHandler) getAvailableData4(
 			service:   "Measure - Getmeas",
 		},
 	}
+
+	return ad, nil
+}
+
+// getAvailableData16 fetches data from Withings API for appli 16:
+// New activity-related data.
+// The webhook payload uses date=YYYY-MM-DD instead of startdate/enddate.
+func (h fetchNotificationDataHandler) getAvailableData16(
+	ctx context.Context,
+	acc *account.Account,
+	parsedParams subscription.ParsedNotificationParams,
+) (availableDatas, error) {
+	if parsedParams.Appli != 16 {
+		panic("getAvailableData16 called with wrong application ID")
+	}
+
+	log := logging.MustGetLoggerFromContext(ctx)
+	log = log.WithField("appli", parsedParams.Appli)
+
+	day, err := time.Parse("2006-01-02", parsedParams.DateStr)
+	if err != nil {
+		return nil, fmt.Errorf("appli=16: cannot parse date %q as YYYY-MM-DD: %w", parsedParams.DateStr, err)
+	}
+	ymd := day.Format("2006-01-02")
+	ad := availableDatas{}
+
+	getactivityParams := withings.NewMeasureGetactivityParams()
+	getactivityParams.Startdateymd = ymd
+	getactivityParams.Enddateymd = ymd
+	getactivityResp, err := h.withingsSvc.MeasureGetactivity(ctx, acc, getactivityParams)
+	if err != nil {
+		log.WithError(err).
+			WithField("event", "error.command.FetchNotificationData.MeasureGetactivity.failed").
+			Error()
+		return nil, fmt.Errorf("failed to call Withings API MeasureGetactivity: %w", err)
+	}
+	ad = append(ad, availableData{
+		data:      getactivityResp.Raw,
+		fetchedAt: time.Now(),
+		service:   "Measure v2 - Getactivity",
+	})
+
+	intradayParams := withings.NewMeasureGetintradayactivityParams()
+	intradayParams.Startdate = day.UTC().Unix()
+	intradayParams.Enddate = day.UTC().Add(24 * time.Hour).Unix()
+	intradayResp, err := h.withingsSvc.MeasureGetintradayactivity(ctx, acc, intradayParams)
+	if err != nil {
+		log.WithError(err).
+			WithField("event", "error.command.FetchNotificationData.MeasureGetintradayactivity.failed").
+			Error()
+		return nil, fmt.Errorf("failed to call Withings API MeasureGetintradayactivity: %w", err)
+	}
+	ad = append(ad, availableData{
+		data:      intradayResp.Raw,
+		fetchedAt: time.Now(),
+		service:   "Measure v2 - Getintradayactivity",
+	})
+
+	getworkoutsParams := withings.NewMeasureGetworkoutsParams()
+	getworkoutsParams.Startdateymd = ymd
+	getworkoutsParams.Enddateymd = ymd
+	getworkoutsResp, err := h.withingsSvc.MeasureGetworkouts(ctx, acc, getworkoutsParams)
+	if err != nil {
+		log.WithError(err).
+			WithField("event", "error.command.FetchNotificationData.MeasureGetworkouts.failed").
+			Error()
+		return nil, fmt.Errorf("failed to call Withings API MeasureGetworkouts: %w", err)
+	}
+	ad = append(ad, availableData{
+		data:      getworkoutsResp.Raw,
+		fetchedAt: time.Now(),
+		service:   "Measure v2 - Getworkouts",
+	})
 
 	return ad, nil
 }

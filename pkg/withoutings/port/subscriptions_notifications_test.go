@@ -65,6 +65,45 @@ func TestNotificationsPage(t *testing.T) {
 		}, 10*time.Second, 300*time.Millisecond, "should show received notifications with links to fetched payloads")
 	})
 
+	t.Run("should fetch new activity data when receiving appli=16 webhook", func(t *testing.T) {
+		// appli=16 (New activity-related data) has three services to call:
+		// - Measure v2 - Getactivity
+		// - Measure v2 - Getintradayactivity
+		// - Measure v2 - Getworkouts
+		// The webhook payload uses date=YYYY-MM-DD (not startdate/enddate).
+
+		beforeEach(t)
+
+		workerCtx, cancelWorker := context.WithCancel(it.Ctx)
+		defer cancelWorker()
+
+		it.Mocks.MockWithingsSvc.EXPECT().
+			MeasureGetactivity(mock.Anything, mock.Anything, mock.Anything).
+			Return(withings.MustNewMeasureGetactivityResponse(withingstestdata.MeasureGetactivitySuccess), nil)
+		it.Mocks.MockWithingsSvc.EXPECT().
+			MeasureGetintradayactivity(mock.Anything, mock.Anything, mock.Anything).
+			Return(withings.MustNewMeasureGetintradayactivityResponse(withingstestdata.MeasureGetintradayactivitySuccess), nil)
+		it.Mocks.MockWithingsSvc.EXPECT().
+			MeasureGetworkouts(mock.Anything, mock.Anything, mock.Anything).
+			Return(withings.MustNewMeasureGetworkoutsResponse(withingstestdata.MeasureGetworkoutsSuccess), nil)
+
+		defer it.Mocks.MockWithingsSvc.AssertExpectations(t)
+
+		go it.Worker.Work(workerCtx)
+
+		activity16WebhookParams := fmt.Sprintf(`userid=%s&appli=16&date=2022-01-26`, acc.WithingsUserID())
+		simulateIncomingWebhook(activity16WebhookParams)
+
+		assert.EventuallyWithT(t, func(c *assert.CollectT) {
+			resp, body := it.DoRequest(newListNotificationsReq())
+			assert.Equal(c, 200, resp.Code)
+
+			assert.Contains(c, body, "Measure v2 - Getactivity<")
+			assert.Contains(c, body, "Measure v2 - Getintradayactivity<")
+			assert.Contains(c, body, "Measure v2 - Getworkouts<")
+		}, 10*time.Second, 300*time.Millisecond, "should show received activity notification with three fetched payloads")
+	})
+
 	t.Run("should fetch new available data from multiple services", func(t *testing.T) {
 		// Some notification categories have multiple services to call,
 		// in order to retrieve all the relevant data.
