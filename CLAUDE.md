@@ -12,17 +12,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture: DDD-lite (threedots.tech)
 
-**Imports flow inward only.** This is the rule that breaks most often when changes get made carelessly:
+**Imports flow inward only.** Allowed imports between layers under `pkg/withoutings/`:
 
-```
-port  ─┐
-       ├──►  app  ──►  domain
-adapter┘            ▲
-                    │
-              (adapter implements domain.Repo interfaces)
-```
+- `domain/<aggregate>` → nothing in `pkg/withoutings/`
+- `app/{command,query,service}` → `domain/*`
+- `adapter/<aggregate>` → `domain/*` (the adapter implements `domain.Repo`)
+- `port/`, `pkg/worker/` → `app`, plus `adapter/topic` for shared topic-name constants
 
-Layers under `pkg/withoutings/`: `domain/<aggregate>`, `app/{command,query,service}`, `adapter/<aggregate>`, `port/`. Aggregates are `account`, `subscription`, `withings`.
+Aggregates: `account`, `subscription`, `withings`.
 
 Subtleties that are easy to violate:
 
