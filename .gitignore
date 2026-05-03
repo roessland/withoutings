@@ -5,3 +5,5 @@ env.prod.sh
 node_modules
 .DS_Store
 /withoutings
+.context/
+.worktrees/
