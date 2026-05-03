@@ -482,6 +482,19 @@ func (r PgRepo) GetNotificationDataByAccountAndServiceAndSeriesStartdate(ctx con
 	return toDomainNotificationDatum(dbRows[0])
 }
 
+func (r PgRepo) GetNotificationDataByAccountAndServiceAndOverlappingWindow(ctx context.Context, accountUUID uuid.UUID, service subscription.NotificationDataService, windowStart, windowEnd int64) ([]*subscription.NotificationData, error) {
+	dbRows, err := r.queries.GetNotificationDataByAccountAndServiceAndOverlappingWindow(ctx, db.GetNotificationDataByAccountAndServiceAndOverlappingWindowParams{
+		AccountUuid: accountUUID,
+		Service:     string(service),
+		WindowStart: windowStart,
+		WindowEnd:   windowEnd,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return toDomainNotificationData(dbRows)
+}
+
 func toDomainNotificationDatum(dbNotificationData db.NotificationDatum) (*subscription.NotificationData, error) {
 	service, err := subscription.NewNotificationDataService(dbNotificationData.Service)
 	if err != nil {

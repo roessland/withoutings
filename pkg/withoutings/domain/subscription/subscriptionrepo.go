@@ -35,4 +35,5 @@ type Repo interface {
 	GetNotificationDataByNotificationUUID(ctx context.Context, notificationUUID uuid.UUID) ([]*NotificationData, error)
 	GetNotificationDataByAccountUUIDAndService(ctx context.Context, accountUUID uuid.UUID, service NotificationDataService) ([]*NotificationData, error)
 	GetNotificationDataByAccountAndServiceAndSeriesStartdate(ctx context.Context, accountUUID uuid.UUID, service NotificationDataService, startdate int64) (*NotificationData, error)
+	GetNotificationDataByAccountAndServiceAndOverlappingWindow(ctx context.Context, accountUUID uuid.UUID, service NotificationDataService, windowStart, windowEnd int64) ([]*NotificationData, error)
 }

@@ -111,16 +111,20 @@ func buildSleepSessionView(
 	view.Found = true
 	populateSummary(ctx, &view, summary)
 
-	// Pull all Sleep v2 - Get rows for the account; segments overlapping the
-	// session window contribute to the charts. Withings webhooks can deliver
-	// data spanning multiple sessions, so we filter inside.
-	getRows, err := repo.GetNotificationDataByAccountUUIDAndService(ctx, accountUUID, subscription.NotificationDataServiceSleepv2Get)
+	sessionStart := int64(summary.Startdate)
+	sessionEnd := int64(summary.Enddate)
+
+	// Pull only the Sleep v2 - Get rows whose body.series contains at least
+	// one segment overlapping the session window. Filtering in SQL avoids
+	// transferring (and Go-unmarshalling) every stored Get blob — each row is
+	// hundreds of KB once a user has months of webhook history.
+	getRows, err := repo.GetNotificationDataByAccountAndServiceAndOverlappingWindow(
+		ctx, accountUUID, subscription.NotificationDataServiceSleepv2Get, sessionStart, sessionEnd,
+	)
 	if err != nil {
 		return view, fmt.Errorf("get sleep-get rows: %w", err)
 	}
 
-	sessionStart := int64(summary.Startdate)
-	sessionEnd := int64(summary.Enddate)
 	var segments []withings.SleepGetEntry
 	seen := make(map[string]bool)
 	for _, row := range getRows {
