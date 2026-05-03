@@ -1,25 +1,9 @@
-# Mockery v3 configuration.
-#
-# Run `mockery` (no flags) to regenerate all mocks. The v2 //go:generate
-# directives in the source files have been replaced by a single top-level
-# `go generate` step that invokes mockery with this config.
-#
-# Layout goals (kept stable across the v2 -> v3 upgrade):
-#   - mock files live in the same package as the interface they mock
-#   - mock type names are prefixed with `Mock` (e.g. `MockRepo`, `MockService`)
-#   - the testify EXPECT() helper API is generated
-#   - filenames are explicit so call sites in *_test.go don't move
-
 template: testify
 formatter: goimports
 
-# Defaults applied to every interface unless overridden below.
-# The testify template generates EXPECT() helpers by default in v3 (the
-# v2 `with-expecter` toggle was dropped — it is now always on).
 template-data:
   unroll-variadic: true
 
-# Emit the mock file alongside the interface, in the same package.
 dir: "{{.InterfaceDir}}"
 pkgname: "{{.SrcPackageName}}"
 structname: "Mock{{.InterfaceName}}"
