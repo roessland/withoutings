@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"math"
 	"net/http"
 	"sort"
 	"strconv"
@@ -14,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/roessland/withoutings/pkg/logging"
+	"github.com/roessland/withoutings/pkg/web/templates"
 	"github.com/roessland/withoutings/pkg/withoutings/app"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
@@ -67,19 +69,25 @@ func buildSleepSessionView(
 	repo subscription.Repo,
 	accountUUID uuid.UUID,
 	startdate int64,
-) (SleepSessionView, error) {
-	view := SleepSessionView{Startdate: startdate}
+) (templates.SleepSessionView, error) {
+	view := templates.SleepSessionView{Startdate: startdate}
 
 	summaryRows, err := repo.GetNotificationDataByAccountUUIDAndService(ctx, accountUUID, subscription.NotificationDataServiceSleepv2Getsummary)
 	if err != nil {
 		return view, fmt.Errorf("get summary rows: %w", err)
 	}
 
+	log := logging.MustGetLoggerFromContext(ctx)
+
 	var summary withings.SleepGetsummaryEntry
 	var summaryFound bool
 	for _, row := range summaryRows {
 		var resp withings.SleepGetsummaryResponse
 		if err := json.Unmarshal(row.Data(), &resp); err != nil {
+			log.WithError(err).
+				WithField("event", "warn.SleepSession.summary_unmarshal_failed").
+				WithField("notification_data_uuid", row.UUID()).
+				Warn()
 			continue
 		}
 		for _, entry := range resp.Body.Series {
@@ -97,7 +105,7 @@ func buildSleepSessionView(
 		return view, nil
 	}
 	view.Found = true
-	view.populateSummary(summary)
+	populateSummary(ctx, &view, summary)
 
 	// Pull all Sleep v2 - Get rows for the account; segments overlapping the
 	// session window contribute to the charts. Withings webhooks can deliver
@@ -114,6 +122,10 @@ func buildSleepSessionView(
 	for _, row := range getRows {
 		var resp withings.SleepGetResponse
 		if err := json.Unmarshal(row.Data(), &resp); err != nil {
+			log.WithError(err).
+				WithField("event", "warn.SleepSession.get_unmarshal_failed").
+				WithField("notification_data_uuid", row.UUID()).
+				Warn()
 			continue
 		}
 		for _, seg := range resp.Body.Series {
@@ -132,52 +144,15 @@ func buildSleepSessionView(
 		return segments[i].Startdate < segments[j].Startdate
 	})
 
-	view.buildCharts(segments, sessionStart, sessionEnd, summary.Timezone)
+	buildCharts(ctx, &view, segments, sessionStart, sessionEnd, summary.Timezone)
 	return view, nil
 }
 
-// SleepSessionView is the render-ready struct for the sleep detail template.
-type SleepSessionView struct {
-	Found     bool
-	Startdate int64
-
-	Date          string
-	Timezone      string
-	StartLocal    string
-	EndLocal      string
-	DurationStr   string
-	SleepScore    int
-	Efficiency    int    // 0–100
-	Light         string // "2h 21m"
-	Deep          string
-	REM           string
-	Awake         string
-	HRMin         int
-	HRAvg         int
-	HRMax         int
-	RRMin         int
-	RRAvg         int
-	RRMax         int
-	BreathingDist int
-	Snoring       string
-	SnoringCount  int
-	AHI           float64
-
-	Hypnogram template.HTML
-	HRChart   template.HTML
-	RRChart   template.HTML
-	HRVChart  template.HTML
-	Snoring01 template.HTML
-}
-
-func (v *SleepSessionView) populateSummary(s withings.SleepGetsummaryEntry) {
+func populateSummary(ctx context.Context, v *templates.SleepSessionView, s withings.SleepGetsummaryEntry) {
 	v.Date = s.Date
 	v.Timezone = s.Timezone
 
-	loc, err := time.LoadLocation(s.Timezone)
-	if err != nil {
-		loc = time.UTC
-	}
+	loc := loadLocationOrUTC(ctx, s.Timezone)
 	startT := time.Unix(int64(s.Startdate), 0).In(loc)
 	endT := time.Unix(int64(s.Enddate), 0).In(loc)
 	v.StartLocal = startT.Format("15:04")
@@ -230,11 +205,8 @@ const (
 )
 
 // buildCharts assembles the inline SVGs from the session segments.
-func (v *SleepSessionView) buildCharts(segments []withings.SleepGetEntry, sessionStart, sessionEnd int64, tz string) {
-	loc, err := time.LoadLocation(tz)
-	if err != nil {
-		loc = time.UTC
-	}
+func buildCharts(ctx context.Context, v *templates.SleepSessionView, segments []withings.SleepGetEntry, sessionStart, sessionEnd int64, tz string) {
+	loc := loadLocationOrUTC(ctx, tz)
 
 	var hr, rr, sdnn, rmssd, snoring []timePoint
 	for _, seg := range segments {
@@ -254,7 +226,23 @@ func (v *SleepSessionView) buildCharts(segments []withings.SleepGetEntry, sessio
 	v.HRChart = template.HTML(buildLineChartSVG("Heart rate (bpm)", hr, sessionStart, sessionEnd, loc, "#e91e63"))
 	v.RRChart = template.HTML(buildLineChartSVG("Respiratory rate (rpm)", rr, sessionStart, sessionEnd, loc, "#3f51b5"))
 	v.HRVChart = template.HTML(buildDualLineChartSVG("HRV (sdnn_1, rmssd)", sdnn, rmssd, sessionStart, sessionEnd, loc, "#009688", "#ff9800"))
-	v.Snoring01 = template.HTML(buildSnoringSVG("Snoring (s/min)", snoring, sessionStart, sessionEnd, loc))
+	v.SnoringChart = template.HTML(buildSnoringSVG("Snoring (s/min)", snoring, sessionStart, sessionEnd, loc))
+}
+
+// loadLocationOrUTC resolves a Withings timezone name with a UTC fallback,
+// emitting one warn-level log per failure so distroless / missing-tzdata
+// regressions and bad summary payloads aren't silently invisible.
+func loadLocationOrUTC(ctx context.Context, tz string) *time.Location {
+	loc, err := time.LoadLocation(tz)
+	if err == nil {
+		return loc
+	}
+	logging.MustGetLoggerFromContext(ctx).
+		WithError(err).
+		WithField("event", "warn.SleepSession.load_location_failed").
+		WithField("tz", tz).
+		Warn()
+	return time.UTC
 }
 
 func decodeSamples(raw []byte) []timePoint {
@@ -267,6 +255,13 @@ func decodeSamples(raw []byte) []timePoint {
 	}
 	out := make([]timePoint, 0, len(m))
 	for k, val := range m {
+		// Drop NaN/Inf early. Otherwise yMin/yMax seeding in the line-chart
+		// builder seeds from a non-finite value (NaN comparisons are always
+		// false), every projected coordinate is NaN, and the polyline renders
+		// as `NaN,NaN ...` — invisible and indistinguishable from no data.
+		if math.IsNaN(val) || math.IsInf(val, 0) {
+			continue
+		}
 		ts, err := strconv.ParseInt(k, 10, 64)
 		if err != nil {
 			continue
@@ -280,22 +275,24 @@ func sortPoints(p []timePoint) {
 	sort.Slice(p, func(i, j int) bool { return p[i].t < p[j].t })
 }
 
-// stateColors maps Withings sleep states to display colors.
-//
-//	0 = awake, 1 = light, 2 = deep, 3 = REM
-var stateColors = map[int]string{
-	0: "#bdbdbd",
-	1: "#90caf9",
-	2: "#1565c0",
-	3: "#ab47bc",
+// SleepStateInfo is the display metadata for a Withings sleep state.
+// Exposed so tests can assert against the same source of truth the SVG uses.
+type SleepStateInfo struct {
+	Color string
+	Label string
 }
 
-var stateLabels = map[int]string{
-	0: "Awake",
-	1: "Light",
-	2: "Deep",
-	3: "REM",
+// SleepStateInfoByState maps Withings sleep states (0=awake, 1=light, 2=deep,
+// 3=REM) to display metadata. States 4-6 (deprecated/manual per Withings docs)
+// fall through to a neutral fallback in buildHypnogramSVG.
+var SleepStateInfoByState = map[int]SleepStateInfo{
+	0: {Color: "#bdbdbd", Label: "Awake"},
+	1: {Color: "#90caf9", Label: "Light"},
+	2: {Color: "#1565c0", Label: "Deep"},
+	3: {Color: "#ab47bc", Label: "REM"},
 }
+
+const unknownStateColor = "#cccccc"
 
 func buildHypnogramSVG(segments []withings.SleepGetEntry, start, end int64, loc *time.Location) string {
 	if end <= start {
@@ -319,9 +316,12 @@ func buildHypnogramSVG(segments []withings.SleepGetEntry, start, end int64, loc 
 	fmt.Fprintf(&b, `<svg viewBox="0 0 %d %d" class="sleepviz">`, chartW, hypnoH)
 	fmt.Fprintf(&b, `<text x="8" y="14" font-size="11" fill="#555">Hypnogram</text>`)
 	for _, seg := range segments {
-		color, ok := stateColors[seg.State]
-		if !ok {
-			color = "#cccccc"
+		info, known := SleepStateInfoByState[seg.State]
+		color := info.Color
+		label := info.Label
+		if !known {
+			color = unknownStateColor
+			label = fmt.Sprintf("State %d", seg.State)
 		}
 		segStart := seg.Startdate
 		if segStart < start {
@@ -338,7 +338,7 @@ func buildHypnogramSVG(segments []withings.SleepGetEntry, start, end int64, loc 
 		x1 := x(segEnd)
 		fmt.Fprintf(&b, `<rect x="%.1f" y="%d" width="%.1f" height="%d" fill="%s"><title>%s %s–%s</title></rect>`,
 			x0, bandTop, x1-x0, bandBot-bandTop, color,
-			stateLabels[seg.State],
+			label,
 			time.Unix(segStart, 0).In(loc).Format("15:04"),
 			time.Unix(segEnd, 0).In(loc).Format("15:04"),
 		)
@@ -352,8 +352,9 @@ func buildHypnogramSVG(segments []withings.SleepGetEntry, start, end int64, loc 
 func writeLegend(b *strings.Builder, w int) {
 	x := w - 240
 	for i := 0; i < 4; i++ {
-		fmt.Fprintf(b, `<rect x="%d" y="2" width="10" height="10" fill="%s"/>`, x, stateColors[i])
-		fmt.Fprintf(b, `<text x="%d" y="11" font-size="10" fill="#444">%s</text>`, x+13, stateLabels[i])
+		info := SleepStateInfoByState[i]
+		fmt.Fprintf(b, `<rect x="%d" y="2" width="10" height="10" fill="%s"/>`, x, info.Color)
+		fmt.Fprintf(b, `<text x="%d" y="11" font-size="10" fill="#444">%s</text>`, x+13, info.Label)
 		x += 60
 	}
 }
@@ -364,40 +365,73 @@ func writeTimeAxis(b *strings.Builder, start, end int64, loc *time.Location, y i
 	}
 	span := float64(end - start)
 	innerW := float64(chartW - 2*chartMarginX)
-	startT := time.Unix(start, 0).In(loc).Truncate(time.Hour).Add(time.Hour)
+	// Compute the next local-hour boundary explicitly via time.Date so the
+	// axis lands on wall-clock hours in fractional-offset zones (e.g.
+	// Asia/Kolkata +05:30) and during DST transitions.
+	startLocal := time.Unix(start, 0).In(loc)
+	t := time.Date(startLocal.Year(), startLocal.Month(), startLocal.Day(), startLocal.Hour()+1, 0, 0, 0, loc)
 	endT := time.Unix(end, 0).In(loc)
-	for t := startT; !t.After(endT); t = t.Add(time.Hour) {
+	seenLabel := make(map[string]bool)
+	for ; !t.After(endT); t = t.Add(time.Hour) {
 		ts := t.Unix()
 		if ts <= start || ts >= end {
 			continue
 		}
+		// On DST fall-back the loop walks two unix-hours that share a wall
+		// clock label (e.g. 02:00 twice). Render the first only; the second
+		// would stack a duplicate tick on top of the first.
+		label := t.Format("15:04")
+		if seenLabel[label] {
+			continue
+		}
+		seenLabel[label] = true
 		x := float64(chartMarginX) + (float64(ts-start)/span)*innerW
 		fmt.Fprintf(b, `<line x1="%.1f" y1="%d" x2="%.1f" y2="%d" stroke="#ddd"/>`, x, chartMarginTop, x, y-12)
-		fmt.Fprintf(b, `<text x="%.1f" y="%d" font-size="10" text-anchor="middle" fill="#666">%s</text>`, x, y, t.Format("15:04"))
+		fmt.Fprintf(b, `<text x="%.1f" y="%d" font-size="10" text-anchor="middle" fill="#666">%s</text>`, x, y, label)
 	}
+}
+
+type lineSeries struct {
+	points []timePoint
+	color  string
 }
 
 func buildLineChartSVG(title string, points []timePoint, start, end int64, loc *time.Location, color string) string {
-	return buildDualLineChartSVG(title, points, nil, start, end, loc, color, "")
+	return buildLineChartsSVG(title, start, end, loc, lineSeries{points: points, color: color})
 }
 
 func buildDualLineChartSVG(title string, a, b []timePoint, start, end int64, loc *time.Location, colorA, colorB string) string {
+	return buildLineChartsSVG(title, start, end, loc,
+		lineSeries{points: a, color: colorA},
+		lineSeries{points: b, color: colorB},
+	)
+}
+
+func buildLineChartsSVG(title string, start, end int64, loc *time.Location, series ...lineSeries) string {
 	if end <= start {
 		return ""
 	}
-	all := make([]timePoint, 0, len(a)+len(b))
-	all = append(all, a...)
-	all = append(all, b...)
-	if len(all) == 0 {
+	totalPoints := 0
+	for _, s := range series {
+		totalPoints += len(s.points)
+	}
+	if totalPoints == 0 {
 		return emptyChartSVG(title)
 	}
-	yMin, yMax := all[0].v, all[0].v
-	for _, p := range all {
-		if p.v < yMin {
-			yMin = p.v
-		}
-		if p.v > yMax {
-			yMax = p.v
+	var yMin, yMax float64
+	seeded := false
+	for _, s := range series {
+		for _, p := range s.points {
+			if !seeded {
+				yMin, yMax, seeded = p.v, p.v, true
+				continue
+			}
+			if p.v < yMin {
+				yMin = p.v
+			}
+			if p.v > yMax {
+				yMax = p.v
+			}
 		}
 	}
 	if yMax == yMin {
@@ -418,9 +452,8 @@ func buildDualLineChartSVG(title string, a, b []timePoint, start, end int64, loc
 	fmt.Fprintf(&sb, `<text x="8" y="14" font-size="11" fill="#555">%s</text>`, template.HTMLEscapeString(title))
 	fmt.Fprintf(&sb, `<text x="%d" y="%.1f" font-size="10" fill="#888" text-anchor="end">%.0f</text>`, chartMarginX-4, yPos(yMax)+3, yMax)
 	fmt.Fprintf(&sb, `<text x="%d" y="%.1f" font-size="10" fill="#888" text-anchor="end">%.0f</text>`, chartMarginX-4, yPos(yMin)+3, yMin)
-	writePolyline(&sb, a, xPos, yPos, colorA, start, end)
-	if colorB != "" {
-		writePolyline(&sb, b, xPos, yPos, colorB, start, end)
+	for _, s := range series {
+		writePolyline(&sb, s.points, xPos, yPos, s.color, start, end)
 	}
 	writeTimeAxis(&sb, start, end, loc, chartH-chartMarginBot+12)
 	sb.WriteString(`</svg>`)
@@ -432,19 +465,28 @@ func writePolyline(b *strings.Builder, points []timePoint, xPos func(int64) floa
 		return
 	}
 	var sb strings.Builder
-	first := true
+	type xy struct{ x, y float64 }
+	var inWindow []xy
 	for _, p := range points {
 		if p.t < start || p.t > end {
 			continue
 		}
-		if !first {
+		inWindow = append(inWindow, xy{x: xPos(p.t), y: yPos(p.v)})
+	}
+	if len(inWindow) == 0 {
+		return
+	}
+	if len(inWindow) == 1 {
+		// A single sample renders a polyline with one vertex, which draws
+		// nothing. Emit a small circle so the data point is at least visible.
+		fmt.Fprintf(b, `<circle cx="%.1f" cy="%.1f" r="1.5" fill="%s"/>`, inWindow[0].x, inWindow[0].y, color)
+		return
+	}
+	for i, p := range inWindow {
+		if i > 0 {
 			sb.WriteByte(' ')
 		}
-		first = false
-		fmt.Fprintf(&sb, "%.1f,%.1f", xPos(p.t), yPos(p.v))
-	}
-	if first {
-		return
+		fmt.Fprintf(&sb, "%.1f,%.1f", p.x, p.y)
 	}
 	fmt.Fprintf(b, `<polyline points="%s" fill="none" stroke="%s" stroke-width="1.2"/>`, sb.String(), color)
 }
