@@ -3,7 +3,7 @@ all: generate-all test build
 
 .PHONY: test
 test:
-	go test -v -race -cover ./...
+	PGPORT=$(DB_PORT) go test -v -race -cover ./...
 
 .PHONY: build
 build:
@@ -33,15 +33,11 @@ run-dev: generate-all migrate
 clean:
 	go clean -testcache
 
-# --- Local Postgres via Docker -----------------------------------------------
-# Tests connect to localhost:5432 with the OS user as the superuser and
-# password "postgres" (see pkg/testdb/testdb.go). The container is configured
-# to match that.
-
+# Local Postgres via Docker. Obscure port to avoid clashing with anything on 5432.
 DB_CONTAINER := withoutings-db
 DB_VOLUME    := withoutings-db-data
 DB_IMAGE     := postgres:16
-DB_PORT      ?= 5432
+DB_PORT      ?= 54329
 
 .PHONY: db-up
 db-up:
@@ -52,7 +48,7 @@ db-up:
 			-p $(DB_PORT):5432 \
 			-v $(DB_VOLUME):/var/lib/postgresql/data \
 			$(DB_IMAGE) >/dev/null
-	@until docker exec $(DB_CONTAINER) pg_isready -U $$(whoami) >/dev/null 2>&1; do sleep 0.2; done
+	@until docker exec $(DB_CONTAINER) psql -U $$(whoami) -d postgres -c 'select 1' >/dev/null 2>&1; do sleep 0.2; done
 	@echo "Postgres ready on localhost:$(DB_PORT) (superuser $$(whoami) / password postgres)"
 
 .PHONY: db-down
