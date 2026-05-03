@@ -38,6 +38,16 @@ func (wrk *Worker) Work(ctx context.Context) {
 
 	log.WithField("event", "info.worker.started").Info()
 
+	// The worker owns the publisher's lifecycle. Hand handlers a no-op-Close
+	// wrapper so watermill's per-handler `defer publisher.Close()` doesn't
+	// race the shared publisher; close once here when the router exits.
+	handlerPublisher := noopClosePublisher{inner: wrk.Publisher}
+	defer func() {
+		if err := wrk.Publisher.Close(); err != nil {
+			log.WithError(err).WithField("event", "error.worker.publisher.close.failed").Error()
+		}
+	}()
+
 	router, err := message.NewRouter(message.RouterConfig{}, wmLog)
 	if err != nil {
 		log.WithError(err).WithField("event", "panic.worker.NewRouter.failed").Error()
@@ -52,7 +62,7 @@ func (wrk *Worker) Work(ctx context.Context) {
 		topic.WithingsRawNotificationReceived,
 		wrk.Subscriber,
 		topic.WithingsNotificationReceived,
-		wrk.Publisher,
+		handlerPublisher,
 		func(msg *message.Message) ([]*message.Message, error) {
 			log = log.
 				WithField("handler_name", "process_raw_notification").
@@ -125,7 +135,7 @@ func (wrk *Worker) Work(ctx context.Context) {
 		topic.WithingsNotificationReceived,
 		wrk.Subscriber,
 		topic.WithingsNotificationDataFetched,
-		wrk.Publisher,
+		handlerPublisher,
 		func(msg *message.Message) ([]*message.Message, error) {
 			log = log.
 				WithField("handler_name", "fetch_notification_data").
