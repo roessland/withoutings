@@ -1,20 +1,50 @@
-# inpackage allows generating the mocked interfaces directly in
-# the package that it mocks.
-inpackage: True
+# Mockery v3 configuration.
+#
+# Run `mockery` (no flags) to regenerate all mocks. The v2 //go:generate
+# directives in the source files have been replaced by a single top-level
+# `go generate` step that invokes mockery with this config.
+#
+# Layout goals (kept stable across the v2 -> v3 upgrade):
+#   - mock files live in the same package as the interface they mock
+#   - mock type names are prefixed with `Mock` (e.g. `MockRepo`, `MockService`)
+#   - the testify EXPECT() helper API is generated
+#   - filenames are explicit so call sites in *_test.go don't move
 
-# Put _mock after interface name, not after.
-inpackage-suffix: True
+template: testify
+formatter: goimports
 
-# Use interface name in lowercase for mock file name.
-case: underscore
+# Defaults applied to every interface unless overridden below.
+# The testify template generates EXPECT() helpers by default in v3 (the
+# v2 `with-expecter` toggle was dropped — it is now always on).
+template-data:
+  unroll-variadic: true
 
-# Prepend every mock file with _test.go. This is useful in cases
-# where you are generating mocks inpackage but don't want the mocks
-# to be visible to code outside of tests.
-testonly: False
+# Emit the mock file alongside the interface, in the same package.
+dir: "{{.InterfaceDir}}"
+pkgname: "{{.SrcPackageName}}"
+structname: "Mock{{.InterfaceName}}"
 
-# Use with-expecter: True to generate EXPECT() methods for your mocks.
-# This is the preferred way to setup your mocks.
-with-expecter: True
-keeptree: False
+packages:
+  github.com/roessland/withoutings/pkg/withoutings/domain/account:
+    interfaces:
+      Repo:
+        config:
+          filename: "accountrepo_mock.go"
 
+  github.com/roessland/withoutings/pkg/withoutings/domain/subscription:
+    interfaces:
+      Repo:
+        config:
+          filename: "subscriptionrepo_mock.go"
+
+  github.com/roessland/withoutings/pkg/withoutings/domain/withings:
+    interfaces:
+      Repo:
+        config:
+          filename: "domain_withingsrepo_mock.go"
+
+  github.com/roessland/withoutings/pkg/withoutings/app/service/withings:
+    interfaces:
+      Service:
+        config:
+          filename: "withings_service_mock.go"

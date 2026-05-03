@@ -10,8 +10,12 @@ build:
 	go build -v -o . ./...
 
 .PHONY: generate-all
-generate-all:
+generate-all: generate-mocks
 	go generate ./...
+
+.PHONY: generate-mocks
+generate-mocks:
+	mockery
 
 .PHONY: generate-sqlc
 generate-sqlc:
