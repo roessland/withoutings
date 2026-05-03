@@ -122,6 +122,60 @@ func (t *Templates) RenderRefreshAccessToken(ctx context.Context, w io.Writer, t
 	})
 }
 
+type SleepSessionVars struct {
+	Context TemplateContext
+	Error   string
+	View    SleepSessionView
+}
+
+// SleepSessionView mirrors port.SleepSessionView. Defined here so the templates
+// package isn't import-cycled with port. The port handler builds its own
+// SleepSessionView and we copy the fields over for rendering.
+type SleepSessionView struct {
+	Found     bool
+	Startdate int64
+
+	Date          string
+	Timezone      string
+	StartLocal    string
+	EndLocal      string
+	DurationStr   string
+	SleepScore    int
+	Efficiency    int
+	Light         string
+	Deep          string
+	REM           string
+	Awake         string
+	HRMin         int
+	HRAvg         int
+	HRMax         int
+	RRMin         int
+	RRAvg         int
+	RRMax         int
+	BreathingDist int
+	Snoring       string
+	SnoringCount  int
+	AHI           float64
+
+	Hypnogram    template.HTML
+	HRChart      template.HTML
+	RRChart      template.HTML
+	HRVChart     template.HTML
+	SnoringChart template.HTML
+}
+
+func (t *Templates) RenderSleepSession(ctx context.Context, w io.Writer, view SleepSessionView) error {
+	tmpl, err := template.New("base.gohtml").ParseFS(t.FS, "base.gohtml", "sleepsession.gohtml")
+	if err != nil {
+		panic(err.Error())
+	}
+	tmpl.Option("missingkey=error")
+	return tmpl.ExecuteTemplate(w, "base.gohtml", SleepSessionVars{
+		Context: extractTemplateContext(ctx),
+		View:    view,
+	})
+}
+
 type SleepSummariesVars struct {
 	SleepData interface{}
 	Token     *withings.Token

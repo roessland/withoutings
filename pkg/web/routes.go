@@ -34,6 +34,7 @@ func Router(svc *app.App) *mux.Router {
 	s.HandleFunc("/auth/refresh", port.RefreshWithingsAccessToken(svc))
 
 	s.HandleFunc("/sleepsummaries", port.SleepSummaries(svc))
+	s.Path("/sleepsessions/{startdate:[0-9]+}").Methods("GET").Handler(port.SleepSession(svc))
 	//r.HandleFunc("/sleepget.json", handlers.SleepGetJSON(svc))
 	s.Path("/subscriptions").Methods("GET").Handler(port.SubscriptionsPage(svc))
 	s.Path("/subscriptions/withings").Methods("GET").Handler(port.SubscriptionsWithingsPage(svc))

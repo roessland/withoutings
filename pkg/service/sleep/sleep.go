@@ -90,6 +90,7 @@ func (sleepSvc *Sleep) GetSleepSummaries(
 		if err != nil {
 			log.WithError(err).WithField("event", "warn.sleepsummary.parsedate").Warn()
 		}
+		sleepSummary.Startdate = int64(sleep.Startdate)
 		sleepSummary.SleepScore = &sleep.Data.SleepScore
 		duration := time.Second * time.Duration(sleep.Data.TotalSleepTime)
 		sleepSummary.TotalSleepTime = &duration

@@ -48,7 +48,7 @@
       <tbody>
       {{ range $_, $value := .SleepData.Summaries }}
         <tr>
-          <td>{{ $value.Date }}</td>
+          <td><a href="/sleepsessions/{{ $value.Startdate }}">{{ $value.Date }}</a></td>
           <td>{{ $value.TotalSleepTime }}</td>
           <td>{{ $value.SleepScore }}</td>
           <td>
