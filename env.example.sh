@@ -8,5 +8,5 @@ export WOT_WITHINGS_REDIRECT_URL=https://withings.example.com/auth/callback
 # Register {WOT_WEBSITE_URL}withings/webhooks/{secret}
 # in Withings Developer Dashboard.
 export WOT_WITHINGS_WEBHOOK_SECRET=supersecret
-export WOT_DATABASE_URL='postgres://wotrw:<pass>@127.0.0.1:5432/wot?sslmode=disable'
-export WOT_DATABASE_URL_SA='postgres://wotsa:<pass>@127.0.0.1:5432/wot?sslmode=disable'
+export WOT_DATABASE_URL='postgres://wotrw:wotrw@127.0.0.1:54330/wot?sslmode=disable'
+export WOT_DATABASE_URL_SA='postgres://wotsa:wotsa@127.0.0.1:54330/wot?sslmode=disable'
