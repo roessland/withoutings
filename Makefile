@@ -32,3 +32,36 @@ run-dev: generate-all migrate
 .PHONY: clean
 clean:
 	go clean -testcache
+
+# --- Local Postgres via Docker -----------------------------------------------
+# Tests connect to localhost:5432 with the OS user as the superuser and
+# password "postgres" (see pkg/testdb/testdb.go). The container is configured
+# to match that.
+
+DB_CONTAINER := withoutings-db
+DB_VOLUME    := withoutings-db-data
+DB_IMAGE     := postgres:16
+DB_PORT      ?= 5432
+
+.PHONY: db-up
+db-up:
+	@docker start $(DB_CONTAINER) >/dev/null 2>&1 || \
+		docker run -d --name $(DB_CONTAINER) \
+			-e POSTGRES_USER=$$(whoami) \
+			-e POSTGRES_PASSWORD=postgres \
+			-p $(DB_PORT):5432 \
+			-v $(DB_VOLUME):/var/lib/postgresql/data \
+			$(DB_IMAGE) >/dev/null
+	@until docker exec $(DB_CONTAINER) pg_isready -U $$(whoami) >/dev/null 2>&1; do sleep 0.2; done
+	@echo "Postgres ready on localhost:$(DB_PORT) (superuser $$(whoami) / password postgres)"
+
+.PHONY: db-down
+db-down:
+	@docker stop $(DB_CONTAINER) >/dev/null 2>&1 || true
+	@docker rm $(DB_CONTAINER) >/dev/null 2>&1 || true
+	@echo "Postgres container stopped (volume $(DB_VOLUME) retained)"
+
+.PHONY: db-destroy
+db-destroy: db-down
+	@docker volume rm $(DB_VOLUME) >/dev/null 2>&1 || true
+	@echo "Postgres volume $(DB_VOLUME) removed"

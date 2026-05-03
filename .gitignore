@@ -4,3 +4,4 @@ env.prod.sh
 .idea
 node_modules
 .DS_Store
+/withoutings
