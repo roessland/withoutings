@@ -2,14 +2,18 @@
 
 Copied from my personal notes [[PostgreSQL setup on MacOS]].
 
+> For just running the test suite you don't need a full local Postgres
+> install — `make db-up` brings up a Docker container that already
+> matches what `pkg/testdb` expects. This guide is for users who want
+> a long-running local Postgres for `make migrate` / `make run-dev`.
 
 ## Install
 
-- Install v14 since that is the stable version for Ubuntu
+- Match production (PostgreSQL 16).
   - https://www.postgresql.org/support/versioning/
 
 ```bash
-brew install postgresql@14
+brew install postgresql@16
 ```
 
 ## Start service
@@ -18,7 +22,7 @@ brew install postgresql@14
   - https://wiki.postgresql.org/wiki/Homebrew
   - Use `run` instead of `start` to only start it once right now.
 ```bash
-brew services start postgresql@15
+brew services start postgresql@16
 ```
 
 ## Connect
@@ -30,9 +34,9 @@ psql postgres
 
 If not, find the path:
 ```bash
-brew info postgresql@15
-ls /opt/homebrew/opt/postgresql@15/bin
-echo 'export PATH="/opt/homebrew/opt/postgresql@15/bin:$PATH"' >> ~/.zshrc
+brew info postgresql@16
+ls /opt/homebrew/opt/postgresql@16/bin
+echo 'export PATH="/opt/homebrew/opt/postgresql@16/bin:$PATH"' >> ~/.zshrc
 exec zsh
 psql postgres
 ```
@@ -41,7 +45,7 @@ psql postgres
 
 ```bash
 ps aux | grep postgres
-cd /opt/homebrew/var/postgresql@15
+cd /opt/homebrew/var/postgresql@16
 ```
 
 ## Change password for $USER
@@ -63,7 +67,7 @@ echo "localhost:5432:*:$USER:<POSTGRESPASSWORD>" >> .pgpass
 
 ## Remove "trust" authentication in `pg_hba.conf`
 ```bash
-cd /opt/homebrew/var/postgresql@15
+cd /opt/homebrew/var/postgresql@16
 vi pg_hba.conf
 ```
 Change it to something like this:
@@ -77,5 +81,5 @@ host    all             all             ::1/128                 scram-sha-256
 ```
 Then restart the [[brew]] service:
 ```bash
-brew services restart postgresql@15
+brew services restart postgresql@16
 ```

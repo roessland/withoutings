@@ -1,7 +1,9 @@
 # Install PostgreSQL on Ubuntu
 
+Production runs PostgreSQL 16.
+
 ```
-sudo apt install postgresql postgresql-contrib
+sudo apt install postgresql-16 postgresql-contrib-16
 sudo systemctl start postgresql.service
 
 edit pg_hba.conf
