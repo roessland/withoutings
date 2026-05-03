@@ -396,6 +396,86 @@ func (_c *MockRepo_GetNotificationByUUID_Call) RunAndReturn(run func(ctx context
 	return _c
 }
 
+// GetNotificationDataByAccountAndServiceAndSeriesStartdate provides a mock function for the type MockRepo
+func (_mock *MockRepo) GetNotificationDataByAccountAndServiceAndSeriesStartdate(ctx context.Context, accountUUID uuid.UUID, service NotificationDataService, startdate int64) (*NotificationData, error) {
+	ret := _mock.Called(ctx, accountUUID, service, startdate)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetNotificationDataByAccountAndServiceAndSeriesStartdate")
+	}
+
+	var r0 *NotificationData
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, NotificationDataService, int64) (*NotificationData, error)); ok {
+		return returnFunc(ctx, accountUUID, service, startdate)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, NotificationDataService, int64) *NotificationData); ok {
+		r0 = returnFunc(ctx, accountUUID, service, startdate)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*NotificationData)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID, NotificationDataService, int64) error); ok {
+		r1 = returnFunc(ctx, accountUUID, service, startdate)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockRepo_GetNotificationDataByAccountAndServiceAndSeriesStartdate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetNotificationDataByAccountAndServiceAndSeriesStartdate'
+type MockRepo_GetNotificationDataByAccountAndServiceAndSeriesStartdate_Call struct {
+	*mock.Call
+}
+
+// GetNotificationDataByAccountAndServiceAndSeriesStartdate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - accountUUID uuid.UUID
+//   - service NotificationDataService
+//   - startdate int64
+func (_e *MockRepo_Expecter) GetNotificationDataByAccountAndServiceAndSeriesStartdate(ctx interface{}, accountUUID interface{}, service interface{}, startdate interface{}) *MockRepo_GetNotificationDataByAccountAndServiceAndSeriesStartdate_Call {
+	return &MockRepo_GetNotificationDataByAccountAndServiceAndSeriesStartdate_Call{Call: _e.mock.On("GetNotificationDataByAccountAndServiceAndSeriesStartdate", ctx, accountUUID, service, startdate)}
+}
+
+func (_c *MockRepo_GetNotificationDataByAccountAndServiceAndSeriesStartdate_Call) Run(run func(ctx context.Context, accountUUID uuid.UUID, service NotificationDataService, startdate int64)) *MockRepo_GetNotificationDataByAccountAndServiceAndSeriesStartdate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uuid.UUID
+		if args[1] != nil {
+			arg1 = args[1].(uuid.UUID)
+		}
+		var arg2 NotificationDataService
+		if args[2] != nil {
+			arg2 = args[2].(NotificationDataService)
+		}
+		var arg3 int64
+		if args[3] != nil {
+			arg3 = args[3].(int64)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRepo_GetNotificationDataByAccountAndServiceAndSeriesStartdate_Call) Return(notificationData *NotificationData, err error) *MockRepo_GetNotificationDataByAccountAndServiceAndSeriesStartdate_Call {
+	_c.Call.Return(notificationData, err)
+	return _c
+}
+
+func (_c *MockRepo_GetNotificationDataByAccountAndServiceAndSeriesStartdate_Call) RunAndReturn(run func(ctx context.Context, accountUUID uuid.UUID, service NotificationDataService, startdate int64) (*NotificationData, error)) *MockRepo_GetNotificationDataByAccountAndServiceAndSeriesStartdate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetNotificationDataByAccountUUIDAndService provides a mock function for the type MockRepo
 func (_mock *MockRepo) GetNotificationDataByAccountUUIDAndService(ctx context.Context, accountUUID uuid.UUID, service NotificationDataService) ([]*NotificationData, error) {
 	ret := _mock.Called(ctx, accountUUID, service)

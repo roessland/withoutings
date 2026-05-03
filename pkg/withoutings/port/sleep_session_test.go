@@ -172,6 +172,31 @@ func TestSleepSessionPage(t *testing.T) {
 		assert.Contains(t, body, "stroke=\"#e91e63\"") // HR series color
 	})
 
+	t.Run("with multiple stored summaries picks the matching startdate", func(t *testing.T) {
+		// Insert three different nights worth of stored Getsummary data; the
+		// JSONB-indexed lookup must pick the right one and ignore the others.
+		// This is the regression signal if someone removes the @> filter and
+		// the query falls back to fetching all rows.
+		beforeEach(t)
+
+		const otherSummary1 = `{"status":0,"body":{"series":[{"id":1,"timezone":"UTC","model":32,"model_id":63,"startdate":1600000000,"enddate":1600025200,"date":"2020-09-13","data":{"total_sleep_time":25200,"sleep_score":50,"sleep_efficiency":0.8,"hr_average":99,"rr_average":99}}]}}`
+		const otherSummary2 = `{"status":0,"body":{"series":[{"id":2,"timezone":"UTC","model":32,"model_id":63,"startdate":1750000000,"enddate":1750025200,"date":"2025-06-15","data":{"total_sleep_time":25200,"sleep_score":60,"sleep_efficiency":0.85,"hr_average":88,"rr_average":88}}]}}`
+
+		insertSession(t, it.Ctx, otherSummary1, sleepGetFixture)
+		insertSession(t, it.Ctx, sleepSummaryFixture, sleepGetFixture)
+		insertSession(t, it.Ctx, otherSummary2, sleepGetFixture)
+
+		resp, body := doSessionReq(1700000000)
+		assert.Equal(t, 200, resp.Code)
+		assert.Contains(t, body, "Sleep session — 2023-11-14")
+		// Decoy summary dates must not appear — the JSONB filter must have
+		// excluded those rows. (Score / HR overlap with the SVG axis labels
+		// of the matching session, so date is the uniquely-identifying field
+		// to assert on here.)
+		assert.NotContains(t, body, "2020-09-13")
+		assert.NotContains(t, body, "2025-06-15")
+	})
+
 	t.Run("missing session shows friendly empty state", func(t *testing.T) {
 		beforeEach(t)
 		// Insert a session, then ask for a different startdate.

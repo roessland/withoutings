@@ -150,3 +150,17 @@ FROM notification_data
 WHERE account_uuid = $1
   AND service = $2
 ORDER BY fetched_at DESC;
+
+-- name: GetNotificationDataByAccountAndServiceAndSeriesStartdate :many
+-- Returns notification_data rows whose JSONB body.series array contains an
+-- entry with the requested startdate. Used by the sleep detail page so the
+-- Getsummary-by-startdate lookup is a single indexed query rather than
+-- "fetch every summary and filter in Go". Backed by the GIN index
+-- notification_data_body_series_idx.
+SELECT *
+FROM notification_data
+WHERE account_uuid = $1
+  AND service = $2
+  AND data -> 'body' -> 'series' @> jsonb_build_array(jsonb_build_object('startdate', sqlc.arg(startdate)::bigint))
+ORDER BY fetched_at DESC
+LIMIT 1;

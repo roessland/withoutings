@@ -71,37 +71,41 @@ func buildSleepSessionView(
 	startdate int64,
 ) (templates.SleepSessionView, error) {
 	view := templates.SleepSessionView{Startdate: startdate}
-
-	summaryRows, err := repo.GetNotificationDataByAccountUUIDAndService(ctx, accountUUID, subscription.NotificationDataServiceSleepv2Getsummary)
-	if err != nil {
-		return view, fmt.Errorf("get summary rows: %w", err)
-	}
-
 	log := logging.MustGetLoggerFromContext(ctx)
+
+	// Single indexed lookup against the JSONB GIN index — pulls the one row
+	// (if any) whose body.series array contains an entry with this startdate.
+	// Avoids loading every Sleep v2 - Getsummary blob for the user.
+	summaryRow, err := repo.GetNotificationDataByAccountAndServiceAndSeriesStartdate(
+		ctx, accountUUID, subscription.NotificationDataServiceSleepv2Getsummary, startdate,
+	)
+	if err != nil {
+		return view, fmt.Errorf("get summary row: %w", err)
+	}
+	if summaryRow == nil {
+		return view, nil
+	}
 
 	var summary withings.SleepGetsummaryEntry
 	var summaryFound bool
-	for _, row := range summaryRows {
-		var resp withings.SleepGetsummaryResponse
-		if err := json.Unmarshal(row.Data(), &resp); err != nil {
-			log.WithError(err).
-				WithField("event", "warn.SleepSession.summary_unmarshal_failed").
-				WithField("notification_data_uuid", row.UUID()).
-				Warn()
-			continue
-		}
-		for _, entry := range resp.Body.Series {
-			if int64(entry.Startdate) == startdate {
-				summary = entry
-				summaryFound = true
-				break
-			}
-		}
-		if summaryFound {
+	var resp withings.SleepGetsummaryResponse
+	if err := json.Unmarshal(summaryRow.Data(), &resp); err != nil {
+		log.WithError(err).
+			WithField("event", "warn.SleepSession.summary_unmarshal_failed").
+			WithField("notification_data_uuid", summaryRow.UUID()).
+			Warn()
+		return view, nil
+	}
+	for _, entry := range resp.Body.Series {
+		if int64(entry.Startdate) == startdate {
+			summary = entry
+			summaryFound = true
 			break
 		}
 	}
 	if !summaryFound {
+		// JSONB containment matched but the Go-side scan didn't — would only
+		// happen if the index says yes but the row's content disagrees.
 		return view, nil
 	}
 	view.Found = true

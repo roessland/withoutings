@@ -212,6 +212,54 @@ func (q *Queries) GetNotificationByUUID(ctx context.Context, notificationUuid uu
 	return i, err
 }
 
+const getNotificationDataByAccountAndServiceAndSeriesStartdate = `-- name: GetNotificationDataByAccountAndServiceAndSeriesStartdate :many
+SELECT notification_data_uuid, account_uuid, notification_uuid, service, data, fetched_at
+FROM notification_data
+WHERE account_uuid = $1
+  AND service = $2
+  AND data -> 'body' -> 'series' @> jsonb_build_array(jsonb_build_object('startdate', $3::bigint))
+ORDER BY fetched_at DESC
+LIMIT 1
+`
+
+type GetNotificationDataByAccountAndServiceAndSeriesStartdateParams struct {
+	AccountUuid uuid.UUID
+	Service     string
+	Startdate   int64
+}
+
+// Returns notification_data rows whose JSONB body.series array contains an
+// entry with the requested startdate. Used by the sleep detail page so the
+// Getsummary-by-startdate lookup is a single indexed query rather than
+// "fetch every summary and filter in Go". Backed by the GIN index
+// notification_data_body_series_idx.
+func (q *Queries) GetNotificationDataByAccountAndServiceAndSeriesStartdate(ctx context.Context, arg GetNotificationDataByAccountAndServiceAndSeriesStartdateParams) ([]NotificationDatum, error) {
+	rows, err := q.db.Query(ctx, getNotificationDataByAccountAndServiceAndSeriesStartdate, arg.AccountUuid, arg.Service, arg.Startdate)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []NotificationDatum
+	for rows.Next() {
+		var i NotificationDatum
+		if err := rows.Scan(
+			&i.NotificationDataUuid,
+			&i.AccountUuid,
+			&i.NotificationUuid,
+			&i.Service,
+			&i.Data,
+			&i.FetchedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getNotificationDataByAccountUUIDAndService = `-- name: GetNotificationDataByAccountUUIDAndService :many
 SELECT notification_data_uuid, account_uuid, notification_uuid, service, data, fetched_at
 FROM notification_data
