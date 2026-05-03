@@ -4,13 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Tooling
 
-- **mockery must be v3.7.x.** `.mockery.yaml` is v3 schema; `brew install mockery` is fine, but v2 will fail silently with `unknown flag: --name`.
+`brew install` mockery, sqlc, direnv, and Docker. `.mockery.yaml` is v3 schema.
 
 ## Local Postgres
 
-`pkg/testdb` uses a connection string with no `user=` or `port=`: it falls back to the **OS user as a Postgres superuser** with password `postgres`, and to **`PGPORT`** for the port. Tests will not work without that exact setup.
-
-`make db-up` runs `postgres:16` in Docker pre-configured to match. Default `DB_PORT=54329` (obscure to avoid clashing with other Postgres on 5432). `make test` exports `PGPORT=$(DB_PORT)` automatically; the committed `.envrc` does the same for direnv shells. Override with `DB_PORT=5432 make db-up` if needed.
+`make db-up` brings up `postgres:16` configured to match what `pkg/testdb` expects (OS-user superuser, password `postgres`, port from `PGPORT` — defaults to `54329` to avoid clashes; `make test` and the committed `.envrc` both wire it through).
 
 ## Architecture: DDD-lite (threedots.tech)
 
@@ -44,13 +42,6 @@ Subtleties that are easy to violate:
 4. HTTP handler in `port/`, route in `pkg/web/routes.go`.
 5. Async work: publish topic from `adapter/topic/topics.go`, consume in `pkg/worker/worker.go`.
 
-## Project gotchas
-
-- The Withings webhook secret is part of the public callback URL path (`/withings/webhooks/<secret>`) — treat the URL itself as a credential.
-- Don't manually edit primary keys; sequences will collide on next insert (see `pkg/db/README.md`).
-- No JS framework, no ORM, no Redis at runtime — these are deliberate project choices, not gaps. Discuss before introducing.
-
 ## Pointers
 
 - `pkg/integrationtest` brings up a fresh DB + fully-wired `*app.App` + worker + router — use it for cross-layer tests rather than reassembling pieces.
-- Binary entry is `cmd/withoutings/{main,cli,migrate}.go` (no top-level `cmd/main.go`); subcommands are `server` and `migrate`.
