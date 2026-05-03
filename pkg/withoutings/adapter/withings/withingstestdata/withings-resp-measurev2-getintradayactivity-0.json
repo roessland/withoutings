@@ -1,0 +1,17 @@
+{
+  "status": 0,
+  "body": {
+    "series": {
+      "1670945820": {
+        "steps": 13,
+        "duration": 60,
+        "elevation": 0,
+        "distance": 9.364,
+        "calories": 1.849,
+        "model": "Samsung Health tracker",
+        "model_id": 1056,
+        "deviceid": null
+      }
+    }
+  }
+}

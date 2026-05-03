@@ -2,6 +2,7 @@ package command
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -14,6 +15,29 @@ import (
 	"net/url"
 	"time"
 )
+
+// localDayForAppli16 resolves the user's local-day boundary for an appli=16
+// webhook. It picks the timezone from the first activity row in the
+// Getactivity response (Withings tags every row with a timezone). If no
+// activity row is present or the timezone is missing/unknown, it falls back
+// to UTC.
+func localDayForAppli16(dateStr string, activities []json.RawMessage) (time.Time, *time.Location) {
+	loc := time.UTC
+	for _, raw := range activities {
+		var probe struct {
+			Timezone string `json:"timezone"`
+		}
+		if err := json.Unmarshal(raw, &probe); err != nil || probe.Timezone == "" {
+			continue
+		}
+		if l, err := time.LoadLocation(probe.Timezone); err == nil {
+			loc = l
+			break
+		}
+	}
+	day, _ := time.ParseInLocation("2006-01-02", dateStr, loc)
+	return day, loc
+}
 
 type FetchNotificationData struct {
 	Notification *subscription.Notification
@@ -69,7 +93,7 @@ func (h fetchNotificationDataHandler) Handle(ctx context.Context, cmd FetchNotif
 			NotificationDataUUID: uuid.New(),
 			NotificationUUID:     cmd.Notification.UUID(),
 			AccountUUID:          cmd.Notification.AccountUUID(),
-			Service:              subscription.NotificationDataService(data.service),
+			Service:              data.service,
 			Data:                 data.data,
 			FetchedAt:            data.fetchedAt,
 		})
@@ -113,7 +137,7 @@ type availableDatas []availableData
 type availableData struct {
 	data      []byte
 	fetchedAt time.Time
-	service   string
+	service   subscription.NotificationDataService
 }
 
 // getAvailableData fetches data from Withings API corresponding to the notification category.
@@ -124,6 +148,8 @@ func (h fetchNotificationDataHandler) getAvailableData(ctx context.Context, acc 
 		return h.getAvailableData1(ctx, acc, parsedParams)
 	case 4:
 		return h.getAvailableData4(ctx, acc, parsedParams)
+	case 16:
+		return h.getAvailableData16(ctx, acc, parsedParams)
 	case 44:
 		return h.getAvailableData44(ctx, acc, parsedParams)
 	case 50:
@@ -170,7 +196,7 @@ func (h fetchNotificationDataHandler) getAvailableData1(
 		{
 			data:      getmeasResponse.Raw,
 			fetchedAt: time.Now(),
-			service:   "Measure - Getmeas",
+			service:   subscription.NotificationDataServiceMeasureGetMeas,
 		},
 	}
 
@@ -217,9 +243,93 @@ func (h fetchNotificationDataHandler) getAvailableData4(
 		{
 			data:      getmeasResponse.Raw,
 			fetchedAt: time.Now(),
-			service:   "Measure - Getmeas",
+			service:   subscription.NotificationDataServiceMeasureGetMeas,
 		},
 	}
+
+	return ad, nil
+}
+
+// getAvailableData16 fetches data from Withings API for appli 16:
+// New activity-related data.
+// The webhook payload uses date=YYYY-MM-DD instead of startdate/enddate.
+func (h fetchNotificationDataHandler) getAvailableData16(
+	ctx context.Context,
+	acc *account.Account,
+	parsedParams subscription.ParsedNotificationParams,
+) (availableDatas, error) {
+	if parsedParams.Appli != 16 {
+		panic("getAvailableData16 called with wrong application ID")
+	}
+
+	log := logging.MustGetLoggerFromContext(ctx)
+	log = log.WithField("appli", parsedParams.Appli)
+
+	if _, err := time.Parse("2006-01-02", parsedParams.DateStr); err != nil {
+		// Treat malformed date as a permanent error: log and drop the
+		// notification rather than letting watermill redeliver indefinitely.
+		log.WithError(err).
+			WithField("date_str", parsedParams.DateStr).
+			WithField("event", "warn.command.FetchNotificationData.appli16.malformed_date").
+			Warn()
+		return availableDatas{}, nil
+	}
+	ad := availableDatas{}
+
+	getactivityParams := withings.NewMeasureGetactivityParams()
+	getactivityParams.Startdateymd = parsedParams.DateStr
+	getactivityParams.Enddateymd = parsedParams.DateStr
+	getactivityResp, err := h.withingsSvc.MeasureGetactivity(ctx, acc, getactivityParams)
+	if err != nil {
+		log.WithError(err).
+			WithField("event", "error.command.FetchNotificationData.MeasureGetactivity.failed").
+			Error()
+		return nil, fmt.Errorf("failed to call Withings API MeasureGetactivity: %w", err)
+	}
+	ad = append(ad, availableData{
+		data:      getactivityResp.Raw,
+		fetchedAt: time.Now(),
+		service:   subscription.NotificationDataServiceMeasurev2Getactivity,
+	})
+
+	// The webhook doesn't carry timezone, but each activity row in the
+	// Getactivity response does. Use it (DST-safe via AddDate) to compute the
+	// intraday window in the user's local day. Fall back to UTC when the day
+	// has zero activities — those days almost never have intraday samples
+	// either, so the UTC fallback won't drop real data in practice.
+	day, loc := localDayForAppli16(parsedParams.DateStr, getactivityResp.Body.Activities)
+	intradayParams := withings.NewMeasureGetintradayactivityParams()
+	intradayParams.Startdate = day.Unix()
+	intradayParams.Enddate = day.AddDate(0, 0, 1).Unix()
+	log = log.WithField("intraday_tz", loc.String())
+	intradayResp, err := h.withingsSvc.MeasureGetintradayactivity(ctx, acc, intradayParams)
+	if err != nil {
+		log.WithError(err).
+			WithField("event", "error.command.FetchNotificationData.MeasureGetintradayactivity.failed").
+			Error()
+		return nil, fmt.Errorf("failed to call Withings API MeasureGetintradayactivity: %w", err)
+	}
+	ad = append(ad, availableData{
+		data:      intradayResp.Raw,
+		fetchedAt: time.Now(),
+		service:   subscription.NotificationDataServiceMeasurev2Getintradayactivity,
+	})
+
+	getworkoutsParams := withings.NewMeasureGetworkoutsParams()
+	getworkoutsParams.Startdateymd = parsedParams.DateStr
+	getworkoutsParams.Enddateymd = parsedParams.DateStr
+	getworkoutsResp, err := h.withingsSvc.MeasureGetworkouts(ctx, acc, getworkoutsParams)
+	if err != nil {
+		log.WithError(err).
+			WithField("event", "error.command.FetchNotificationData.MeasureGetworkouts.failed").
+			Error()
+		return nil, fmt.Errorf("failed to call Withings API MeasureGetworkouts: %w", err)
+	}
+	ad = append(ad, availableData{
+		data:      getworkoutsResp.Raw,
+		fetchedAt: time.Now(),
+		service:   subscription.NotificationDataServiceMeasurev2Getworkouts,
+	})
 
 	return ad, nil
 }
@@ -253,7 +363,7 @@ func (h fetchNotificationDataHandler) getAvailableData44(
 	ad = append(ad, availableData{
 		data:      sleepGetsummaryResponse.Raw,
 		fetchedAt: time.Now(),
-		service:   "Sleep v2 - Getsummary", // todo use const
+		service:   subscription.NotificationDataServiceSleepv2Getsummary,
 	})
 
 	getParams := withings.NewSleepGetParams()
@@ -271,7 +381,7 @@ func (h fetchNotificationDataHandler) getAvailableData44(
 	ad = append(ad, availableData{
 		data:      sleepGetResponse.Raw,
 		fetchedAt: time.Now(),
-		service:   "Sleep v2 - Get",
+		service:   subscription.NotificationDataServiceSleepv2Get,
 	})
 
 	return ad, nil

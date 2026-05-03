@@ -15,4 +15,7 @@ type Repo interface {
 	SleepGetsummary(ctx context.Context, accessToken string, params SleepGetsummaryParams) (*SleepGetsummaryResponse, error)
 	SleepGet(ctx context.Context, accessToken string, params SleepGetParams) (*SleepGetResponse, error)
 	MeasureGetmeas(ctx context.Context, accessToken string, params MeasureGetmeasParams) (*MeasureGetmeasResponse, error)
+	MeasureGetactivity(ctx context.Context, accessToken string, params MeasureGetactivityParams) (*MeasureGetactivityResponse, error)
+	MeasureGetintradayactivity(ctx context.Context, accessToken string, params MeasureGetintradayactivityParams) (*MeasureGetintradayactivityResponse, error)
+	MeasureGetworkouts(ctx context.Context, accessToken string, params MeasureGetworkoutsParams) (*MeasureGetworkoutsResponse, error)
 }

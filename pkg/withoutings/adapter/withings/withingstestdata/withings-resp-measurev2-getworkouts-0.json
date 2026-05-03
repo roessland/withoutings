@@ -1,0 +1,41 @@
+{
+  "status": 0,
+  "body": {
+    "series": [
+      {
+        "id": 2733592612,
+        "category": 1,
+        "timezone": "Europe/Oslo",
+        "model": 1056,
+        "attrib": 7,
+        "startdate": 1650999480,
+        "enddate": 1650999900,
+        "date": "2022-04-26",
+        "deviceid": null,
+        "data": {
+          "calories": 31,
+          "intensity": 30,
+          "manual_distance": 0,
+          "manual_calories": 0,
+          "hr_average": 0,
+          "hr_min": 0,
+          "hr_max": 0,
+          "hr_zone_0": 0,
+          "hr_zone_1": 0,
+          "hr_zone_2": 0,
+          "hr_zone_3": 0,
+          "pause_duration": 0,
+          "steps": 717,
+          "distance": 516,
+          "elevation": 7,
+          "manual_intensity": null,
+          "algo_pause_duration": null,
+          "spo2_average": null
+        },
+        "modified": 1653123216
+      }
+    ],
+    "more": false,
+    "offset": 0
+  }
+}

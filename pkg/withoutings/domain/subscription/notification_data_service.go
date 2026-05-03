@@ -10,6 +10,7 @@ type NotificationDataService string
 const NotificationDataServiceMeasureGetMeas NotificationDataService = "Measure - Getmeas"
 const NotificationDataServiceMeasurev2Getactivity NotificationDataService = "Measure v2 - Getactivity"
 const NotificationDataServiceMeasurev2Getintradayactivity NotificationDataService = "Measure v2 - Getintradayactivity"
+const NotificationDataServiceMeasurev2Getworkouts NotificationDataService = "Measure v2 - Getworkouts"
 const NotificationDataServiceSleepv2Get NotificationDataService = "Sleep v2 - Get"
 const NotificationDataServiceSleepv2Getsummary NotificationDataService = "Sleep v2 - Getsummary"
 const NotificationDataServiceHeartv2List NotificationDataService = "Heart v2 - List"
@@ -22,6 +23,8 @@ func NewNotificationDataService(s string) (NotificationDataService, error) {
 		return NotificationDataServiceMeasurev2Getactivity, nil
 	case "Measure v2 - Getintradayactivity":
 		return NotificationDataServiceMeasurev2Getintradayactivity, nil
+	case "Measure v2 - Getworkouts":
+		return NotificationDataServiceMeasurev2Getworkouts, nil
 	case "Sleep v2 - Get":
 		return NotificationDataServiceSleepv2Get, nil
 	case "Sleep v2 - Getsummary":

@@ -156,6 +156,154 @@ func (_c *MockRepo_GetAccessToken_Call) RunAndReturn(run func(ctx context.Contex
 	return _c
 }
 
+// MeasureGetactivity provides a mock function for the type MockRepo
+func (_mock *MockRepo) MeasureGetactivity(ctx context.Context, accessToken string, params MeasureGetactivityParams) (*MeasureGetactivityResponse, error) {
+	ret := _mock.Called(ctx, accessToken, params)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MeasureGetactivity")
+	}
+
+	var r0 *MeasureGetactivityResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, MeasureGetactivityParams) (*MeasureGetactivityResponse, error)); ok {
+		return returnFunc(ctx, accessToken, params)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, MeasureGetactivityParams) *MeasureGetactivityResponse); ok {
+		r0 = returnFunc(ctx, accessToken, params)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*MeasureGetactivityResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, MeasureGetactivityParams) error); ok {
+		r1 = returnFunc(ctx, accessToken, params)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockRepo_MeasureGetactivity_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MeasureGetactivity'
+type MockRepo_MeasureGetactivity_Call struct {
+	*mock.Call
+}
+
+// MeasureGetactivity is a helper method to define mock.On call
+//   - ctx context.Context
+//   - accessToken string
+//   - params MeasureGetactivityParams
+func (_e *MockRepo_Expecter) MeasureGetactivity(ctx interface{}, accessToken interface{}, params interface{}) *MockRepo_MeasureGetactivity_Call {
+	return &MockRepo_MeasureGetactivity_Call{Call: _e.mock.On("MeasureGetactivity", ctx, accessToken, params)}
+}
+
+func (_c *MockRepo_MeasureGetactivity_Call) Run(run func(ctx context.Context, accessToken string, params MeasureGetactivityParams)) *MockRepo_MeasureGetactivity_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 MeasureGetactivityParams
+		if args[2] != nil {
+			arg2 = args[2].(MeasureGetactivityParams)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRepo_MeasureGetactivity_Call) Return(measureGetactivityResponse *MeasureGetactivityResponse, err error) *MockRepo_MeasureGetactivity_Call {
+	_c.Call.Return(measureGetactivityResponse, err)
+	return _c
+}
+
+func (_c *MockRepo_MeasureGetactivity_Call) RunAndReturn(run func(ctx context.Context, accessToken string, params MeasureGetactivityParams) (*MeasureGetactivityResponse, error)) *MockRepo_MeasureGetactivity_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// MeasureGetintradayactivity provides a mock function for the type MockRepo
+func (_mock *MockRepo) MeasureGetintradayactivity(ctx context.Context, accessToken string, params MeasureGetintradayactivityParams) (*MeasureGetintradayactivityResponse, error) {
+	ret := _mock.Called(ctx, accessToken, params)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MeasureGetintradayactivity")
+	}
+
+	var r0 *MeasureGetintradayactivityResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, MeasureGetintradayactivityParams) (*MeasureGetintradayactivityResponse, error)); ok {
+		return returnFunc(ctx, accessToken, params)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, MeasureGetintradayactivityParams) *MeasureGetintradayactivityResponse); ok {
+		r0 = returnFunc(ctx, accessToken, params)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*MeasureGetintradayactivityResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, MeasureGetintradayactivityParams) error); ok {
+		r1 = returnFunc(ctx, accessToken, params)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockRepo_MeasureGetintradayactivity_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MeasureGetintradayactivity'
+type MockRepo_MeasureGetintradayactivity_Call struct {
+	*mock.Call
+}
+
+// MeasureGetintradayactivity is a helper method to define mock.On call
+//   - ctx context.Context
+//   - accessToken string
+//   - params MeasureGetintradayactivityParams
+func (_e *MockRepo_Expecter) MeasureGetintradayactivity(ctx interface{}, accessToken interface{}, params interface{}) *MockRepo_MeasureGetintradayactivity_Call {
+	return &MockRepo_MeasureGetintradayactivity_Call{Call: _e.mock.On("MeasureGetintradayactivity", ctx, accessToken, params)}
+}
+
+func (_c *MockRepo_MeasureGetintradayactivity_Call) Run(run func(ctx context.Context, accessToken string, params MeasureGetintradayactivityParams)) *MockRepo_MeasureGetintradayactivity_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 MeasureGetintradayactivityParams
+		if args[2] != nil {
+			arg2 = args[2].(MeasureGetintradayactivityParams)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRepo_MeasureGetintradayactivity_Call) Return(measureGetintradayactivityResponse *MeasureGetintradayactivityResponse, err error) *MockRepo_MeasureGetintradayactivity_Call {
+	_c.Call.Return(measureGetintradayactivityResponse, err)
+	return _c
+}
+
+func (_c *MockRepo_MeasureGetintradayactivity_Call) RunAndReturn(run func(ctx context.Context, accessToken string, params MeasureGetintradayactivityParams) (*MeasureGetintradayactivityResponse, error)) *MockRepo_MeasureGetintradayactivity_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // MeasureGetmeas provides a mock function for the type MockRepo
 func (_mock *MockRepo) MeasureGetmeas(ctx context.Context, accessToken string, params MeasureGetmeasParams) (*MeasureGetmeasResponse, error) {
 	ret := _mock.Called(ctx, accessToken, params)
@@ -226,6 +374,80 @@ func (_c *MockRepo_MeasureGetmeas_Call) Return(measureGetmeasResponse *MeasureGe
 }
 
 func (_c *MockRepo_MeasureGetmeas_Call) RunAndReturn(run func(ctx context.Context, accessToken string, params MeasureGetmeasParams) (*MeasureGetmeasResponse, error)) *MockRepo_MeasureGetmeas_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// MeasureGetworkouts provides a mock function for the type MockRepo
+func (_mock *MockRepo) MeasureGetworkouts(ctx context.Context, accessToken string, params MeasureGetworkoutsParams) (*MeasureGetworkoutsResponse, error) {
+	ret := _mock.Called(ctx, accessToken, params)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MeasureGetworkouts")
+	}
+
+	var r0 *MeasureGetworkoutsResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, MeasureGetworkoutsParams) (*MeasureGetworkoutsResponse, error)); ok {
+		return returnFunc(ctx, accessToken, params)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, MeasureGetworkoutsParams) *MeasureGetworkoutsResponse); ok {
+		r0 = returnFunc(ctx, accessToken, params)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*MeasureGetworkoutsResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, MeasureGetworkoutsParams) error); ok {
+		r1 = returnFunc(ctx, accessToken, params)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockRepo_MeasureGetworkouts_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MeasureGetworkouts'
+type MockRepo_MeasureGetworkouts_Call struct {
+	*mock.Call
+}
+
+// MeasureGetworkouts is a helper method to define mock.On call
+//   - ctx context.Context
+//   - accessToken string
+//   - params MeasureGetworkoutsParams
+func (_e *MockRepo_Expecter) MeasureGetworkouts(ctx interface{}, accessToken interface{}, params interface{}) *MockRepo_MeasureGetworkouts_Call {
+	return &MockRepo_MeasureGetworkouts_Call{Call: _e.mock.On("MeasureGetworkouts", ctx, accessToken, params)}
+}
+
+func (_c *MockRepo_MeasureGetworkouts_Call) Run(run func(ctx context.Context, accessToken string, params MeasureGetworkoutsParams)) *MockRepo_MeasureGetworkouts_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 MeasureGetworkoutsParams
+		if args[2] != nil {
+			arg2 = args[2].(MeasureGetworkoutsParams)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRepo_MeasureGetworkouts_Call) Return(measureGetworkoutsResponse *MeasureGetworkoutsResponse, err error) *MockRepo_MeasureGetworkouts_Call {
+	_c.Call.Return(measureGetworkoutsResponse, err)
+	return _c
+}
+
+func (_c *MockRepo_MeasureGetworkouts_Call) RunAndReturn(run func(ctx context.Context, accessToken string, params MeasureGetworkoutsParams) (*MeasureGetworkoutsResponse, error)) *MockRepo_MeasureGetworkouts_Call {
 	_c.Call.Return(run)
 	return _c
 }
