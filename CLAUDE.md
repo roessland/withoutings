@@ -22,7 +22,7 @@ Gotchas:
 
 - **`App.Validate()` is called from `web.Router`** and panics on any nil wire-up — adding a new command/query means adding it to both `Commands{}`/`Queries{}` AND `Validate()`.
 - **The `withings` adapter is an HTTP client**, not a Postgres adapter — it implements `domain/withings.Repo` and does not touch `pkg/db`.
-- **Two DB handles, on purpose**: `app.NewApplication` constructs both a `*pgxpool.Pool` (for everything else) and a `*sql.DB` (required by `watermill-sql/v3`). Don't unify them.
+- **Two DB handles, on purpose**: `app.NewApplication` constructs both a `*pgxpool.Pool` (for everything else) and a `*sql.DB` (required by `watermill-sql`, wrapped via `wmSql.BeginnerFromStdSQL`). Don't unify them.
 - **`WithTx(pgx.Tx)` lives on the adapter struct, not on the domain `Repo` interface.** Multi-aggregate writes should run inside a single pgx transaction by composing `WithTx`-wrapped adapters.
 
 ## Pointers

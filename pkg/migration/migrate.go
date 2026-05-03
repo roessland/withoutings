@@ -3,7 +3,7 @@ package migration
 import (
 	"database/sql"
 	"fmt"
-	wmSql "github.com/ThreeDotsLabs/watermill-sql/v3/pkg/sql"
+	wmSql "github.com/ThreeDotsLabs/watermill-sql/v4/pkg/sql"
 	"github.com/golang-migrate/migrate/v4"
 	migratepgx "github.com/golang-migrate/migrate/v4/database/pgx"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
@@ -44,9 +44,15 @@ func Run(db *sql.DB) {
 
 	// Run watermill migrations, create topic tables.
 	// These tables store the messages for each topic.
+	// v4 wraps adapter inputs in *Params structs and returns errors from the
+	// SchemaInitializingQueries methods.
 	watermillSchema := wmSql.DefaultPostgreSQLSchema{}
 	for _, topicName := range topic.AllTopics {
-		initQueries := watermillSchema.SchemaInitializingQueries(topicName)
+		initQueries, err := watermillSchema.SchemaInitializingQueries(wmSql.SchemaInitializingQueriesParams{Topic: topicName})
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Unable to build schema queries: %v\n", err)
+			os.Exit(1)
+		}
 		for _, q := range initQueries {
 			_, err = db.Exec(q.Query)
 			if err != nil {
@@ -60,7 +66,11 @@ func Run(db *sql.DB) {
 	// These store the last processed message offset for each topic, for each consumer group.
 	watermillOffsetsSchema := wmSql.DefaultPostgreSQLOffsetsAdapter{}
 	for _, topicName := range topic.AllTopics {
-		initQueries := watermillOffsetsSchema.SchemaInitializingQueries(topicName)
+		initQueries, err := watermillOffsetsSchema.SchemaInitializingQueries(wmSql.OffsetsSchemaInitializingQueriesParams{Topic: topicName})
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Unable to build offsets queries: %v\n", err)
+			os.Exit(1)
+		}
 		for _, q := range initQueries {
 			_, err = db.Exec(q.Query)
 			if err != nil {

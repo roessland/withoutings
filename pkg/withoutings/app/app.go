@@ -6,7 +6,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	wmSql "github.com/ThreeDotsLabs/watermill-sql/v3/pkg/sql"
+	wmSql "github.com/ThreeDotsLabs/watermill-sql/v4/pkg/sql"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"time"
 
@@ -114,9 +114,11 @@ func NewApplication(ctx context.Context, cfg *config.Config) *App {
 
 	watermillLogger := logging.NewLogrusWatermill(log)
 
-	// Watermill SQL PubSub
+	// Watermill SQL PubSub. v4 takes a sql.Beginner abstraction rather than
+	// *sql.DB directly; BeginnerFromStdSQL adapts the existing handle.
+	wmDB := wmSql.BeginnerFromStdSQL(stdDB)
 	sqlPublisher, err := wmSql.NewPublisher(
-		stdDB,
+		wmDB,
 		wmSql.PublisherConfig{
 			SchemaAdapter: wmSql.DefaultPostgreSQLSchema{},
 		},
@@ -126,7 +128,7 @@ func NewApplication(ctx context.Context, cfg *config.Config) *App {
 		panic(err)
 	}
 	sqlSubscriber, err := wmSql.NewSubscriber(
-		stdDB,
+		wmDB,
 		wmSql.SubscriberConfig{
 			SchemaAdapter:  wmSql.DefaultPostgreSQLSchema{},
 			OffsetsAdapter: wmSql.DefaultPostgreSQLOffsetsAdapter{},

@@ -3,7 +3,7 @@ package app
 import (
 	"context"
 	"database/sql"
-	wmSql "github.com/ThreeDotsLabs/watermill-sql/v3/pkg/sql"
+	wmSql "github.com/ThreeDotsLabs/watermill-sql/v4/pkg/sql"
 	"testing"
 
 	"github.com/alexedwards/scs/pgxstore"
@@ -48,10 +48,12 @@ func NewTestApplication(t *testing.T, ctx context.Context, database *pgxpool.Poo
 	mockWithingsRepo := withings.NewMockRepo(t)
 	mockWithingsSvc := withingsService.NewMockService(t)
 
-	// Watermill SQL PubSub
+	// Watermill SQL PubSub. v4 takes a sql.Beginner abstraction rather than
+	// *sql.DB directly; BeginnerFromStdSQL adapts the existing handle.
 	watermillLogger := logging.NewLogrusWatermill(log)
+	wmDB := wmSql.BeginnerFromStdSQL(stdDB)
 	sqlPublisher, err := wmSql.NewPublisher(
-		stdDB,
+		wmDB,
 		wmSql.PublisherConfig{
 			SchemaAdapter: wmSql.DefaultPostgreSQLSchema{},
 		},
@@ -61,7 +63,7 @@ func NewTestApplication(t *testing.T, ctx context.Context, database *pgxpool.Poo
 		panic(err)
 	}
 	sqlSubscriber, err := wmSql.NewSubscriber(
-		stdDB,
+		wmDB,
 		wmSql.SubscriberConfig{
 			SchemaAdapter:  wmSql.DefaultPostgreSQLSchema{},
 			OffsetsAdapter: wmSql.DefaultPostgreSQLOffsetsAdapter{},
