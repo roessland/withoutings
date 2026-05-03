@@ -78,15 +78,17 @@ func TestNotificationsPage(t *testing.T) {
 		defer cancelWorker()
 
 		// Pin params so a regression in the YMD-vs-Unix split is caught.
-		// Daily endpoints use the date directly; intraday uses a widened
-		// [day-24h, day+48h] UTC window so any user timezone is covered.
+		// Daily endpoints use the date directly. Intraday uses a precise
+		// local-day window derived from the timezone field on the first
+		// activity row in the Getactivity response (Europe/Oslo, +01:00 in
+		// January) — see the success fixture.
 		getactivityParams := withings.NewMeasureGetactivityParams()
 		getactivityParams.Startdateymd = "2022-01-26"
 		getactivityParams.Enddateymd = "2022-01-26"
 
 		intradayParams := withings.NewMeasureGetintradayactivityParams()
-		intradayParams.Startdate = 1643068800 // 2022-01-25 00:00 UTC
-		intradayParams.Enddate = 1643328000   // 2022-01-28 00:00 UTC
+		intradayParams.Startdate = 1643151600 // 2022-01-26 00:00 Europe/Oslo
+		intradayParams.Enddate = 1643238000   // 2022-01-27 00:00 Europe/Oslo
 
 		getworkoutsParams := withings.NewMeasureGetworkoutsParams()
 		getworkoutsParams.Startdateymd = "2022-01-26"
@@ -125,11 +127,17 @@ func TestNotificationsPage(t *testing.T) {
 		workerCtx, cancelWorker := context.WithCancel(it.Ctx)
 		defer cancelWorker()
 
+		// With no activity rows we can't read a timezone, so the intraday
+		// window falls back to UTC midnight-to-midnight.
+		intradayParams := withings.NewMeasureGetintradayactivityParams()
+		intradayParams.Startdate = 1643155200 // 2022-01-26 00:00 UTC
+		intradayParams.Enddate = 1643241600   // 2022-01-27 00:00 UTC
+
 		it.Mocks.MockWithingsSvc.EXPECT().
 			MeasureGetactivity(mock.Anything, mock.Anything, mock.Anything).
 			Return(withings.MustNewMeasureGetactivityResponse(withingstestdata.MeasureGetactivityNoData), nil)
 		it.Mocks.MockWithingsSvc.EXPECT().
-			MeasureGetintradayactivity(mock.Anything, mock.Anything, mock.Anything).
+			MeasureGetintradayactivity(mock.Anything, mock.Anything, intradayParams).
 			Return(withings.MustNewMeasureGetintradayactivityResponse(withingstestdata.MeasureGetintradayactivityNoData), nil)
 		it.Mocks.MockWithingsSvc.EXPECT().
 			MeasureGetworkouts(mock.Anything, mock.Anything, mock.Anything).

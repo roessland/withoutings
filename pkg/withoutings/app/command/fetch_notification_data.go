@@ -2,6 +2,7 @@ package command
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -14,6 +15,29 @@ import (
 	"net/url"
 	"time"
 )
+
+// localDayForAppli16 resolves the user's local-day boundary for an appli=16
+// webhook. It picks the timezone from the first activity row in the
+// Getactivity response (Withings tags every row with a timezone). If no
+// activity row is present or the timezone is missing/unknown, it falls back
+// to UTC.
+func localDayForAppli16(dateStr string, activities []json.RawMessage) (time.Time, *time.Location) {
+	loc := time.UTC
+	for _, raw := range activities {
+		var probe struct {
+			Timezone string `json:"timezone"`
+		}
+		if err := json.Unmarshal(raw, &probe); err != nil || probe.Timezone == "" {
+			continue
+		}
+		if l, err := time.LoadLocation(probe.Timezone); err == nil {
+			loc = l
+			break
+		}
+	}
+	day, _ := time.ParseInLocation("2006-01-02", dateStr, loc)
+	return day, loc
+}
 
 type FetchNotificationData struct {
 	Notification *subscription.Notification
@@ -241,8 +265,7 @@ func (h fetchNotificationDataHandler) getAvailableData16(
 	log := logging.MustGetLoggerFromContext(ctx)
 	log = log.WithField("appli", parsedParams.Appli)
 
-	day, err := time.Parse("2006-01-02", parsedParams.DateStr)
-	if err != nil {
+	if _, err := time.Parse("2006-01-02", parsedParams.DateStr); err != nil {
 		// Treat malformed date as a permanent error: log and drop the
 		// notification rather than letting watermill redeliver indefinitely.
 		log.WithError(err).
@@ -269,12 +292,16 @@ func (h fetchNotificationDataHandler) getAvailableData16(
 		service:   subscription.NotificationDataServiceMeasurev2Getactivity,
 	})
 
-	// The webhook does not carry the user's timezone, so widen the intraday
-	// window to [day-24h, day+48h] (UTC). That covers any local day named by
-	// DateStr regardless of the account's UTC offset (-12..+14).
+	// The webhook doesn't carry timezone, but each activity row in the
+	// Getactivity response does. Use it (DST-safe via AddDate) to compute the
+	// intraday window in the user's local day. Fall back to UTC when the day
+	// has zero activities — those days almost never have intraday samples
+	// either, so the UTC fallback won't drop real data in practice.
+	day, loc := localDayForAppli16(parsedParams.DateStr, getactivityResp.Body.Activities)
 	intradayParams := withings.NewMeasureGetintradayactivityParams()
-	intradayParams.Startdate = day.Add(-24 * time.Hour).Unix()
-	intradayParams.Enddate = day.Add(48 * time.Hour).Unix()
+	intradayParams.Startdate = day.Unix()
+	intradayParams.Enddate = day.AddDate(0, 0, 1).Unix()
+	log = log.WithField("intraday_tz", loc.String())
 	intradayResp, err := h.withingsSvc.MeasureGetintradayactivity(ctx, acc, intradayParams)
 	if err != nil {
 		log.WithError(err).
