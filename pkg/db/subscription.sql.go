@@ -212,6 +212,46 @@ func (q *Queries) GetNotificationByUUID(ctx context.Context, notificationUuid uu
 	return i, err
 }
 
+const getNotificationDataByAccountUUIDAndService = `-- name: GetNotificationDataByAccountUUIDAndService :many
+SELECT notification_data_uuid, account_uuid, notification_uuid, service, data, fetched_at
+FROM notification_data
+WHERE account_uuid = $1
+  AND service = $2
+ORDER BY fetched_at DESC
+`
+
+type GetNotificationDataByAccountUUIDAndServiceParams struct {
+	AccountUuid uuid.UUID
+	Service     string
+}
+
+func (q *Queries) GetNotificationDataByAccountUUIDAndService(ctx context.Context, arg GetNotificationDataByAccountUUIDAndServiceParams) ([]NotificationDatum, error) {
+	rows, err := q.db.Query(ctx, getNotificationDataByAccountUUIDAndService, arg.AccountUuid, arg.Service)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []NotificationDatum
+	for rows.Next() {
+		var i NotificationDatum
+		if err := rows.Scan(
+			&i.NotificationDataUuid,
+			&i.AccountUuid,
+			&i.NotificationUuid,
+			&i.Service,
+			&i.Data,
+			&i.FetchedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getNotificationDataByNotificationUUID = `-- name: GetNotificationDataByNotificationUUID :many
 SELECT notification_data_uuid, account_uuid, notification_uuid, service, data, fetched_at
 FROM notification_data

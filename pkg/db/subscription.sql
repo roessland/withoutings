@@ -143,3 +143,10 @@ ON CONFLICT (notification_uuid, service) DO NOTHING;
 SELECT *
 FROM notification_data
 WHERE notification_uuid = $1;
+
+-- name: GetNotificationDataByAccountUUIDAndService :many
+SELECT *
+FROM notification_data
+WHERE account_uuid = $1
+  AND service = $2
+ORDER BY fetched_at DESC;

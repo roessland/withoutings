@@ -122,6 +122,24 @@ func (t *Templates) RenderRefreshAccessToken(ctx context.Context, w io.Writer, t
 	})
 }
 
+type SleepSessionVars struct {
+	Context TemplateContext
+	Error   string
+	View    interface{}
+}
+
+func (t *Templates) RenderSleepSession(ctx context.Context, w io.Writer, view interface{}) error {
+	tmpl, err := template.New("base.gohtml").ParseFS(t.FS, "base.gohtml", "sleepsession.gohtml")
+	if err != nil {
+		panic(err.Error())
+	}
+	tmpl.Option("missingkey=error")
+	return tmpl.ExecuteTemplate(w, "base.gohtml", SleepSessionVars{
+		Context: extractTemplateContext(ctx),
+		View:    view,
+	})
+}
+
 type SleepSummariesVars struct {
 	SleepData interface{}
 	Token     *withings.Token

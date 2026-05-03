@@ -1,0 +1,106 @@
+{{define "title"}}Sleep session{{end}}
+
+{{define "content"}}
+  <style>
+    svg.sleepviz { width: 100%; max-width: 800px; height: auto; display: block; margin-bottom: 1rem; background: #fafafa; border: 1px solid #eee; }
+  </style>
+
+  <p><a href="/sleepsummaries">&larr; Back to 30-day sleep</a></p>
+
+  {{ with .View }}
+    {{ if not .Found }}
+      <article class="message is-warning">
+        <div class="message-header"><p>No stored data for this session</p></div>
+        <div class="message-body">
+          The detail page reads from notification data fetched via webhooks. We have no
+          stored <code>Sleep v2 - Getsummary</code> entry with startdate {{ .Startdate }}.
+        </div>
+      </article>
+    {{ else }}
+      <h1 class="title is-4">Sleep session — {{ .Date }}</h1>
+      <p class="subtitle is-6">{{ .StartLocal }} → {{ .EndLocal }} ({{ .Timezone }})</p>
+
+      <div class="columns is-multiline">
+        <div class="column is-3">
+          <div class="box">
+            <p class="heading">Sleep score</p>
+            <p class="title">{{ .SleepScore }}</p>
+            <progress class="progress is-info" value="{{ .SleepScore }}" max="100">{{ .SleepScore }}</progress>
+          </div>
+        </div>
+        <div class="column is-3">
+          <div class="box">
+            <p class="heading">Total sleep</p>
+            <p class="title is-5">{{ .DurationStr }}</p>
+            <p>Efficiency {{ .Efficiency }}%</p>
+          </div>
+        </div>
+        <div class="column is-3">
+          <div class="box">
+            <p class="heading">Heart rate</p>
+            <p class="title is-5">{{ .HRAvg }} bpm</p>
+            <p>min {{ .HRMin }} · max {{ .HRMax }}</p>
+          </div>
+        </div>
+        <div class="column is-3">
+          <div class="box">
+            <p class="heading">Respiration</p>
+            <p class="title is-5">{{ .RRAvg }} rpm</p>
+            <p>min {{ .RRMin }} · max {{ .RRMax }}</p>
+          </div>
+        </div>
+        <div class="column is-3">
+          <div class="box">
+            <p class="heading">Light sleep</p>
+            <p class="title is-6">{{ .Light }}</p>
+          </div>
+        </div>
+        <div class="column is-3">
+          <div class="box">
+            <p class="heading">Deep sleep</p>
+            <p class="title is-6">{{ .Deep }}</p>
+          </div>
+        </div>
+        <div class="column is-3">
+          <div class="box">
+            <p class="heading">REM</p>
+            <p class="title is-6">{{ .REM }}</p>
+          </div>
+        </div>
+        <div class="column is-3">
+          <div class="box">
+            <p class="heading">Awake</p>
+            <p class="title is-6">{{ .Awake }}</p>
+          </div>
+        </div>
+        <div class="column is-3">
+          <div class="box">
+            <p class="heading">Snoring</p>
+            <p class="title is-6">{{ .Snoring }}</p>
+            <p>{{ .SnoringCount }} episodes</p>
+          </div>
+        </div>
+        <div class="column is-3">
+          <div class="box">
+            <p class="heading">AHI</p>
+            <p class="title is-6">{{ printf "%.1f" .AHI }}</p>
+          </div>
+        </div>
+        <div class="column is-3">
+          <div class="box">
+            <p class="heading">Breathing disturbances</p>
+            <p class="title is-6">{{ .BreathingDist }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        {{ .Hypnogram }}
+        {{ .HRChart }}
+        {{ .RRChart }}
+        {{ .HRVChart }}
+        {{ .Snoring01 }}
+      </div>
+    {{ end }}
+  {{ end }}
+{{end}}

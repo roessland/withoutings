@@ -456,6 +456,17 @@ func (r PgRepo) GetNotificationDataByNotificationUUID(ctx context.Context, notif
 	return toDomainNotificationData(dbNotificationData)
 }
 
+func (r PgRepo) GetNotificationDataByAccountUUIDAndService(ctx context.Context, accountUUID uuid.UUID, service subscription.NotificationDataService) ([]*subscription.NotificationData, error) {
+	dbNotificationData, err := r.queries.GetNotificationDataByAccountUUIDAndService(ctx, db.GetNotificationDataByAccountUUIDAndServiceParams{
+		AccountUuid: accountUUID,
+		Service:     string(service),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return toDomainNotificationData(dbNotificationData)
+}
+
 func toDomainNotificationDatum(dbNotificationData db.NotificationDatum) (*subscription.NotificationData, error) {
 	service, err := subscription.NewNotificationDataService(dbNotificationData.Service)
 	if err != nil {
