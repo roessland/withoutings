@@ -109,4 +109,49 @@ func TestSubscriptionPgRepo(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, notifications, 1)
 	})
+
+	t.Run("GetNotificationDataByAccountAndServiceAndOverlappingWindow returns only overlapping rows", func(t *testing.T) {
+		// Three Sleep v2 - Get rows: only the middle one's body.series
+		// overlaps the requested [3000, 4000] window. The other two are
+		// strictly before / strictly after and must be filtered in SQL.
+		insert := func(notifUUID uuid.UUID, body string) {
+			t.Helper()
+			notif := subscription.MustNewNotification(subscription.NewNotificationParams{
+				NotificationUUID:    notifUUID,
+				AccountUUID:         accountUUID,
+				ReceivedAt:          time.Now(),
+				Params:              "x",
+				DataStatus:          subscription.NotificationDataStatusFetched,
+				FetchedAt:           ptrTimeAdapter(time.Now()),
+				RawNotificationUUID: uuid.New(),
+				Source:              "test",
+			})
+			require.NoError(t, repo.CreateNotification(ctx, notif))
+			data := subscription.MustNewNotificationData(subscription.NewNotificationDataParams{
+				NotificationDataUUID: uuid.New(),
+				NotificationUUID:     notifUUID,
+				AccountUUID:          accountUUID,
+				Service:              subscription.NotificationDataServiceSleepv2Get,
+				Data:                 []byte(body),
+				FetchedAt:            time.Now(),
+			})
+			require.NoError(t, repo.StoreNotificationData(ctx, data))
+		}
+
+		before := uuid.New()
+		insert(before, `{"body":{"series":[{"startdate":1000,"enddate":2000,"state":1}]}}`)
+		matching := uuid.New()
+		insert(matching, `{"body":{"series":[{"startdate":3500,"enddate":3800,"state":1}]}}`)
+		after := uuid.New()
+		insert(after, `{"body":{"series":[{"startdate":5000,"enddate":6000,"state":1}]}}`)
+
+		rows, err := repo.GetNotificationDataByAccountAndServiceAndOverlappingWindow(
+			ctx, accountUUID, subscription.NotificationDataServiceSleepv2Get, 3000, 4000,
+		)
+		require.NoError(t, err)
+		require.Len(t, rows, 1, "only the row whose segment overlaps [3000,4000] should be returned")
+		require.Equal(t, matching, rows[0].NotificationUUID())
+	})
 }
+
+func ptrTimeAdapter(t time.Time) *time.Time { return &t }

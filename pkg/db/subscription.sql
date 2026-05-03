@@ -164,3 +164,23 @@ WHERE account_uuid = $1
   AND data -> 'body' -> 'series' @> jsonb_build_array(jsonb_build_object('startdate', sqlc.arg(startdate)::bigint))
 ORDER BY fetched_at DESC
 LIMIT 1;
+
+-- name: GetNotificationDataByAccountAndServiceAndOverlappingWindow :many
+-- Returns notification_data rows whose JSONB body.series array contains at
+-- least one segment overlapping [window_start, window_end]. Used by the
+-- sleep detail page to fetch only the Sleep v2 - Get rows that actually
+-- contribute to the requested session, rather than every stored Get blob
+-- (which is hundreds of KB per row when the user has months of history).
+-- The EXISTS keeps this a per-row check in Postgres so we never transfer
+-- (and Go never unmarshals) rows that can't contribute.
+SELECT *
+FROM notification_data
+WHERE account_uuid = $1
+  AND service = $2
+  AND EXISTS (
+    SELECT 1
+    FROM jsonb_array_elements(data -> 'body' -> 'series') seg
+    WHERE (seg ->> 'startdate')::bigint < sqlc.arg(window_end)::bigint
+      AND (seg ->> 'enddate')::bigint > sqlc.arg(window_start)::bigint
+  )
+ORDER BY fetched_at DESC;

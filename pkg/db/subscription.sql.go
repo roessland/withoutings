@@ -212,6 +212,66 @@ func (q *Queries) GetNotificationByUUID(ctx context.Context, notificationUuid uu
 	return i, err
 }
 
+const getNotificationDataByAccountAndServiceAndOverlappingWindow = `-- name: GetNotificationDataByAccountAndServiceAndOverlappingWindow :many
+SELECT notification_data_uuid, account_uuid, notification_uuid, service, data, fetched_at
+FROM notification_data
+WHERE account_uuid = $1
+  AND service = $2
+  AND EXISTS (
+    SELECT 1
+    FROM jsonb_array_elements(data -> 'body' -> 'series') seg
+    WHERE (seg ->> 'startdate')::bigint < $3::bigint
+      AND (seg ->> 'enddate')::bigint > $4::bigint
+  )
+ORDER BY fetched_at DESC
+`
+
+type GetNotificationDataByAccountAndServiceAndOverlappingWindowParams struct {
+	AccountUuid uuid.UUID
+	Service     string
+	WindowEnd   int64
+	WindowStart int64
+}
+
+// Returns notification_data rows whose JSONB body.series array contains at
+// least one segment overlapping [window_start, window_end]. Used by the
+// sleep detail page to fetch only the Sleep v2 - Get rows that actually
+// contribute to the requested session, rather than every stored Get blob
+// (which is hundreds of KB per row when the user has months of history).
+// The EXISTS keeps this a per-row check in Postgres so we never transfer
+// (and Go never unmarshals) rows that can't contribute.
+func (q *Queries) GetNotificationDataByAccountAndServiceAndOverlappingWindow(ctx context.Context, arg GetNotificationDataByAccountAndServiceAndOverlappingWindowParams) ([]NotificationDatum, error) {
+	rows, err := q.db.Query(ctx, getNotificationDataByAccountAndServiceAndOverlappingWindow,
+		arg.AccountUuid,
+		arg.Service,
+		arg.WindowEnd,
+		arg.WindowStart,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []NotificationDatum
+	for rows.Next() {
+		var i NotificationDatum
+		if err := rows.Scan(
+			&i.NotificationDataUuid,
+			&i.AccountUuid,
+			&i.NotificationUuid,
+			&i.Service,
+			&i.Data,
+			&i.FetchedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getNotificationDataByAccountAndServiceAndSeriesStartdate = `-- name: GetNotificationDataByAccountAndServiceAndSeriesStartdate :many
 SELECT notification_data_uuid, account_uuid, notification_uuid, service, data, fetched_at
 FROM notification_data

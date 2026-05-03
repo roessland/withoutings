@@ -396,6 +396,92 @@ func (_c *MockRepo_GetNotificationByUUID_Call) RunAndReturn(run func(ctx context
 	return _c
 }
 
+// GetNotificationDataByAccountAndServiceAndOverlappingWindow provides a mock function for the type MockRepo
+func (_mock *MockRepo) GetNotificationDataByAccountAndServiceAndOverlappingWindow(ctx context.Context, accountUUID uuid.UUID, service NotificationDataService, windowStart int64, windowEnd int64) ([]*NotificationData, error) {
+	ret := _mock.Called(ctx, accountUUID, service, windowStart, windowEnd)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetNotificationDataByAccountAndServiceAndOverlappingWindow")
+	}
+
+	var r0 []*NotificationData
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, NotificationDataService, int64, int64) ([]*NotificationData, error)); ok {
+		return returnFunc(ctx, accountUUID, service, windowStart, windowEnd)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, NotificationDataService, int64, int64) []*NotificationData); ok {
+		r0 = returnFunc(ctx, accountUUID, service, windowStart, windowEnd)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*NotificationData)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID, NotificationDataService, int64, int64) error); ok {
+		r1 = returnFunc(ctx, accountUUID, service, windowStart, windowEnd)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockRepo_GetNotificationDataByAccountAndServiceAndOverlappingWindow_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetNotificationDataByAccountAndServiceAndOverlappingWindow'
+type MockRepo_GetNotificationDataByAccountAndServiceAndOverlappingWindow_Call struct {
+	*mock.Call
+}
+
+// GetNotificationDataByAccountAndServiceAndOverlappingWindow is a helper method to define mock.On call
+//   - ctx context.Context
+//   - accountUUID uuid.UUID
+//   - service NotificationDataService
+//   - windowStart int64
+//   - windowEnd int64
+func (_e *MockRepo_Expecter) GetNotificationDataByAccountAndServiceAndOverlappingWindow(ctx interface{}, accountUUID interface{}, service interface{}, windowStart interface{}, windowEnd interface{}) *MockRepo_GetNotificationDataByAccountAndServiceAndOverlappingWindow_Call {
+	return &MockRepo_GetNotificationDataByAccountAndServiceAndOverlappingWindow_Call{Call: _e.mock.On("GetNotificationDataByAccountAndServiceAndOverlappingWindow", ctx, accountUUID, service, windowStart, windowEnd)}
+}
+
+func (_c *MockRepo_GetNotificationDataByAccountAndServiceAndOverlappingWindow_Call) Run(run func(ctx context.Context, accountUUID uuid.UUID, service NotificationDataService, windowStart int64, windowEnd int64)) *MockRepo_GetNotificationDataByAccountAndServiceAndOverlappingWindow_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uuid.UUID
+		if args[1] != nil {
+			arg1 = args[1].(uuid.UUID)
+		}
+		var arg2 NotificationDataService
+		if args[2] != nil {
+			arg2 = args[2].(NotificationDataService)
+		}
+		var arg3 int64
+		if args[3] != nil {
+			arg3 = args[3].(int64)
+		}
+		var arg4 int64
+		if args[4] != nil {
+			arg4 = args[4].(int64)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+			arg4,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRepo_GetNotificationDataByAccountAndServiceAndOverlappingWindow_Call) Return(notificationDatas []*NotificationData, err error) *MockRepo_GetNotificationDataByAccountAndServiceAndOverlappingWindow_Call {
+	_c.Call.Return(notificationDatas, err)
+	return _c
+}
+
+func (_c *MockRepo_GetNotificationDataByAccountAndServiceAndOverlappingWindow_Call) RunAndReturn(run func(ctx context.Context, accountUUID uuid.UUID, service NotificationDataService, windowStart int64, windowEnd int64) ([]*NotificationData, error)) *MockRepo_GetNotificationDataByAccountAndServiceAndOverlappingWindow_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetNotificationDataByAccountAndServiceAndSeriesStartdate provides a mock function for the type MockRepo
 func (_mock *MockRepo) GetNotificationDataByAccountAndServiceAndSeriesStartdate(ctx context.Context, accountUUID uuid.UUID, service NotificationDataService, startdate int64) (*NotificationData, error) {
 	ret := _mock.Called(ctx, accountUUID, service, startdate)
