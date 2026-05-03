@@ -6,6 +6,7 @@ import (
 	"github.com/roessland/withoutings/pkg/integrationtest"
 	"github.com/roessland/withoutings/pkg/withoutings/adapter/withings/withingstestdata"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/account"
+	"github.com/roessland/withoutings/pkg/withoutings/domain/subscription"
 	"github.com/roessland/withoutings/pkg/withoutings/domain/withings"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -182,6 +183,35 @@ func TestNotificationsPage(t *testing.T) {
 			assert.Equal(c, 200, resp.Code)
 			assert.NotContains(c, body, "Measure v2 - ")
 		}, 10*time.Second, 300*time.Millisecond, "malformed date should be handled without retries or service rows")
+	})
+
+	t.Run("should record appli=46 user.info notification without calling any service", func(t *testing.T) {
+		// appli=46 (user.info: delete/unlink/update) has no service to call.
+		// The handler must mark the notification as fetched without invoking
+		// any Withings API, otherwise watermill will redeliver indefinitely.
+		beforeEach(t)
+
+		workerCtx, cancelWorker := context.WithCancel(it.Ctx)
+		defer cancelWorker()
+
+		// No EXPECT(): any Withings call would be a regression. AssertExpectations
+		// also fails the test if any unexpected call is made.
+		defer it.Mocks.MockWithingsSvc.AssertExpectations(t)
+
+		go it.Worker.Work(workerCtx)
+
+		simulateIncomingWebhook(fmt.Sprintf(`userid=%s&appli=46&action=update`, acc.WithingsUserID()))
+
+		// Assert the notification reaches `fetched` rather than just looking at
+		// the rendered page — the page renders awaiting/fetched the same way,
+		// so a status check is the only way to catch the redelivery loop.
+		assert.EventuallyWithT(t, func(c *assert.CollectT) {
+			notifications, err := it.App.SubscriptionRepo.GetNotificationsByAccountUUID(it.Ctx, acc.UUID())
+			if !assert.NoError(c, err) || !assert.Len(c, notifications, 1) {
+				return
+			}
+			assert.Equal(c, subscription.NotificationDataStatusFetched, notifications[0].DataStatus())
+		}, 10*time.Second, 300*time.Millisecond, "appli=46 should be marked fetched without any service call")
 	})
 
 	t.Run("should fetch new available data from multiple services", func(t *testing.T) {

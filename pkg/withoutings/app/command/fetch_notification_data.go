@@ -152,6 +152,8 @@ func (h fetchNotificationDataHandler) getAvailableData(ctx context.Context, acc 
 		return h.getAvailableData16(ctx, acc, parsedParams)
 	case 44:
 		return h.getAvailableData44(ctx, acc, parsedParams)
+	case 46:
+		return h.getAvailableData46(ctx, acc, parsedParams)
 	case 50:
 		return h.getAvailableData50(ctx, acc, parsedParams)
 	case 51:
@@ -385,6 +387,22 @@ func (h fetchNotificationDataHandler) getAvailableData44(
 	})
 
 	return ad, nil
+}
+
+// getAvailableData46 fetches data from Withings API for appli 46:
+// New action on user profile (delete / unlink / update).
+// The webhook carries `action=...`, but Withings exposes no service to fetch
+// further data for it.
+func (h fetchNotificationDataHandler) getAvailableData46(
+	_ context.Context,
+	_ *account.Account,
+	parsedParams subscription.ParsedNotificationParams,
+) (availableDatas, error) {
+	if parsedParams.Appli != 46 {
+		panic("getAvailableData46 called with wrong application ID")
+	}
+	// No service to call
+	return availableDatas{}, nil
 }
 
 // getAvailableData50 fetches data from Withings API for appli 50:
